@@ -3,7 +3,8 @@ name: Default parser tests
 on: 
   push:
     paths:
-      - 'parser-default/**'
+      - parser-default/**
+      - .github/workflows/tests-parser-default.yml
   workflow_dispatch:
 
 jobs:
