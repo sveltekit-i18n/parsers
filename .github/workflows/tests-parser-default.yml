@@ -15,21 +15,19 @@ jobs:
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
-      - uses: actions/checkout@v2
-        with:
-          persist-credentials: false
+      - name: Checkout
+        uses: actions/checkout@v2
 
-      - uses: actions/setup-node@v1
+      - name: Node setup
+        uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
 
-      - run: |
-          cd parser-default
-          npm install
+      - name: Navigate to parser
+        run: cd parser-default
 
-      # - name: Install Dependencies
-      #   uses: bahmutov/npm-install@v1
+      - name: Install Dependencies
+        uses: bahmutov/npm-install@v1
 
-      - run: npm run test
-        env:
-          tests: true
+      - name: Run tests
+        run: npm run test
