@@ -22,8 +22,7 @@
     "lint": "eslint --fix --ext .ts,.js --ignore-path .gitignore ."
   },
   "files": [
-    "lib",
-    "types"
+    "dist"
   ],
   "pre-commit": [
     "lint"
