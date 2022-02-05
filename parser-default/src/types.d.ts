@@ -8,9 +8,11 @@ export type DefaultModifiers = Record<ModifierKey, Modifier>;
 
 export type CustomModifiers = Record<string, Modifier>;
 
-export type Parser = (config: {
+export type ParserOptions = {
   customModifiers?: CustomModifiers;
-}) => {
+};
+
+export type Parser = (options: ParserOptions) => {
   parse: (props: {
     translations: Record<string, Record<string, any>>;
     key: string;

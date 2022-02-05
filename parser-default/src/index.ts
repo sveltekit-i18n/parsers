@@ -1,9 +1,9 @@
 import * as defaultModifiers from './modifiers';
 import { useDefault } from './utils';
 
-import type { CustomModifiers, ModifierOption, Parser, Modifier } from './types';
+import type { Parser, ParserOptions, Modifier, ModifierOption, CustomModifiers  } from './types';
 
-export { Parser, Modifier };
+export { Parser, ParserOptions, Modifier, ModifierOption, CustomModifiers };
 
 const hasPlaceholders = (text:string = '') => /{{(?:(?!{{|}}).)+}}/.test(`${text}`);
 
