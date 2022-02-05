@@ -21,10 +21,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - run: cd parser-default
+      - run: |
+          cd parser-default
+          npm install
 
-      - name: Install Dependencies
-        uses: bahmutov/npm-install@v1
+      # - name: Install Dependencies
+      #   uses: bahmutov/npm-install@v1
 
       - run: npm run test
         env:
