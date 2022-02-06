@@ -14,6 +14,8 @@ export type ParserOptions = {
   customModifiers?: CustomModifiers;
 };
 
+export type ParserParams = [payload?: Record<string | 'default', any>, ...rest: unknown[]];
+
 export type Parser = (options: ParserOptions) => {
-  parse: Parse<Record<any | 'default', any>>;
+  parse: Parse<ParserParams>;
 };

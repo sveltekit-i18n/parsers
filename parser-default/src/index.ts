@@ -1,9 +1,7 @@
 import * as defaultModifiers from './modifiers';
-import { useDefault } from './utils';
+import type { Parser, ParserParams, ParserOptions, Modifier, ModifierOption, CustomModifiers } from './types';
 
-import type { Parser, ParserOptions, Modifier, ModifierOption, CustomModifiers  } from './types';
-
-export { Parser, ParserOptions, Modifier, ModifierOption, CustomModifiers };
+export { Parser, ParserParams, ParserOptions, Modifier, ModifierOption, CustomModifiers };
 
 const hasPlaceholders = (text:string = '') => /{{(?:(?!{{|}}).)+}}/.test(`${text}`);
 
@@ -12,21 +10,21 @@ const unesc = (text:string) => text.replace(/\\(?=:|;|{|})/g, '');
 const placeholders = (text: string, payload: Record<any, any> = {}, customModifiers: CustomModifiers = {}, locale?: string) => text.replace(/{{\s*(?:(?!{{|}}).)+\s*}}/g, (placeholder: string) => {
   const key = unesc(`${placeholder.match(/(?!{|\s).+?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/)}`);
   const value = payload?.[key];
-  const [,defaultValue = ''] = useDefault(placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*([^\s:;].+?(?:\\[:;]|[^;\s}])*)(?=\s*(?:;|}}$))/i), []);
+  const [,defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*([^\s:;].+?(?:\\[:;]|[^;\s}])*)(?=\s*(?:;|}}$))/i) || [];
 
-  let [,modifierKey = ''] = useDefault(placeholder.match(/{{\s*(?:[^;]|(?:\\;))+\s*(?:(?!\\:).[:])\s*(?!\s)((?:\\;|[^;])+?)(?=\s*(?:[;]|}}$))/i), []);
+  let [,modifierKey = ''] = placeholder.match(/{{\s*(?:[^;]|(?:\\;))+\s*(?:(?!\\:).[:])\s*(?!\s)((?:\\;|[^;])+?)(?=\s*(?:[;]|}}$))/i) || [];
 
   if (value === undefined && modifierKey !== 'ne') return defaultValue;
 
   const hasModifier = !!modifierKey;
 
-  const modifiers: CustomModifiers = { ...defaultModifiers, ...useDefault(customModifiers) };
+  const modifiers: CustomModifiers = { ...defaultModifiers, ...(customModifiers || {}) };
 
   modifierKey = Object.keys(modifiers).includes(modifierKey) ? modifierKey : 'eq';
 
   const modifier = modifiers[modifierKey];
-  const options: ModifierOption[] = useDefault<any[]>(
-    placeholder.match(/[^\s:;{](?:[^;]|\\[;])+[^\s:;}]/gi), [],
+  const options = (
+    placeholder.match(/[^\s:;{](?:[^;]|\\[;])+[^\s:;}]/gi) || []
   ).reduce(
     (acc, option, i) => {
       // NOTE: First item is placeholder and modifier
@@ -38,7 +36,7 @@ const placeholders = (text: string, payload: Record<any, any> = {}, customModifi
       }
 
       return acc;
-    }, [],
+    }, [] as ModifierOption[],
   );
 
   if (!hasModifier && !options.length) return `${value}`;
@@ -58,15 +56,7 @@ const interpolate = (text: string, payload: Record<any, any> = {}, customModifie
 };
 
 const parser: Parser = ({ customModifiers = {} } = {}) => ({
-  parse: ({ translations = {}, key, payload, locale, fallbackLocale }) => {
-    if (!key) throw new Error('No key provided to $t()');
-    if (!locale) throw new Error('No locale set!');
-
-    let text = useDefault(translations[locale])[key];
-
-    if (fallbackLocale && text === undefined) {
-      text = useDefault(translations[fallbackLocale])[key];
-    }
+  parse: (text, [payload], locale, key) => {
 
     if (payload?.default && text === undefined) {
       text = `${payload.default}`;

@@ -1,28 +1,28 @@
-import { useDefault, findOption } from './utils';
-import type { Modifier, ModifierOption } from './types';
+import { findOption } from './utils';
+import type { Modifier } from './types';
 
-export const eq: Modifier = (value, options = [], defaultValue = '') => useDefault(options.find(
+export const eq: Modifier = (value, options = [], defaultValue = '') => (options.find(
   ({ key }) => `${key}`.toLowerCase() === `${value}`.toLowerCase(),
-)).value || defaultValue;
+) || {}).value || defaultValue;
 
-export const ne: Modifier = (value, options = [], defaultValue = '') => useDefault(options.find(
+export const ne: Modifier = (value, options = [], defaultValue = '') => (options.find(
   ({ key }) => `${key}`.toLowerCase() !== `${value}`.toLowerCase(),
-)).value || defaultValue;
+) || {}).value || defaultValue;
 
 export const lt: Modifier = (value, options = [], defaultValue = '') => {
   const sortedOptions = options.sort((a, b) => +a.key - +b.key);
 
-  return useDefault<ModifierOption>(sortedOptions.find(
+  return (sortedOptions.find(
     ({ key }) => +value < +key,
-  )).value || defaultValue;
+  ) || {}).value || defaultValue;
 };
 
 export const gt: Modifier = (value, options = [], defaultValue = '') => {
   const sortedOptions = options.sort((a, b) => +b.key - +a.key);
 
-  return useDefault<ModifierOption>(sortedOptions.find(
+  return (sortedOptions.find(
     ({ key }) => +value > +key,
-  )).value || defaultValue;
+  ) || {}).value || defaultValue;
 };
 
 export const lte: Modifier = (value, options = [], defaultValue = '') => eq(value, options, lt(value, options, defaultValue));
