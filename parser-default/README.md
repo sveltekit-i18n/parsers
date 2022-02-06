@@ -62,7 +62,7 @@ The `default` value can be also set dynamically using the translation payload in
 ```javascript
 $t(`error.${code}`, { default: $t('error.default') })
 ```
-This value is used in case no `default` value is defined within the placeholder definition itself. For more, see `Dynamic default` section in [parser-default)](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-default) example.
+This value is used in case no `default` value is defined within the placeholder definition itself. For more, see `Dynamic default` section in [parser-default](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-default) example.
 
 ### Modifiers
 Modifiers don't represent the payload value directly, but they can use it for further calculations. Currently, these modifiers are in place:
