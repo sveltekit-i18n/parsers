@@ -24,14 +24,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Install and test
+      - name: Install dependencies and Run tests
         run: |
           cd parser-default
           npm install
           npm run test
-
-      #- name: Install Dependencies
-      #  uses: bahmutov/npm-install@v1
-
-      #- name: Run tests
-      #  run: npm run test
