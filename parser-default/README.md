@@ -23,11 +23,10 @@ For example custom modifier `eqAbs`...
 Read more about [Modifiers](#modifiers).
 
 
-## Message format
+## Syntax
 
-Your translations should be formatted as dot-notated objects containing strings as translation values. You can use `placehoders` and `modifiers` for interpolation.
-
-Example:
+Every [placeholder](#placeholders) or [modifiers](#modifiers) starts with `{{` and ends with `}}` and can be included in your translations like this:
+ 
 ```jsonc
 {
   "prop": "Some value",
@@ -63,7 +62,7 @@ The `default` value can be also set dynamically using the translation payload in
 ```javascript
 $t(`error.${code}`, { default: $t('error.default') })
 ```
-This value is used in case no `default` value is defined within the placeholder definition itself. For more, see `Dynamic default` section in [custom-modifiers](https://github.com/sveltekit-i18n/lib/tree/master/examples/custom-modifiers) example.
+This value is used in case no `default` value is defined within the placeholder definition itself. For more, see `Dynamic default` section in [parser-default)](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-default) example.
 
 ### Modifiers
 Modifiers don't represent the payload value directly, but they can use it for further calculations. Currently, these modifiers are in place:
@@ -87,7 +86,7 @@ Each modifier returns a string value based on these input parameters:
 
 When placeholder value is not matched and you don't specify the `default` value, modifier returns an empty string.
 
-You can include your own modifiers in the [Config](#custommodifiers-recordstring-value-string-options-arraykey-string-value-string-defaultvalue-string--string)! See [Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples).
+You can include your own modifiers in [Options](#options)! See `parser-default` example in [Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples).
 
 
 Modifier definition looks like this:
