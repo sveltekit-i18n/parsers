@@ -1,3 +1,5 @@
+import type { Parse } from '@sveltekit-i18n/base';
+
 export type ModifierKey = 'lt' | 'lte' | 'eq' | 'gte' | 'gt';
 
 export type ModifierOption =  Record<'key' | 'value', string>;
@@ -13,11 +15,5 @@ export type ParserOptions = {
 };
 
 export type Parser = (options: ParserOptions) => {
-  parse: (props: {
-    translations: Record<string, Record<string, any>>;
-    key: string;
-    payload?: Record<any, any>;
-    locale?: string;
-    fallbackLocale?: string;
-  }) => string
+  parse: Parse<Record<any | 'default', any>>;
 };
