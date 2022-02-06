@@ -10,7 +10,8 @@ const unesc = (text:string) => text.replace(/\\(?=:|;|{|})/g, '');
 const placeholders = (text: string, payload: Record<any, any> = {}, customModifiers: CustomModifiers = {}, locale?: string) => text.replace(/{{\s*(?:(?!{{|}}).)+\s*}}/g, (placeholder: string) => {
   const key = unesc(`${placeholder.match(/(?!{|\s).+?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/)}`);
   const value = payload?.[key];
-  const [,defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*([^\s:;].+?(?:\\[:;]|[^;\s}])*)(?=\s*(?:;|}}$))/i) || [];
+  let [,defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*([^\s:;].+?(?:\\[:;]|[^;\s}])*)(?=\s*(?:;|}}$))/i) || [];
+  defaultValue = defaultValue || payload?.default || '';
 
   let [,modifierKey = ''] = placeholder.match(/{{\s*(?:[^;]|(?:\\;))+\s*(?:(?!\\:).[:])\s*(?!\s)((?:\\;|[^;])+?)(?=\s*(?:[;]|}}$))/i) || [];
 
