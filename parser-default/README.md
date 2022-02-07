@@ -4,7 +4,7 @@
 
 ## Options
 
-### `customModifiers`?: __Record<string, (value: string, options: Array<{ key: string; value: string; }>, defaultValue?: string, locale?: string) => string>__
+### `customModifiers`?: __Record<string, Parser>__
 You can use this property to include your own set of modifiers.
 
 For example custom modifier `eqAbs`...
