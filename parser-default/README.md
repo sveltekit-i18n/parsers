@@ -5,7 +5,7 @@
 ## Options
 
 ### `customModifiers`?: __Record<string, (value: string, options: Array<{ key: string; value: string; }>, defaultValue?: string, locale?: string) => string>__
-You can use this parameter to include your own set of modifiers.
+You can use this property to include your own set of modifiers.
 
 For example custom modifier `eqAbs`...
 ```typescript
