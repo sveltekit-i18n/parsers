@@ -33,3 +33,6 @@ const parse = (text, params, locale, key) => {
   return interpolate(message, ...params) || fallbackValue;
 }
 ```
+
+## Issues
+If you are facing some issues, create a ticket [here](https://github.com/sveltekit-i18n/lib/issues).
