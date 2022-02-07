@@ -1,13 +1,13 @@
 import * as defaultModifiers from './modifiers';
-import type { Parser, ParserParams, ParserOptions, Modifier, ModifierOption, CustomModifiers } from './types';
+import type { IParser, IModifier } from './types';
 
-export { Parser, ParserParams, ParserOptions, Modifier, ModifierOption, CustomModifiers };
+export { IParser, IModifier };
 
 const hasPlaceholders = (text:string = '') => /{{(?:(?!{{|}}).)+}}/.test(`${text}`);
 
 const unesc = (text:string) => text.replace(/\\(?=:|;|{|})/g, '');
 
-const placeholders = (text: string, payload: Record<any, any> = {}, customModifiers: CustomModifiers = {}, locale?: string) => text.replace(/{{\s*(?:(?!{{|}}).)+\s*}}/g, (placeholder: string) => {
+const placeholders = (text: string, payload: Record<any, any> = {}, customModifiers: IModifier.CustomModifiers = {}, locale?: string) => text.replace(/{{\s*(?:(?!{{|}}).)+\s*}}/g, (placeholder: string) => {
   const key = unesc(`${placeholder.match(/(?!{|\s).+?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/)}`);
   const value = payload?.[key];
   let [,defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*([^\s:;].+?(?:\\[:;]|[^;\s}])*)(?=\s*(?:;|}}$))/i) || [];
@@ -19,7 +19,7 @@ const placeholders = (text: string, payload: Record<any, any> = {}, customModifi
 
   const hasModifier = !!modifierKey;
 
-  const modifiers: CustomModifiers = { ...defaultModifiers, ...(customModifiers || {}) };
+  const modifiers: IModifier.CustomModifiers = { ...defaultModifiers, ...(customModifiers || {}) };
 
   modifierKey = Object.keys(modifiers).includes(modifierKey) ? modifierKey : 'eq';
 
@@ -37,7 +37,7 @@ const placeholders = (text: string, payload: Record<any, any> = {}, customModifi
       }
 
       return acc;
-    }, [] as ModifierOption[],
+    }, [] as IModifier.ModifierOption[],
   );
 
   if (!hasModifier && !options.length) return `${value}`;
@@ -46,7 +46,7 @@ const placeholders = (text: string, payload: Record<any, any> = {}, customModifi
 
 });
 
-const interpolate = (text: string, payload: Record<any, any> = {}, customModifiers?: CustomModifiers, locale?: string):string => {
+const interpolate = (text: string, payload: Record<any, any> = {}, customModifiers?: IModifier.CustomModifiers, locale?: string):string => {
   if (hasPlaceholders(text)) {
     const output = placeholders(text, payload, customModifiers, locale);
 
@@ -56,7 +56,7 @@ const interpolate = (text: string, payload: Record<any, any> = {}, customModifie
   }
 };
 
-const parser: Parser = ({ customModifiers = {} } = {}) => ({
+const parser: IParser.ParserFactory = ({ customModifiers = {} } = {}) => ({
   parse: (text, [payload], locale, key) => {
 
     if (payload?.default && text === undefined) {

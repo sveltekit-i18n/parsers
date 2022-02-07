@@ -1,10 +1,10 @@
 import parser from '../../src';
 
-import type { Config } from '@sveltekit-i18n/base';
+import type { IConfig } from '@sveltekit-i18n/base';
 
 export { default as TRANSLATIONS } from './translations';
 
-export const CONFIG: Config = {
+export const CONFIG: IConfig.Config = {
   initLocale: 'en',
   parser: parser({
     customModifiers: {
