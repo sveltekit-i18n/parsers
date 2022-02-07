@@ -14,17 +14,22 @@ const customParser = (customParserConfig = {}) => ({
 });
 ```
 
-### `parse`: __(props: { translations: Record<string, Record<string, any>>; key: string; payload?: Record<any, any>; locale?: string; fallbackLocale?: string; }) => string__
+### `parse`: __(text: string | undefined, params: ParserParams, locale: string, key: string) => string__
+Parse method deals with interpolation of user payload and returns a string.
 
-Example:
+__It consumes these parameters:__
+
+`text` – message text to interpolate
+`params` – array of rest parameters given by user (e.g. payload variables etc...)
+`locale` – locale of translated message
+`key` – this key is serialized path to translation (e.g., `home.content.title`)
+
+__Example:__
 
 ```js
-const parse = ({ translations, key, payload, locale, fallbackLocale }) => {
-  // Note that in production you should handle `undefined` values here
-  const translation = translations[locale] || translations[fallbackLocale];
-  const message = translation[key];
+const parse = (text, params, locale, key) => {
+  const fallbackValue = `${key} (${locale})`;
 
-  // Assuming you have your interpolation function for given variables...
-  return interpolate(message, payload);
+  return interpolate(message, ...params) || fallbackValue;
 }
 ```
