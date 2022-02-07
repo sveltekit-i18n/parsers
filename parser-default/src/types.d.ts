@@ -7,20 +7,19 @@ export namespace IModifier {
 
   export type Modifier = (value: any, options:ModifierOption[], defaultValue?: string, locale?: string) => string;
 
-  export type DefaultModifiers = Record<ModifierKey, Modifier>;
+  export type DefaultModifiers<K extends string = ModifierKey> = Record<K, Modifier>;
 
-  export type CustomModifiers = Record<string, Modifier>;
+  export type CustomModifiers = DefaultModifiers<string>;
 }
-
 
 export namespace IParser {
   export type CustomModifiers = IModifier.CustomModifiers;
 
-  export type ParserOptions = {
+  export type Options = {
     customModifiers?: CustomModifiers;
   };
 
-  export type ParserParams = [payload?: Record<string | 'default', any>, ...rest: unknown[]];
+  export type Params = [payload?: Record<string | 'default', any>, ...rest: unknown[]];
 
-  export type ParserFactory = P.ParserFactory<ParserOptions, ParserParams>;
+  export type ParserFactory = P.ParserFactory<Options, Params>;
 }
