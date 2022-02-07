@@ -35,4 +35,4 @@ const parse = (text, params, locale, key) => {
 ```
 
 ## Issues
-If you are facing some issues, create a ticket [here](https://github.com/sveltekit-i18n/lib/issues).
+If you are facing issues with some parser, create a ticket [here](https://github.com/sveltekit-i18n/lib/issues).
