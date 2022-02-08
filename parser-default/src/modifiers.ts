@@ -1,15 +1,15 @@
 import { findOption } from './utils';
-import type { IModifier } from './types';
+import type { Modifier } from './types';
 
-export const eq: IModifier.Modifier = ({ value, options = [], defaultValue = '' }) => (options.find(
+export const eq: Modifier.T = ({ value, options = [], defaultValue = '' }) => (options.find(
   ({ key }) => `${key}`.toLowerCase() === `${value}`.toLowerCase(),
 ) || {}).value || defaultValue;
 
-export const ne: IModifier.Modifier = ({ value, options = [], defaultValue = '' }) => (options.find(
+export const ne: Modifier.T = ({ value, options = [], defaultValue = '' }) => (options.find(
   ({ key }) => `${key}`.toLowerCase() !== `${value}`.toLowerCase(),
 ) || {}).value || defaultValue;
 
-export const lt: IModifier.Modifier = ({ value, options = [], defaultValue = '' }) => {
+export const lt: Modifier.T = ({ value, options = [], defaultValue = '' }) => {
   const sortedOptions = options.sort((a, b) => +a.key - +b.key);
 
   return (sortedOptions.find(
@@ -17,7 +17,7 @@ export const lt: IModifier.Modifier = ({ value, options = [], defaultValue = '' 
   ) || {}).value || defaultValue;
 };
 
-export const gt: IModifier.Modifier = ({ value, options = [], defaultValue = '' }) => {
+export const gt: Modifier.T = ({ value, options = [], defaultValue = '' }) => {
   const sortedOptions = options.sort((a, b) => +b.key - +a.key);
 
   return (sortedOptions.find(
@@ -25,11 +25,11 @@ export const gt: IModifier.Modifier = ({ value, options = [], defaultValue = '' 
   ) || {}).value || defaultValue;
 };
 
-export const lte: IModifier.Modifier = ({ value, options = [], defaultValue = '' }) => eq({ value, options, defaultValue: lt({ value, options, defaultValue }) });
+export const lte: Modifier.T = ({ value, options = [], defaultValue = '' }) => eq({ value, options, defaultValue: lt({ value, options, defaultValue }) });
 
-export const gte: IModifier.Modifier = ({ value, options = [], defaultValue = '' }) => eq({ value, options, defaultValue: gt({ value, options, defaultValue }) });
+export const gte: Modifier.T = ({ value, options = [], defaultValue = '' }) => eq({ value, options, defaultValue: gt({ value, options, defaultValue }) });
 
-export const number: IModifier.Modifier = ({ value, options = [], defaultValue = '', locale = '' }) => (
+export const number: Modifier.T = ({ value, options = [], defaultValue = '', locale = '' }) => (
   // TODO: Replace findOption by `props`
   locale && new Intl.NumberFormat(locale, {
     maximumFractionDigits: findOption(options, 'decimals', findOption(options, 'maxDecimals', '2')),
@@ -37,7 +37,7 @@ export const number: IModifier.Modifier = ({ value, options = [], defaultValue =
   }).format(+value || +defaultValue)
 );
 
-export const date: IModifier.Modifier = ({ value, options = [], defaultValue = '', locale = '' }) => (
+export const date: Modifier.T = ({ value, options = [], defaultValue = '', locale = '' }) => (
   locale && new Intl.DateTimeFormat(locale, {
     dateStyle: findOption(options, 'dateStyle', 'medium'),
     timeStyle: findOption(options, 'timeStyle', 'short'),
@@ -66,7 +66,7 @@ const autoFormat = (millis: number): [number, Intl.RelativeTimeFormatUnit] => ag
   return [value, currentKey];
 }, [millis, '' as Intl.RelativeTimeFormatUnit]);
 
-export const ago: IModifier.Modifier = ({ value, options = [], defaultValue = '', locale = '' }) => {
+export const ago: Modifier.T = ({ value, options = [], defaultValue = '', locale = '' }) => {
   if (!locale) return '';
 
   const format: Intl.RelativeTimeFormatUnit | 'auto' = findOption(options, 'format', 'auto');
