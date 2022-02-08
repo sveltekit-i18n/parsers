@@ -17,7 +17,7 @@ const customParser = (customParserConfig = {}) => ({
 ### `parse`: __IParser.Parse__
 Parse method deals with interpolation of user payload and returns a string.
 
-__It consumes these parameters:__
+__It consumes an objekt containing these properties:__
 
 `value`: __any__ – translation value from definitions\
 `params`: __any[]__ – array of rest parameters given by user (e.g. payload variables etc...)\
