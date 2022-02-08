@@ -77,7 +77,7 @@ Modifiers don't represent the payload value directly, but they can use it for fu
 `date` – input value is converted to locale date string.\
 `ago` – input value is converted to locale relative date string.
 
-Each modifier returns a string value based on [properties](https://github.com/sveltekit-i18n/parsers/blob/master/README.md#parse-iparserparse).
+Each modifier returns a string value based on [input parameters](https://github.com/sveltekit-i18n/parsers/blob/master/README.md#parse-iparserparse).
 
 When placeholder value is not matched and you don't specify the `default` value, modifier returns an empty string.
 
