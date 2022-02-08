@@ -4,7 +4,7 @@
 
 ## Options
 
-### `customModifiers`?: __Record<string, Parser>__
+### `customModifiers`?: __Record<string, IModifier.Modifier>__
 You can use this property to include your own set of modifiers.
 
 For example custom modifier `eqAbs`...

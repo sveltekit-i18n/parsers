@@ -14,15 +14,15 @@ const customParser = (customParserConfig = {}) => ({
 });
 ```
 
-### `parse`: __(text: string | undefined, params: ParserParams, locale: string, key: string) => string__
+### `parse`: __IParser.Parse__
 Parse method deals with interpolation of user payload and returns a string.
 
 __It consumes these parameters:__
 
-`text` – message text to interpolate
-`params` – array of rest parameters given by user (e.g. payload variables etc...)
-`locale` – locale of translated message
-`key` – this key is serialized path to translation (e.g., `home.content.title`)
+`value`: __any__ – translation value from definitions
+`params`: __any[] | []__ – array of rest parameters given by user (e.g. payload variables etc...)
+`locale`: __string__ – locale of translated message
+`key`: __string__ – this key is serialized path to translation (e.g., `home.content.title`)
 
 __Example:__
 
