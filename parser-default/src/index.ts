@@ -1,14 +1,14 @@
 import * as defaultModifiers from './modifiers';
-import type { IParser, IModifier } from './types';
+import type { IParser, IModifier, Interpolate } from './types';
 
 export { IParser, IModifier };
 
-const hasPlaceholders = (text:string = '') => /{{(?:(?!{{|}}).)+}}/.test(`${text}`);
+const hasPlaceholders = (value: any) => typeof value === 'string' && /{{(?:(?!{{|}}).)+}}/.test(`${value}`);
 
-const unesc = (text:string) => text.replace(/\\(?=:|;|{|})/g, '');
+const unesc = (value :any) => typeof value === 'string' ? `${value}`.replace(/\\(?=:|;|{|})/g, '') : value;
 
-const placeholders = (text: string, payload: Record<any, any> = {}, customModifiers: IModifier.CustomModifiers = {}, locale?: string) => text.replace(/{{\s*(?:(?!{{|}}).)+\s*}}/g, (placeholder: string) => {
-  const key = unesc(`${placeholder.match(/(?!{|\s).+?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/)}`);
+const placeholders: Interpolate = ({ value: text, props, payload = {}, customModifiers = {}, locale }) => `${text}`.replace(/{{\s*(?:(?!{{|}}).)+\s*}}/g, (placeholder) => {
+  const key = unesc(placeholder.match(/(?!{|\s).+?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/));
   const value = payload?.[key];
   let [,defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*([^\s:;].+?(?:\\[:;]|[^;\s}])*)(?=\s*(?:;|}}$))/i) || [];
   defaultValue = defaultValue || payload?.default || '';
@@ -42,32 +42,33 @@ const placeholders = (text: string, payload: Record<any, any> = {}, customModifi
 
   if (!hasModifier && !options.length) return `${value}`;
 
-  return modifier(value, options, defaultValue, locale);
+  return modifier({ value, options, props, defaultValue, locale });
 
 });
 
-const interpolate = (text: string, payload: Record<any, any> = {}, customModifiers?: IModifier.CustomModifiers, locale?: string):string => {
-  if (hasPlaceholders(text)) {
-    const output = placeholders(text, payload, customModifiers, locale);
+const interpolate: Interpolate = ({ value, props, payload = {}, customModifiers, locale }) => {
+  if (hasPlaceholders(value)) {
+    const output = placeholders({ value, payload, props, customModifiers, locale });
 
-    return interpolate(output, payload, customModifiers, locale);
+    return interpolate({ value: output, payload, props, customModifiers, locale });
   } else {
-    return unesc(`${text}`);
+    return unesc(value);
   }
 };
 
+// TODO: Add Payload and Custom modifiers generic types
 const parser: IParser.ParserFactory = ({ customModifiers = {} } = {}) => ({
-  parse: (text, [payload], locale, key) => {
+  parse: (value, [payload, props], locale, key) => {
 
-    if (payload?.default && text === undefined) {
-      text = `${payload.default}`;
+    if (payload?.default && value === undefined) {
+      value = `${payload.default}`;
     }
 
-    if (text === undefined) {
-      text = `${key}`;
+    if (value === undefined) {
+      value = `${key}`;
     }
 
-    return interpolate(text, payload, customModifiers, locale);
+    return interpolate({ value, payload, props, customModifiers, locale });
   },
 });
 
