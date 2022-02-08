@@ -25,7 +25,7 @@ Read more about [Modifiers](#modifiers).
 
 ## Syntax
 
-Every [placeholder](#placeholders) or [modifiers](#modifiers) starts with `{{` and ends with `}}` and can be included in your translations like this:
+Every [placeholder](#placeholders) or [modifier](#modifiers) starts with `{{` and ends with `}}` and can be included in your translations like this:
  
 ```jsonc
 {
