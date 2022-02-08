@@ -77,19 +77,14 @@ Modifiers don't represent the payload value directly, but they can use it for fu
 `date` – input value is converted to locale date string.\
 `ago` – input value is converted to locale relative date string.
 
-Each modifier returns a string value based on these input parameters:
-
-1) input value from payload (placeholder value)
-2) parsed interpolation options from the definition
-3) default value
-4) current locale
+Each modifier returns a string value based on [properties](https://github.com/sveltekit-i18n/parsers/blob/master/README.md#parse-iparserparse).
 
 When placeholder value is not matched and you don't specify the `default` value, modifier returns an empty string.
 
 You can include your own modifiers in [Options](#options)! See `parser-default` example in [Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples).
 
 
-Modifier definition looks like this:
+Modifier notation looks like this:
 ```hbs
 {{placeholder:modifier; placeholderVal1:Interpolation value 1; placeholderVal2:Interpolation value 2; ... ; default:Default value;}}
 ```
@@ -97,14 +92,13 @@ Modifier definition looks like this:
 In case you don't specify the modifier, but interpolation options are set, `eq` modifier is used by default:
 
 ```hbs
-<!-- this modifier definition uses `eq` modifier by default -->
 {{placeholder; placeholder_value:Interpolation value;}}
 ```
 
 You are allowed to use nested `placeholders` and `modifiers` within your modifier definition. 
 
 
-__NOTE: `;`, `:`, `{` and `}` characters are used as placeholder identifiers and separators, so you shouldn't use them within your definition keys and values. You should use their escaped form insead (`\\;`, `\\:`, `\\{` or `\\}`).__
+__Note that `;`, `:`, `{` and `}` characters are used as placeholder identifiers and separators, so you shouldn't use them within your definition keys and values. You should use their escaped form insead (`\\;`, `\\:`, `\\{` or `\\}`).__
 
 ## Issues
 If you are facing issues with this parser, create a ticket [here](https://github.com/sveltekit-i18n/lib/issues).
