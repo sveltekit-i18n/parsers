@@ -19,9 +19,9 @@ Parse method deals with interpolation of user payload and returns a string.
 
 __It consumes these parameters:__
 
-`value`: __any__ – translation value from definitions
-`params`: __any[] | []__ – array of rest parameters given by user (e.g. payload variables etc...)
-`locale`: __string__ – locale of translated message
+`value`: __any__ – translation value from definitions\
+`params`: __any[]__ – array of rest parameters given by user (e.g. payload variables etc...)\
+`locale`: __string__ – locale of translated message\
 `key`: __string__ – this key is serialized path to translation (e.g., `home.content.title`)
 
 __Example:__
