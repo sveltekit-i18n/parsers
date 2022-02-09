@@ -2,6 +2,9 @@
 
 # @sveltekit-i18n/parser-default
 
+__IMPORTANT: THIS PACKAGE IS STILL IN DEVELOPMENT - API MAY VARY UNTIL 1.0.0__
+
+
 ## Options
 
 ### `customModifiers`?: __Record<string, Modifier.T>__

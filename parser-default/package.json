@@ -1,6 +1,6 @@
 {
   "name": "@sveltekit-i18n/parser-default",
-  "version": "1.0.0",
+  "version": "1.0.0-rc.2",
   "description": "Default parser for sveltekit-i18n library.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -42,7 +42,7 @@
   },
   "homepage": "https://github.com/sveltekit-i18n/parsers/parser-default#readme",
   "devDependencies": {
-    "@sveltekit-i18n/base": "^1.x",
+    "@sveltekit-i18n/base": "^1.0.0-rc",
     "@types/jest": "^27.0.3",
     "@typescript-eslint/eslint-plugin": "^5.7.0",
     "@typescript-eslint/parser": "^5.7.0",
