@@ -14,7 +14,7 @@ const customParser = (customParserConfig = {}) => ({
 });
 ```
 
-### `parse`: __IParser.Parse__
+### `parse`: __Parser.Parse__
 Parse method deals with interpolation of user payload and returns a string.
 
 __It consumes these parameters:__
