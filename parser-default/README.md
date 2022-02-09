@@ -90,9 +90,6 @@ Each modifier returns a string value based on these input properties:
 
 When placeholder value is not matched and you don't specify the `default` value, modifier returns an empty string.
 
-You can include your own modifiers in [Options](#options)! See `parser-default` example in [Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples).
-
-
 Modifier notation looks like this:
 ```hbs
 {{placeholder:modifier; placeholderVal1:Interpolation value 1; placeholderVal2:Interpolation value 2; ... ; default:Default value;}}
@@ -104,7 +101,7 @@ In case you don't specify the modifier, but interpolation options are set, `eq` 
 {{placeholder; placeholder_value:Interpolation value;}}
 ```
 
-You are allowed to use nested `placeholders` and `modifiers` within your modifier definition. 
+You are allowed to use nested `placeholders` and `modifiers` within your modifier definition or include your own modifiers in [Options](#options)! See `parser-default` example in [Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples).
 
 
 __Note that `;`, `:`, `{` and `}` characters are used as placeholder identifiers and separators, so you shouldn't use them within your definition keys and values. You should use their escaped form insead (`\\;`, `\\:`, `\\{` or `\\}`).__
