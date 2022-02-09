@@ -42,7 +42,7 @@
   },
   "homepage": "https://github.com/sveltekit-i18n/parsers/parser-default#readme",
   "devDependencies": {
-    "@sveltekit-i18n/base": "^1.0.0-rc",
+    "@sveltekit-i18n/base": "^1.0.0-rc.2",
     "@types/jest": "^27.0.3",
     "@typescript-eslint/eslint-plugin": "^5.7.0",
     "@typescript-eslint/parser": "^5.7.0",
