@@ -32,7 +32,7 @@ Every [placeholder](#placeholders) or [modifier](#modifiers) starts with `{{` an
  
 ```jsonc
 {
-  "prop": "Some value",
+  "simple_prop": "Some value",
   "module": {
     "placeholder": "Title with {{placeholder}}.",
     "placeholder_with_default_value": "{{placeholder; default:Default value;}}.",
