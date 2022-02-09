@@ -5,7 +5,7 @@ const hasPlaceholders = (value: any) => typeof value === 'string' && /{{(?:(?!{{
 
 const unesc = (value: any) => typeof value === 'string' ? value.replace(/\\(?=:|;|{|})/g, '') : value;
 
-const placeholders: Interpolate = ({ value: text, props, payload = {}, customModifiers = {}, locale }) => `${text}`.replace(/{{\s*(?:(?!{{|}}).)+\s*}}/g, (placeholder) => {
+const placeholders: Interpolate = ({ value: text, params, payload, customModifiers, locale }) => `${text}`.replace(/{{\s*(?:(?!{{|}}).)+\s*}}/g, (placeholder) => {
   const key = unesc(`${placeholder.match(/(?!{|\s).+?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/)}`);
   const value = payload?.[key];
 
@@ -18,11 +18,11 @@ const placeholders: Interpolate = ({ value: text, props, payload = {}, customMod
 
   const hasModifier = !!modifierKey;
 
-  const modifiers: Modifier.CustomModifiers = { ...defaultModifiers, ...(customModifiers || {}) };
+  const modifiers = { ...defaultModifiers, ...(customModifiers || {}) };
 
-  modifierKey = Object.keys(modifiers).includes(modifierKey) ? modifierKey : 'eq';
+  modifierKey = (Object.keys(modifiers).includes(modifierKey) ? modifierKey : 'eq');
 
-  const modifier = modifiers[modifierKey];
+  const modifier = modifiers[modifierKey as keyof typeof modifiers];
   const options = (
     placeholder.match(/[^\s:;{](?:[^;]|\\[;])+[^\s:;}]/gi) || []
   ).reduce(
@@ -41,22 +41,23 @@ const placeholders: Interpolate = ({ value: text, props, payload = {}, customMod
 
   if (!hasModifier && !options.length) return value;
 
-  return modifier({ value, options, props, defaultValue, locale });
+  return modifier({ value, options, params, defaultValue, locale });
 
 });
 
-const interpolate: Interpolate = ({ value, props, payload = {}, customModifiers, locale }) => {
+const interpolate: Interpolate = ({ value, params, payload, customModifiers, locale }) => {
   if (hasPlaceholders(value)) {
-    const output = placeholders({ value, payload, props, customModifiers, locale });
+    const output = placeholders({ value, payload, params, customModifiers, locale });
 
-    return interpolate({ value: output, payload, props, customModifiers, locale });
+    return interpolate({ value: output, payload, params, customModifiers, locale });
   } else {
     return unesc(value);
   }
 };
 
-const parser: Parser.T = ({ customModifiers = {} } = {}) => ({
-  parse: (value, [payload, props], locale, key) => {
+const parser: Parser.T = (config) => ({
+  parse: (value, [payload, params], locale, key) => {
+    const { customModifiers } = config || {};
 
     if (payload?.default && value === undefined) {
       value = `${payload.default}`;
@@ -66,7 +67,7 @@ const parser: Parser.T = ({ customModifiers = {} } = {}) => ({
       value = `${key}`;
     }
 
-    return interpolate({ value, payload, props, customModifiers, locale });
+    return interpolate({ value, payload, params, customModifiers, locale });
   },
 });
 

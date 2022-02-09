@@ -1,4 +1,3 @@
-import { findOption } from './utils';
 import type { Modifier } from './types';
 
 export const eq: Modifier.T = ({ value, options = [], defaultValue = '' }) => (options.find(
@@ -29,20 +28,21 @@ export const lte: Modifier.T = ({ value, options = [], defaultValue = '' }) => e
 
 export const gte: Modifier.T = ({ value, options = [], defaultValue = '' }) => eq({ value, options, defaultValue: gt({ value, options, defaultValue }) });
 
-export const number: Modifier.T = ({ value, options = [], defaultValue = '', locale = '' }) => (
-  // TODO: Replace findOption by `props`
-  locale && new Intl.NumberFormat(locale, {
-    maximumFractionDigits: findOption(options, 'decimals', findOption(options, 'maxDecimals', '2')),
-    minimumFractionDigits: findOption(options, 'minDecimals'),
-  }).format(+value || +defaultValue)
-);
+export const number: Modifier.T<Intl.NumberFormatOptions> = ({ value, params, defaultValue = '', locale = '' }) => {
+  if (!locale) return '';
 
-export const date: Modifier.T = ({ value, options = [], defaultValue = '', locale = '' }) => (
-  locale && new Intl.DateTimeFormat(locale, {
-    dateStyle: findOption(options, 'dateStyle', 'medium'),
-    timeStyle: findOption(options, 'timeStyle', 'short'),
-  }).format(+value || +defaultValue)
-);
+  const { maximumFractionDigits = 2, ...rest } = params || {};
+
+  return new Intl.NumberFormat(locale, { maximumFractionDigits, ...rest }).format(+value || +defaultValue);
+};
+
+export const date: Modifier.T<Intl.DateTimeFormatOptions> = ({ value, params, defaultValue = '', locale = '' }) => {
+  if (!locale) return '';
+
+  const { dateStyle = 'medium', timeStyle = 'short', ...rest } = params || {};
+
+  return new Intl.DateTimeFormat(locale, { dateStyle, timeStyle, ...rest }).format(+value || +defaultValue);
+};
 
 const agoMap = [
   { key:'second', multiplier:1000 },
@@ -66,16 +66,14 @@ const autoFormat = (millis: number): [number, Intl.RelativeTimeFormatUnit] => ag
   return [value, currentKey];
 }, [millis, '' as Intl.RelativeTimeFormatUnit]);
 
-export const ago: Modifier.T = ({ value, options = [], defaultValue = '', locale = '' }) => {
+export const ago: Modifier.T<Intl.RelativeTimeFormatOptions & { format: Intl.RelativeTimeFormatUnit | 'auto' }> = ({ value, defaultValue = '', locale = '', params }) => {
   if (!locale) return '';
 
-  const format: Intl.RelativeTimeFormatUnit | 'auto' = findOption(options, 'format', 'auto');
+  const { format = 'auto', numeric = 'auto', ...rest } = params || {};
+
   const inputValue = (+value || +defaultValue) - Date.now();
 
-  const formatParams: [number, Intl.RelativeTimeFormatUnit] = (format ===  'auto') ? autoFormat(inputValue) : [inputValue, format];
+  const formatParams = (format ===  'auto') ? autoFormat(inputValue) : [inputValue, format] as [number, Intl.RelativeTimeFormatUnit];
 
-  return new Intl.RelativeTimeFormat(locale, {
-    numeric: findOption(options, 'numeric', 'auto'),
-    style: findOption(options, 'style', 'long'),
-  }).format(...formatParams);
+  return new Intl.RelativeTimeFormat(locale, { numeric, ...rest }).format(...formatParams);
 };
