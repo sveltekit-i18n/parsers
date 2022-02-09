@@ -65,7 +65,7 @@ The `default` value can be also set dynamically using the translation payload in
 ```javascript
 $t(`error.${code}`, { default: $t('error.default') });
 ```
-This value is used in case no `default` value is defined within the placeholder definition itself. For more, see `Dynamic default` section in [parser-default example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-default).
+This value is used in case no `default` value is defined within the placeholder definition itself. For more, see `Dynamic default` section in [parser-default example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-default) app.
 
 ### Modifiers
 Modifiers don't represent the payload value directly, but they can use it for further calculations. Currently, these modifiers are in place:
@@ -82,10 +82,10 @@ Modifiers don't represent the payload value directly, but they can use it for fu
 
 Each modifier returns a string value based on these input properties:
 
-`value`: __any__ – interpolated placeholder value
-`options`: __{key: string; value: string;}[]__ – parsed interpolation options from the definition
-`params`: __any__ – modifier parameters
-`defaultValue`?: __string__ – default value
+`value`: __any__ – interpolated placeholder value\
+`options`: __{key: string; value: string;}[]__ – parsed interpolation options from the definition\
+`params`: __any__ – modifier parameters\
+`defaultValue`?: __string__ – default value\
 `locale`?: __string__ – current locale
 
 When placeholder value is not matched and you don't specify the `default` value, modifier returns an empty string.
