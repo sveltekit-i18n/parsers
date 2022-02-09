@@ -1,6 +1,8 @@
 import * as defaultModifiers from './modifiers';
 import type { Parser, Modifier, Interpolate, Config } from './types';
 
+export type { Parser, Modifier, Config };
+
 const hasPlaceholders = (value: any) => typeof value === 'string' && /{{(?:(?!{{|}}).)+}}/.test(value);
 
 const unesc = (value: any) => typeof value === 'string' ? value.replace(/\\(?=:|;|{|})/g, '') : value;
@@ -42,7 +44,6 @@ const placeholders: Interpolate = ({ value: text, params, payload, customModifie
   if (!hasModifier && !options.length) return value;
 
   return modifier({ value, options, params, defaultValue, locale });
-
 });
 
 const interpolate: Interpolate = ({ value, params, payload, customModifiers, locale }) => {
@@ -71,4 +72,4 @@ const parser: Parser.T = (config) => ({
   },
 });
 
-export { Parser, Modifier, Config, parser as default };
+export default parser;
