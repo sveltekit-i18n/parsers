@@ -16,7 +16,7 @@ export module Modifier {
 
   export type DefaultProps = NumberProps & AgoProps & DateProps;
 
-  export type Props<T = DefaultProps> = T | DefaultProps;
+  export type Props<T = DefaultProps> = T extends DefaultProps ? T : T & DefaultProps;
 
   export type ModifierOption =  Record<'key' | 'value', string>;
 
@@ -36,7 +36,7 @@ export module Parser {
 
   export type Payload<T = PayloadDefault> = { [key in 'default']?: any } | T;
 
-  export type Params<P = PayloadDefault, O = Modifier.DefaultProps> = [payload?: Payload<P>, props?: Modifier.Props<O & Modifier.DefaultProps>];
+  export type Params<P = PayloadDefault, M = Modifier.DefaultProps> = [payload?: Payload<P>, props?: Modifier.Props<M>];
 
   export type T = P.ParserFactory<Options, Params>;
 }
