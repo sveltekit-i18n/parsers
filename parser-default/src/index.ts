@@ -7,9 +7,9 @@ const hasPlaceholders = (value: any) => typeof value === 'string' && /{{(?:(?!{{
 
 const unesc = (value: any) => typeof value === 'string' ? value.replace(/\\(?=:|;|{|})/g, '') : value;
 
-const placeholders: Interpolate = ({ value: text, params, payload, customModifiers, locale }) => `${text}`.replace(/{{\s*(?:(?!{{|}}).)+\s*}}/g, (placeholder) => {
+const placeholders: Interpolate = ({ value: text, props, payload, customModifiers, locale }) => `${text}`.replace(/{{\s*(?:(?!{{|}}).)+\s*}}/g, (placeholder) => {
   const key = unesc(`${placeholder.match(/(?!{|\s).+?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/)}`);
-  const value = payload?.[key];
+  const value = payload?.[key as keyof Parser.Payload];
 
   let [,defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*([^\s:;].+?(?:\\[:;]|[^;\s}])*)(?=\s*(?:;|}}$))/i) || [];
   defaultValue = defaultValue || payload?.default || '';
@@ -43,21 +43,21 @@ const placeholders: Interpolate = ({ value: text, params, payload, customModifie
 
   if (!hasModifier && !options.length) return value;
 
-  return modifier({ value, options, params, defaultValue, locale });
+  return modifier({ value, options, props, defaultValue, locale });
 });
 
-const interpolate: Interpolate = ({ value, params, payload, customModifiers, locale }) => {
+const interpolate: Interpolate = ({ value, props, payload, customModifiers, locale }) => {
   if (hasPlaceholders(value)) {
-    const output = placeholders({ value, payload, params, customModifiers, locale });
+    const output = placeholders({ value, payload, props, customModifiers, locale });
 
-    return interpolate({ value: output, payload, params, customModifiers, locale });
+    return interpolate({ value: output, payload, props, customModifiers, locale });
   } else {
     return unesc(value);
   }
 };
 
 const parser: Parser.T = (config) => ({
-  parse: (value, [payload, params], locale, key) => {
+  parse: (value, [payload, props], locale, key) => {
     const { customModifiers } = config || {};
 
     if (payload?.default && value === undefined) {
@@ -68,7 +68,7 @@ const parser: Parser.T = (config) => ({
       value = `${key}`;
     }
 
-    return interpolate({ value, payload, params, customModifiers, locale });
+    return interpolate({ value, payload, props, customModifiers, locale });
   },
 });
 

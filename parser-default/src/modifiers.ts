@@ -28,18 +28,18 @@ export const lte: Modifier.T = ({ value, options = [], defaultValue = '' }) => e
 
 export const gte: Modifier.T = ({ value, options = [], defaultValue = '' }) => eq({ value, options, defaultValue: gt({ value, options, defaultValue }) });
 
-export const number: Modifier.T<Intl.NumberFormatOptions> = ({ value, params, defaultValue = '', locale = '' }) => {
+export const number: Modifier.T<Modifier.NumberProps> = ({ value, props, defaultValue = '', locale = '' }) => {
   if (!locale) return '';
 
-  const { maximumFractionDigits = 2, ...rest } = params || {};
+  const { maximumFractionDigits = 2, ...rest } = props || {};
 
   return new Intl.NumberFormat(locale, { maximumFractionDigits, ...rest }).format(+value || +defaultValue);
 };
 
-export const date: Modifier.T<Intl.DateTimeFormatOptions> = ({ value, params, defaultValue = '', locale = '' }) => {
+export const date: Modifier.T<Modifier.DateProps> = ({ value, props, defaultValue = '', locale = '' }) => {
   if (!locale) return '';
 
-  const { dateStyle = 'medium', timeStyle = 'short', ...rest } = params || {};
+  const { dateStyle = 'medium', timeStyle = 'short', ...rest } = props || {};
 
   return new Intl.DateTimeFormat(locale, { dateStyle, timeStyle, ...rest }).format(+value || +defaultValue);
 };
@@ -66,10 +66,10 @@ const autoFormat = (millis: number): [number, Intl.RelativeTimeFormatUnit] => ag
   return [value, currentKey];
 }, [millis, '' as Intl.RelativeTimeFormatUnit]);
 
-export const ago: Modifier.T<Intl.RelativeTimeFormatOptions & { format: Intl.RelativeTimeFormatUnit | 'auto' }> = ({ value, defaultValue = '', locale = '', params }) => {
+export const ago: Modifier.T<Modifier.AgoProps> = ({ value, defaultValue = '', locale = '', props }) => {
   if (!locale) return '';
 
-  const { format = 'auto', numeric = 'auto', ...rest } = params || {};
+  const { format = 'auto', numeric = 'auto', ...rest } = props || {};
 
   const inputValue = (+value || +defaultValue) - Date.now();
 

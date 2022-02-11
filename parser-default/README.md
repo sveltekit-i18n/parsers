@@ -84,7 +84,7 @@ Each modifier returns a string value based on these input properties:
 
 `value`: __any__ – interpolated placeholder value\
 `options`: __{key: string; value: string;}[]__ – parsed interpolation options from the definition\
-`params`: __any__ – modifier parameters\
+`props`?: __any__ – modifier properties\
 `defaultValue`?: __string__ – default value\
 `locale`?: __string__ – current locale
 
