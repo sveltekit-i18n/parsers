@@ -101,6 +101,23 @@ In case you don't specify the modifier, but interpolation options are set, `eq` 
 {{placeholder; placeholder_value:Interpolation value;}}
 ```
 
+For example this definition...
+```jsonc
+// `content` translation definition
+{
+  "modifier_date": "{{value:date;}}"
+}
+```
+
+...you can execute like this:
+```javascript
+// svelte file
+
+$t('content.modifier_date', { value: Date.now() }, { timeStyle: 'full' });
+
+// $t(`key`, ...params: [payload, props]);
+```
+
 You are allowed to use nested `placeholders` and `modifiers` within your modifier definition or include your own modifiers in [Options](#options)! See `parser-default` example in [Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples).
 
 

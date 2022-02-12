@@ -27,10 +27,10 @@ __It consumes these parameters:__
 __Example:__
 
 ```js
-const parse = (text, params, locale, key) => {
+const parse = (value, params, locale, key) => {
   const fallbackValue = `${key} (${locale})`;
 
-  return interpolate(message, ...params) || fallbackValue;
+  return interpolate(value, ...params) || fallbackValue;
 }
 ```
 
