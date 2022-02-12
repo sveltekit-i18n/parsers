@@ -1,4 +1,5 @@
 import type { Modifier } from './types';
+import { getModifierDefaults } from './utils';
 
 export const eq: Modifier.T = ({ value, options = [], defaultValue = '' }) => (options.find(
   ({ key }) => `${key}`.toLowerCase() === `${value}`.toLowerCase(),
@@ -28,20 +29,23 @@ export const lte: Modifier.T = ({ value, options = [], defaultValue = '' }) => e
 
 export const gte: Modifier.T = ({ value, options = [], defaultValue = '' }) => eq({ value, options, defaultValue: gt({ value, options, defaultValue }) });
 
-export const number: Modifier.T<Modifier.NumberProps> = ({ value, props, defaultValue = '', locale = '' }) => {
+export const number: Modifier.T<Modifier.NumberProps> = ({ value, props, defaultValue = '', locale = '', parserOptions }) => {
   if (!locale) return '';
 
-  const { maximumFractionDigits = 2, ...rest } = props || {};
+  const { maximumFractionDigits: maximumFractionDigitsDefault, ...defaults } = getModifierDefaults<Modifier.NumberProps>('number', parserOptions);
+  const { maximumFractionDigits = maximumFractionDigitsDefault || 2, ...rest } = props || {};
 
-  return new Intl.NumberFormat(locale, { maximumFractionDigits, ...rest }).format(+value || +defaultValue);
+  return new Intl.NumberFormat(locale, { ...defaults, maximumFractionDigits, ...rest }).format(+value || +defaultValue);
 };
 
-export const date: Modifier.T<Modifier.DateProps> = ({ value, props, defaultValue = '', locale = '' }) => {
+export const date: Modifier.T<Modifier.DateProps> = ({ value, props, defaultValue = '', locale = '', parserOptions }) => {
   if (!locale) return '';
 
-  const { dateStyle = 'medium', timeStyle = 'short', ...rest } = props || {};
 
-  return new Intl.DateTimeFormat(locale, { dateStyle, timeStyle, ...rest }).format(+value || +defaultValue);
+  const { dateStyle: dateStyleDefault, timeStyle: timeStyleDefault, ...defaults } = getModifierDefaults<Modifier.DateProps>('date', parserOptions);
+  const { dateStyle = dateStyleDefault || 'medium', timeStyle = timeStyleDefault || 'short', ...rest } = props || {};
+
+  return new Intl.DateTimeFormat(locale, { ...defaults, dateStyle, timeStyle, ...rest }).format(+value || +defaultValue);
 };
 
 const agoMap = [
@@ -66,14 +70,15 @@ const autoFormat = (millis: number): [number, Intl.RelativeTimeFormatUnit] => ag
   return [value, currentKey];
 }, [millis, '' as Intl.RelativeTimeFormatUnit]);
 
-export const ago: Modifier.T<Modifier.AgoProps> = ({ value, defaultValue = '', locale = '', props }) => {
+export const ago: Modifier.T<Modifier.AgoProps> = ({ value, defaultValue = '', locale = '', props, parserOptions }) => {
   if (!locale) return '';
 
-  const { format = 'auto', numeric = 'auto', ...rest } = props || {};
+  const { format: formatDefault, numeric: numericDefault, ...defaults } = getModifierDefaults<Modifier.AgoProps>('date', parserOptions);
+  const { format = formatDefault || 'auto', numeric = numericDefault || 'auto', ...rest } = props || {};
 
   const inputValue = (+value || +defaultValue) - Date.now();
 
   const formatParams = (format ===  'auto') ? autoFormat(inputValue) : [inputValue, format] as [number, Intl.RelativeTimeFormatUnit];
 
-  return new Intl.RelativeTimeFormat(locale, { numeric, ...rest }).format(...formatParams);
+  return new Intl.RelativeTimeFormat(locale, { ...defaults, numeric, ...rest }).format(...formatParams);
 };

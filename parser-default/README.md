@@ -6,6 +6,12 @@ __IMPORTANT: THIS PACKAGE IS STILL IN DEVELOPMENT - API MAY VARY UNTIL 1.0.0__
 
 
 ## Options
+### `modifierDefaults`?: __Modifier.Defaults__
+You can specify default values for built-in modifiers using this prop. Configuration is available for these modifiers:
+
+`number`?: __Intl.NumberFormatOptions__\
+`date`?: __Intl.DateTimeFormatOptions__\
+`ago`?: __Intl.RelativeTimeFormatOptions & { format?: Intl.RelativeTimeFormatUnit | 'auto' }__
 
 ### `customModifiers`?: __Record<string, Modifier.T>__
 You can use this property to include your own set of modifiers.

@@ -1,12 +1,14 @@
 import type { Parser as P, Config as C } from '@sveltekit-i18n/base';
 import * as modifiers from './modifiers';
 
-export type CommonProps<CustomModifierProps = Modifier.DefaultProps> = { value: any, props?: CustomModifierProps, locale?: C.Locale };
+export type CommonProps<CustomModifierProps = Modifier.DefaultProps> = { value: any, props?: CustomModifierProps, locale?: C.Locale, parserOptions?: Parser.Options };
 
-export type Interpolate = (config: CommonProps & { payload?: Parser.Payload, customModifiers?: Modifier.CustomModifiers }) => string;
+export type Interpolate = (config: CommonProps & { payload?: Parser.Payload }) => string;
 
 export module Modifier {
-  export type ModifierKey = keyof typeof modifiers;
+  export type Key = string;
+
+  export type DefaultKeys = keyof typeof modifiers;
 
   export type AgoProps = (Intl.RelativeTimeFormatOptions & { format?: Intl.RelativeTimeFormatUnit | 'auto' });
 
@@ -27,22 +29,29 @@ export module Modifier {
   export type DefaultModifiers = typeof modifiers;
 
   export type CustomModifiers<K extends string = any, ModifierProps = any> = Record<K, Modifier.T<ModifierProps>>;
+
+  export type Defaults = {
+    'ago'?: Modifier.AgoProps;
+    'date'?: Modifier.DateProps;
+    'number'?: Modifier.NumberProps;
+  };
 }
 
 export module Parser {
-  export type Options<K extends string = Modifier.ModifierKey, P = Modifier.DefaultProps> = {
-    customModifiers?: Modifier.CustomModifiers<K, P>;
+  export type Options<Key extends string = Modifier.Key, Props = any> = {
+    customModifiers?: Modifier.CustomModifiers<Key, Props>;
+    modifierDefaults?: Modifier.Defaults;
   } | undefined;
 
-  export type PayloadDefault = { [key in 'default']?: string };
+  export type PayloadDefault = { [key in 'default']?: any };
 
-  export type Payload<T = any> = T;
+  export type Payload<T = any> = T & PayloadDefault;
 
   export type Params<P = PayloadDefault, M = Modifier.DefaultProps> = [payload?: Payload<P>, props?: Modifier.Props<M>];
 
   export type T<Params extends P.Params = Parser.Params> = P.T<Params>;
 
-  export type Factory = <O extends string = string, Props = Modifier.DefaultProps, Payload = Parser.PayloadDefault>(options?: Parser.Options<O, Props>) => Parser.T<Parser.Params<Payload & PayloadDefault, Props & Modifier.DefaultProps>>;
+  export type Factory = <O extends string = string, Props = {}, Payload = {}>(options?: Parser.Options<O, Props>) => Parser.T<Parser.Params<Payload & PayloadDefault, Props & Modifier.DefaultProps>>;
 }
 
 export type Config<P = Parser.PayloadDefault, M = Modifier.DefaultProps> = C.T<Parser.Params<P, M>>;
