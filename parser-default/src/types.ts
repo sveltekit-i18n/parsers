@@ -1,14 +1,14 @@
 import type { Parser as P, Config as C } from '@sveltekit-i18n/base';
 import * as modifiers from './modifiers';
 
-export type CommonProps<CustomModifierProps extends Modifier.DefaultProps = Modifier.DefaultProps> = { value: any, props?: Modifier.Props<CustomModifierProps>, locale?: string };
+export type CommonProps<CustomModifierProps = Modifier.DefaultProps> = { value: any, props?: CustomModifierProps, locale?: C.Locale };
 
 export type Interpolate = (config: CommonProps & { payload?: Parser.Payload, customModifiers?: Modifier.CustomModifiers }) => string;
 
 export module Modifier {
   export type ModifierKey = keyof typeof modifiers;
 
-  export type AgoProps = Intl.RelativeTimeFormatOptions & { format?: Intl.RelativeTimeFormatUnit | 'auto' };
+  export type AgoProps = (Intl.RelativeTimeFormatOptions & { format?: Intl.RelativeTimeFormatUnit | 'auto' });
 
   export type DateProps = Intl.DateTimeFormatOptions;
 
@@ -16,29 +16,33 @@ export module Modifier {
 
   export type DefaultProps = NumberProps & AgoProps & DateProps;
 
-  export type Props<T = DefaultProps> = T extends DefaultProps ? T : T & DefaultProps;
+  export type Props<T = DefaultProps> = T & DefaultProps;
 
   export type ModifierOption =  Record<'key' | 'value', string>;
 
-  export type T<CustomModifierProps = DefaultProps> = (config: CommonProps<CustomModifierProps> & { options: ModifierOption[]; defaultValue?: string }) => string;
+  export type DefaultValue = string | undefined;
+
+  export type T<CustomModifierProps = any> = (config: CommonProps<CustomModifierProps> & { options: ModifierOption[]; defaultValue?: DefaultValue }) => string;
 
   export type DefaultModifiers = typeof modifiers;
 
-  export type CustomModifiers<K extends string = string, M = Modifier.T> = Record<K, M>;
+  export type CustomModifiers<K extends string = any, ModifierProps = any> = Record<K, Modifier.T<ModifierProps>>;
 }
 
 export module Parser {
-  export type Options = {
-    customModifiers?: Modifier.CustomModifiers;
+  export type Options<K extends string = Modifier.ModifierKey, P = Modifier.DefaultProps> = {
+    customModifiers?: Modifier.CustomModifiers<K, P>;
   } | undefined;
 
-  export type PayloadDefault = { [key: string]: any };
+  export type PayloadDefault = { [key in 'default']?: string };
 
-  export type Payload<T = PayloadDefault> = { [key in 'default']?: any } | T;
+  export type Payload<T = any> = T;
 
   export type Params<P = PayloadDefault, M = Modifier.DefaultProps> = [payload?: Payload<P>, props?: Modifier.Props<M>];
 
-  export type T = P.ParserFactory<Options, Params>;
+  export type T<Params extends P.Params = Parser.Params> = P.T<Params>;
+
+  export type Factory = <O extends string = string, Props = Modifier.DefaultProps, Payload = Parser.PayloadDefault>(options?: Parser.Options<O, Props>) => Parser.T<Parser.Params<Payload & PayloadDefault, Props & Modifier.DefaultProps>>;
 }
 
-export type Config = C.T<Parser.Params>;
+export type Config<P = Parser.PayloadDefault, M = Modifier.DefaultProps> = C.T<Parser.Params<P, M>>;

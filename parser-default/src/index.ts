@@ -56,9 +56,9 @@ const interpolate: Interpolate = ({ value, props, payload, customModifiers, loca
   }
 };
 
-const parser: Parser.T = (config) => ({
+const parser: Parser.Factory = (options) => ({
   parse: (value, [payload, props], locale, key) => {
-    const { customModifiers } = config || {};
+    const { customModifiers } = options || {};
 
     if (payload?.default && value === undefined) {
       value = `${payload.default}`;
