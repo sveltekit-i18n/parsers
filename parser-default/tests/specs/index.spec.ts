@@ -1,4 +1,5 @@
 import i18n from '@sveltekit-i18n/base';
+import parser from '../../src';
 import { CONFIG } from '../data';
 
 const { initLocale = '' } = CONFIG;
@@ -135,7 +136,24 @@ describe('parser', () => {
 
     expect(t.get('common.modifier_number', { value })).toBe(new Intl.NumberFormat(altLocale, { maximumFractionDigits: 2 }).format(value));
   });
-  it('`date` modifier works', async () => {
+  it('`number` props work', async () => {
+    const { t, loadConfig } = new i18n();
+
+    await loadConfig(CONFIG);
+
+    const value = 123456.78987686643;
+
+    expect(t.get('common.modifier_number', { value }, { maximumFractionDigits: 4 })).toBe(new Intl.NumberFormat(initLocale, { maximumFractionDigits: 4 }).format(value));
+  });
+  it('`number` defaults work', async () => {
+    const { t, loadConfig } = new i18n();
+
+    await loadConfig({ ...CONFIG, parser: parser({ modifierDefaults: { number: { maximumFractionDigits: 4 } } }) });
+    const value = 123456.78987686643;
+
+    expect(t.get('common.modifier_number', { value })).toBe(new Intl.NumberFormat(initLocale, { maximumFractionDigits: 4 }).format(value));
+  });
+  it('`number` modifier works', async () => {
     const { t, loadConfig, loadTranslations, locale, locales } = new i18n();
 
     await loadConfig(CONFIG);
@@ -148,6 +166,22 @@ describe('parser', () => {
     await loadTranslations(altLocale);
 
     expect(t.get('common.modifier_date', { value })).toBe(new Intl.DateTimeFormat(altLocale, { dateStyle: 'medium', timeStyle: 'short' }).format(value));
+  });
+  it('`date` props work', async () => {
+    const { t, loadConfig } = new i18n();
+
+    await loadConfig(CONFIG);
+    const value = Date.now();
+
+    expect(t.get('common.modifier_date', { value }, { dateStyle: 'full' })).toBe(new Intl.DateTimeFormat(initLocale, { dateStyle: 'full', timeStyle: 'short' }).format(value));
+  });
+  it('`date` defaults work', async () => {
+    const { t, loadConfig } = new i18n();
+
+    await loadConfig({ ...CONFIG, parser: parser({ modifierDefaults: { date: { timeStyle: 'full' } } }) });
+    const value = Date.now();
+
+    expect(t.get('common.modifier_date', { value })).toBe(new Intl.DateTimeFormat(initLocale, { dateStyle: 'medium', timeStyle: 'full' }).format(value));
   });
   it('`ago` modifier works', async () => {
     const { t, loadConfig, loadTranslations, locale, locales } = new i18n();
@@ -162,6 +196,26 @@ describe('parser', () => {
     await loadTranslations(altLocale);
 
     expect(t.get('common.modifier_ago', { value })).toBe(new Intl.RelativeTimeFormat(altLocale).format(-30, 'minute'));
+  });
+  it('`ago` props work', async () => {
+    const { t, loadConfig } = new i18n();
+
+    await loadConfig(CONFIG);
+    const value = Date.now() - 1000 * 60 * 60 * 24 * 7;
+
+    expect(t.get('common.modifier_ago', { value }, { format: 'day' })).toBe(new Intl.RelativeTimeFormat(initLocale).format(-7, 'day'));
+    expect(t.get('common.modifier_ago', { value }, { format: 'week' })).not.toBe(new Intl.RelativeTimeFormat(initLocale).format(-7, 'day'));
+  });
+  it('`ago` defaults work', async () => {
+    const { t, loadConfig } = new i18n();
+
+    const value = Date.now() - 1000 * 60 * 60 * 24 * 7;
+
+    await loadConfig({ ...CONFIG, parser: parser({ modifierDefaults: { ago: { format: 'day' } } }) });
+    expect(t.get('common.modifier_ago', { value })).toBe(new Intl.RelativeTimeFormat(initLocale).format(-7, 'day'));
+
+    await loadConfig({ ...CONFIG, parser: parser({ modifierDefaults: { ago: { format: 'week' } } }) });
+    expect(t.get('common.modifier_ago', { value })).not.toBe(new Intl.RelativeTimeFormat(initLocale).format(-7, 'day'));
   });
   it('custom modifier works', async () => {
     const { t, loadConfig } = new i18n();
