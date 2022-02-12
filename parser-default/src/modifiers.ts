@@ -60,11 +60,14 @@ const agoMap = [
 
 const findIndex = (currentKey: string) => agoMap.indexOf(agoMap.find((item) => item.key === currentKey) as any);
 
-const autoFormat = (millis: number): [number, Intl.RelativeTimeFormatUnit] => agoMap.reduce(([value, currentKey], { key, multiplier }, index) => {
+const agoFormat = (millis: number, resolution?: Intl.RelativeTimeFormatUnit | 'auto'): [number, Intl.RelativeTimeFormatUnit] => agoMap.reduce(([value, currentKey], { key, multiplier }, index) => {
+  console.log(key, currentKey, value);
+  if (currentKey === resolution) return [value, currentKey];
+
   if (!currentKey || index === findIndex(currentKey) + 1) {
     const output = Math.round(value / multiplier);
 
-    if (!currentKey || Math.abs(output) >= 1) return [output, key];
+    if (!currentKey || Math.abs(output) >= 1 || resolution !== 'auto') return [output, key];
   }
 
   return [value, currentKey];
@@ -73,12 +76,11 @@ const autoFormat = (millis: number): [number, Intl.RelativeTimeFormatUnit] => ag
 export const ago: Modifier.T<Modifier.AgoProps> = ({ value, defaultValue = '', locale = '', props, parserOptions }) => {
   if (!locale) return '';
 
-  const { format: formatDefault, numeric: numericDefault, ...defaults } = getModifierDefaults<Modifier.AgoProps>('date', parserOptions);
+  const { format: formatDefault, numeric: numericDefault, ...defaults } = getModifierDefaults<Modifier.AgoProps>('ago', parserOptions);
   const { format = formatDefault || 'auto', numeric = numericDefault || 'auto', ...rest } = props || {};
 
   const inputValue = (+value || +defaultValue) - Date.now();
-
-  const formatParams = (format ===  'auto') ? autoFormat(inputValue) : [inputValue, format] as [number, Intl.RelativeTimeFormatUnit];
+  const formatParams = agoFormat(inputValue, format);
 
   return new Intl.RelativeTimeFormat(locale, { ...defaults, numeric, ...rest }).format(...formatParams);
 };
