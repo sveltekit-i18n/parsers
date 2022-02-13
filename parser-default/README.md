@@ -1,8 +1,9 @@
 [![npm version](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-default.svg)](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-default) ![](https://github.com/sveltekit-i18n/parsers/workflows/Tests/badge.svg) [![Tests](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-default.yml/badge.svg)](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-default.yml)
 
 # @sveltekit-i18n/parser-default
+This parser is ment be used together with [@sveltekit-i18n/base](https://github.com/sveltekit-i18n/base), but can be used with other libraries as well. In fact, it does not require [Svelte](https://github.com/sveltejs/svelte) or [SvelteKit](https://github.com/sveltejs/kit).
 
-__IMPORTANT: THIS PACKAGE IS STILL IN DEVELOPMENT - API MAY VARY UNTIL 1.0.0__
+__IMPORTANT: THIS PACKAGE IS STILL UNDER DEVELOPMENT - API MAY VARY UNTIL 1.0.0__
 
 
 ## Options
