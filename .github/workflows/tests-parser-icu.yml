@@ -1,0 +1,31 @@
+name: ICU parser tests
+
+on: 
+  push:
+    paths:
+      - parser-icu/**
+      - .github/workflows/tests-parser-icu.yml
+  workflow_dispatch:
+
+jobs:
+  Tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node-version: [16]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Node setup
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies and Run tests
+        run: |
+          cd parser-icu
+          npm install
+          npm run test
