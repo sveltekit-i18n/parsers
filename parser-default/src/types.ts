@@ -10,7 +10,7 @@ export module Modifier {
 
   export type DefaultKeys = keyof typeof modifiers;
 
-  export type AgoProps = { 'ago'?: (Intl.RelativeTimeFormatOptions & { format?: Intl.RelativeTimeFormatUnit | 'auto' }) };
+  export type AgoProps = { 'ago'?: Intl.RelativeTimeFormatOptions & { format?: Intl.RelativeTimeFormatUnit | 'auto' } };
 
   export type DateProps = { 'date'?: Intl.DateTimeFormatOptions };
 
