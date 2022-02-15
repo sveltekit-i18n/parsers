@@ -33,7 +33,7 @@ export const number: Modifier.T<Modifier.NumberProps> = ({ value, props, default
   if (!locale) return '';
 
   const { maximumFractionDigits: maximumFractionDigitsDefault, ...defaults } = getModifierDefaults<Modifier.NumberProps>('number', parserOptions);
-  const { maximumFractionDigits = maximumFractionDigitsDefault || 2, ...rest } = props || {};
+  const { maximumFractionDigits = maximumFractionDigitsDefault || 2, ...rest } = props?.number || {};
 
   return new Intl.NumberFormat(locale, { ...defaults, maximumFractionDigits, ...rest }).format(+value || +defaultValue);
 };
@@ -43,7 +43,7 @@ export const date: Modifier.T<Modifier.DateProps> = ({ value, props, defaultValu
 
 
   const { dateStyle: dateStyleDefault, timeStyle: timeStyleDefault, ...defaults } = getModifierDefaults<Modifier.DateProps>('date', parserOptions);
-  const { dateStyle = dateStyleDefault || 'medium', timeStyle = timeStyleDefault || 'short', ...rest } = props || {};
+  const { dateStyle = dateStyleDefault || 'medium', timeStyle = timeStyleDefault || 'short', ...rest } = props?.date || {};
 
   return new Intl.DateTimeFormat(locale, { ...defaults, dateStyle, timeStyle, ...rest }).format(+value || +defaultValue);
 };
@@ -77,7 +77,7 @@ export const ago: Modifier.T<Modifier.AgoProps> = ({ value, defaultValue = '', l
   if (!locale) return '';
 
   const { format: formatDefault, numeric: numericDefault, ...defaults } = getModifierDefaults<Modifier.AgoProps>('ago', parserOptions);
-  const { format = formatDefault || 'auto', numeric = numericDefault || 'auto', ...rest } = props || {};
+  const { format = formatDefault || 'auto', numeric = numericDefault || 'auto', ...rest } = props?.ago || {};
 
   const inputValue = (+value || +defaultValue) - Date.now();
   const formatParams = agoFormat(inputValue, format);

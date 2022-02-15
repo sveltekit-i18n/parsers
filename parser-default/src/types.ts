@@ -10,11 +10,11 @@ export module Modifier {
 
   export type DefaultKeys = keyof typeof modifiers;
 
-  export type AgoProps = (Intl.RelativeTimeFormatOptions & { format?: Intl.RelativeTimeFormatUnit | 'auto' });
+  export type AgoProps = { 'ago'?: (Intl.RelativeTimeFormatOptions & { format?: Intl.RelativeTimeFormatUnit | 'auto' }) };
 
-  export type DateProps = Intl.DateTimeFormatOptions;
+  export type DateProps = { 'date'?: Intl.DateTimeFormatOptions };
 
-  export type NumberProps = Intl.NumberFormatOptions;
+  export type NumberProps = { 'number'?: Intl.NumberFormatOptions };
 
   export type DefaultProps = NumberProps & AgoProps & DateProps;
 
@@ -29,18 +29,12 @@ export module Modifier {
   export type DefaultModifiers = typeof modifiers;
 
   export type CustomModifiers<K extends string = any, ModifierProps = any> = Record<K, Modifier.T<ModifierProps>>;
-
-  export type Defaults = {
-    'ago'?: Modifier.AgoProps;
-    'date'?: Modifier.DateProps;
-    'number'?: Modifier.NumberProps;
-  };
 }
 
 export module Parser {
   export type Options<Key extends string = Modifier.Key, Props = any> = {
     customModifiers?: Modifier.CustomModifiers<Key, Props>;
-    modifierDefaults?: Modifier.Defaults;
+    modifierDefaults?: Modifier.DefaultProps;
   } | undefined;
 
   export type PayloadDefault = { [key in 'default']?: any };

@@ -143,7 +143,7 @@ describe('parser', () => {
 
     const value = 123456.78987686643;
 
-    expect(t.get('common.modifier_number', { value }, { maximumFractionDigits: 4 })).toBe(new Intl.NumberFormat(initLocale, { maximumFractionDigits: 4 }).format(value));
+    expect(t.get('common.modifier_number', { value }, { number: { maximumFractionDigits: 4 } })).toBe(new Intl.NumberFormat(initLocale, { maximumFractionDigits: 4 }).format(value));
   });
   it('`number` defaults work', async () => {
     const { t, loadConfig } = new i18n();
@@ -173,7 +173,7 @@ describe('parser', () => {
     await loadConfig(CONFIG);
     const value = Date.now();
 
-    expect(t.get('common.modifier_date', { value }, { dateStyle: 'full' })).toBe(new Intl.DateTimeFormat(initLocale, { dateStyle: 'full', timeStyle: 'short' }).format(value));
+    expect(t.get('common.modifier_date', { value }, { date: { dateStyle: 'full' } })).toBe(new Intl.DateTimeFormat(initLocale, { dateStyle: 'full', timeStyle: 'short' }).format(value));
   });
   it('`date` defaults work', async () => {
     const { t, loadConfig } = new i18n();
@@ -203,8 +203,8 @@ describe('parser', () => {
     await loadConfig(CONFIG);
     const value = Date.now() - 1000 * 60 * 60 * 24 * 7;
 
-    expect(t.get('common.modifier_ago', { value }, { format: 'day' })).toBe(new Intl.RelativeTimeFormat(initLocale).format(-7, 'day'));
-    expect(t.get('common.modifier_ago', { value }, { format: 'week' })).not.toBe(new Intl.RelativeTimeFormat(initLocale).format(-7, 'day'));
+    expect(t.get('common.modifier_ago', { value }, { ago: { format: 'day' } })).toBe(new Intl.RelativeTimeFormat(initLocale).format(-7, 'day'));
+    expect(t.get('common.modifier_ago', { value }, { ago: { format: 'week' } })).not.toBe(new Intl.RelativeTimeFormat(initLocale).format(-7, 'day'));
   });
   it('`ago` defaults work', async () => {
     const { t, loadConfig } = new i18n();
