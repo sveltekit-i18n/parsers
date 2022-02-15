@@ -61,7 +61,6 @@ const agoMap = [
 const findIndex = (currentKey: string) => agoMap.indexOf(agoMap.find((item) => item.key === currentKey) as any);
 
 const agoFormat = (millis: number, resolution?: Intl.RelativeTimeFormatUnit | 'auto'): [number, Intl.RelativeTimeFormatUnit] => agoMap.reduce(([value, currentKey], { key, multiplier }, index) => {
-  console.log(key, currentKey, value);
   if (currentKey === resolution) return [value, currentKey];
 
   if (!currentKey || index === findIndex(currentKey) + 1) {
