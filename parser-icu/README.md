@@ -28,9 +28,9 @@ Format your translations to ICU...
 import i18n from '@sveltekit-i18n/base';
 import parser from '@sveltekit-i18n/parsers-icu';
 
-import type { Config, Parser } from '@sveltekit-i18n/parsers-icu';
+import type { Config } from '@sveltekit-i18n/parsers-icu';
 
-const config: Config<{Parser.Params<{/* You can add types for your payload here. */}>}> = {
+const config: Config<{/* You can add types for your payload here. */}> = {
   parser: parser({
     // Intl MessageFormat `opts` go here
     // see https://formatjs.io/docs/intl-messageformat/#intlmessageformat-constructor
