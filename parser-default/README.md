@@ -128,7 +128,7 @@ You are allowed to use nested `placeholders` and `modifiers` within your modifie
 
 __Note that `;`, `:`, `{` and `}` characters are used as placeholder identifiers and separators, so you shouldn't use them within your definition keys and values. You should use their escaped form insead (`\\;`, `\\:`, `\\{` or `\\}`).__
 
-## More info
+## More info
 [Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples)\
 [Changelog](https://github.com/sveltekit-i18n/parsers/blob/master/parser-default/CHANGELOG.md)
 
