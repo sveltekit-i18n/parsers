@@ -211,7 +211,7 @@ describe('parser', () => {
 
     const value = -1000 * 60 * 60 * 24 * 7;
 
-    await loadConfig({ ...CONFIG, parser: parser({ modifierDefaults: { ago: { format: 'day' } } }) });
+    await loadConfig({ ...CONFIG, parser: parser({ modifierDefaults: { ago: { format: 'days' } } }) });
     expect(t.get('common.modifier_ago', { value })).toBe(new Intl.RelativeTimeFormat(initLocale).format(-7, 'day'));
 
     await loadConfig({ ...CONFIG, parser: parser({ modifierDefaults: { ago: { format: 'week' } } }) });

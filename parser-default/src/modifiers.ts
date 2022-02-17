@@ -58,10 +58,12 @@ const agoMap = [
   { key:'year', multiplier:12 },
 ] as { key: Intl.RelativeTimeFormatUnit, multiplier: number }[];
 
-const findIndex = (currentKey: string) => agoMap.indexOf(agoMap.find((item) => item.key === currentKey) as any);
+const testResolution = (defKey: string = '', testKey: string = '') => new RegExp(`^${defKey}s?$`).test(testKey);
+
+const findIndex = (currentKey: string) => agoMap.indexOf(agoMap.find(({ key }) => testResolution(key, currentKey)) as any);
 
 const agoFormat = (millis: number, resolution?: Intl.RelativeTimeFormatUnit | 'auto'): [number, Intl.RelativeTimeFormatUnit] => agoMap.reduce(([value, currentKey], { key, multiplier }, index) => {
-  if (currentKey === resolution) return [value, currentKey];
+  if (testResolution(currentKey, resolution)) return [value, currentKey];
 
   if (!currentKey || index === findIndex(currentKey) + 1) {
     const output = Math.round(value / multiplier);
