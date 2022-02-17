@@ -3,8 +3,6 @@
 # @sveltekit-i18n/parser-default
 This parser is ment be used together with [@sveltekit-i18n/base](https://github.com/sveltekit-i18n/base), but can be used with other libraries as well. In fact, it does not require [Svelte](https://github.com/sveltejs/svelte) or [SvelteKit](https://github.com/sveltejs/kit).
 
-__IMPORTANT: THIS PACKAGE IS STILL UNDER DEVELOPMENT - API MAY VARY UNTIL 1.0.0__
-
 
 ## Options
 ### `modifierDefaults`?: __Modifier.Defaults__
