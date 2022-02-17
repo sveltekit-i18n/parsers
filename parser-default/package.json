@@ -1,6 +1,6 @@
 {
   "name": "@sveltekit-i18n/parser-default",
-  "version": "1.0.0-rc.8",
+  "version": "1.0.0",
   "description": "Default parser for sveltekit-i18n library.",
   "type": "module",
   "main": "./dist/index.cjs",
