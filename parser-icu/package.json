@@ -33,6 +33,7 @@
   },
   "keywords": [
     "parser",
+    "icu",
     "sveltekit-i18n"
   ],
   "author": "Jarda Svoboda",
