@@ -187,7 +187,7 @@ describe('parser', () => {
     const { t, loadConfig, loadTranslations, locale, locales } = new i18n<Parser.Params<{ value?: any }>>();
 
     await loadConfig(CONFIG);
-    const value = Date.now() - 1000 * 60 * 30;
+    const value = -1000 * 60 * 30;
     const altLocale = locales.get().find((l) => l !== initLocale) || '';
 
     expect(t.get('common.modifier_ago', { value })).toBe(new Intl.RelativeTimeFormat(initLocale).format(-30, 'minute'));
@@ -201,7 +201,7 @@ describe('parser', () => {
     const { t, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
 
     await loadConfig(CONFIG);
-    const value = Date.now() - 1000 * 60 * 60 * 24 * 7;
+    const value = -1000 * 60 * 60 * 24 * 7;
 
     expect(t.get('common.modifier_ago', { value }, { ago: { format: 'day' } })).toBe(new Intl.RelativeTimeFormat(initLocale).format(-7, 'day'));
     expect(t.get('common.modifier_ago', { value }, { ago: { format: 'week' } })).not.toBe(new Intl.RelativeTimeFormat(initLocale).format(-7, 'day'));
@@ -209,7 +209,7 @@ describe('parser', () => {
   it('`ago` defaults work', async () => {
     const { t, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
 
-    const value = Date.now() - 1000 * 60 * 60 * 24 * 7;
+    const value = -1000 * 60 * 60 * 24 * 7;
 
     await loadConfig({ ...CONFIG, parser: parser({ modifierDefaults: { ago: { format: 'day' } } }) });
     expect(t.get('common.modifier_ago', { value })).toBe(new Intl.RelativeTimeFormat(initLocale).format(-7, 'day'));

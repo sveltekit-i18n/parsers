@@ -78,7 +78,7 @@ export const ago: Modifier.T<Modifier.AgoProps> = ({ value, defaultValue = '', l
   const { format: formatDefault, numeric: numericDefault, ...defaults } = getModifierDefaults<Modifier.AgoProps>('ago', parserOptions);
   const { format = formatDefault || 'auto', numeric = numericDefault || 'auto', ...rest } = props?.ago || {};
 
-  const inputValue = (+value || +defaultValue) - Date.now();
+  const inputValue = +value || +defaultValue;
   const formatParams = agoFormat(inputValue, format);
 
   return new Intl.RelativeTimeFormat(locale, { ...defaults, numeric, ...rest }).format(...formatParams);
