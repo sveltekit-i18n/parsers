@@ -84,7 +84,7 @@ export const { t, locale, locales, loading, loadTranslations } = new i18n(config
 {$t('home.select', { value }, {/* Intl MessageFormat `formats` go here */})}
 ```
 
-## More information
+## More info
 [Example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-icu)\
 [Changelog](https://github.com/sveltekit-i18n/parsers/blob/master/parser-icu/CHANGELOG.md)
 
