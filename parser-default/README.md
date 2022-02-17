@@ -123,10 +123,14 @@ $t('content.modifier_date', { value: Date.now() }, { timeStyle: 'full' });
 // $t(`key`, ...params: [payload, props]);
 ```
 
-You are allowed to use nested `placeholders` and `modifiers` within your modifier definition or include your own modifiers in [Options](#options)! See `parser-default` example in [Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples).
+You are allowed to use nested `placeholders` and `modifiers` within your modifier definition or include your own modifiers in [Options](#options)! See `parser-default` [example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-default).
 
 
 __Note that `;`, `:`, `{` and `}` characters are used as placeholder identifiers and separators, so you shouldn't use them within your definition keys and values. You should use their escaped form insead (`\\;`, `\\:`, `\\{` or `\\}`).__
+
+## More info
+[Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples)\
+[Changelog](https://github.com/sveltekit-i18n/parsers/blob/master/parser-default/CHANGELOG.md)
 
 ## Issues
 If you are facing issues with this parser, create a ticket [here](https://github.com/sveltekit-i18n/lib/issues).
