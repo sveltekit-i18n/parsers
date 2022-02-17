@@ -84,8 +84,9 @@ export const { t, locale, locales, loading, loadTranslations } = new i18n(config
 {$t('home.select', { value }, {/* Intl MessageFormat `formats` go here */})}
 ```
 
-See a complete example [here](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-icu).
-
+## More information
+[Example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-icu)\
+[Changelog](https://github.com/sveltekit-i18n/parsers/blob/master/parser-icu/CHANGELOG.md)
 
 ## Issues
 If you are facing difficulties regarding to this implementation of [`intl-messageformat`](https://www.npmjs.com/package/intl-messageformat), create a ticket [here](https://github.com/sveltekit-i18n/lib/issues).
