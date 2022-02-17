@@ -3,8 +3,6 @@
 # @sveltekit-i18n/parser-icu
 This parser implements [`intl-messageformat`](https://www.npmjs.com/package/intl-messageformat) library and brings [ICU message syntax](https://unicode-org.github.io/icu/userguide/format_parse/messages/) to [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base).
 
-__IMPORTANT: THIS PACKAGE IS STILL UNDER DEVELOPMENT__
-
 
 ## Usage
 
@@ -69,9 +67,7 @@ export const { t, locale, locales, loading, loadTranslations } = new i18n(config
     
     const initLocale = locale.get() || defaultLocale; // set default if no locale already set
 
-    await loadTranslations(initLocale, pathname);
-
-    locale.set(initLocale); // keep this just before the `return`
+    await loadTranslations(initLocale, pathname); // keep this just before the `return`
 
     return {};
   }
