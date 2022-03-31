@@ -153,19 +153,19 @@ describe('parser', () => {
 
     expect(t.get('common.modifier_number', { value })).toBe(new Intl.NumberFormat(initLocale, { maximumFractionDigits: 4 }).format(value));
   });
-  it('`number` modifier works', async () => {
+  it('`date` modifier works', async () => {
     const { t, loadConfig, loadTranslations, locale, locales } = new i18n<Parser.Params<{ value?: any }>>();
 
     await loadConfig(CONFIG);
     const value = Date.now();
     const altLocale = locales.get().find((l) => l !== initLocale) || '';
 
-    expect(t.get('common.modifier_date', { value })).toBe(new Intl.DateTimeFormat(initLocale, { dateStyle: 'medium', timeStyle: 'short' }).format(value));
+    expect(t.get('common.modifier_date', { value })).toBe(new Intl.DateTimeFormat(initLocale, {}).format(value));
 
     locale.set(altLocale);
     await loadTranslations(altLocale);
 
-    expect(t.get('common.modifier_date', { value })).toBe(new Intl.DateTimeFormat(altLocale, { dateStyle: 'medium', timeStyle: 'short' }).format(value));
+    expect(t.get('common.modifier_date', { value })).toBe(new Intl.DateTimeFormat(altLocale, {}).format(value));
   });
   it('`date` props work', async () => {
     const { t, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
@@ -173,7 +173,7 @@ describe('parser', () => {
     await loadConfig(CONFIG);
     const value = Date.now();
 
-    expect(t.get('common.modifier_date', { value }, { date: { dateStyle: 'full' } })).toBe(new Intl.DateTimeFormat(initLocale, { dateStyle: 'full', timeStyle: 'short' }).format(value));
+    expect(t.get('common.modifier_date', { value }, { date: { year: '2-digit', month: 'numeric', day: 'numeric' } })).toBe(new Intl.DateTimeFormat(initLocale, { year: '2-digit', month: 'numeric', day: 'numeric' }).format(value));
   });
   it('`date` defaults work', async () => {
     const { t, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
@@ -181,7 +181,7 @@ describe('parser', () => {
     await loadConfig({ ...CONFIG, parser: parser({ modifierDefaults: { date: { timeStyle: 'full' } } }) });
     const value = Date.now();
 
-    expect(t.get('common.modifier_date', { value })).toBe(new Intl.DateTimeFormat(initLocale, { dateStyle: 'medium', timeStyle: 'full' }).format(value));
+    expect(t.get('common.modifier_date', { value })).toBe(new Intl.DateTimeFormat(initLocale, { timeStyle: 'full' }).format(value));
   });
   it('`ago` modifier works', async () => {
     const { t, loadConfig, loadTranslations, locale, locales } = new i18n<Parser.Params<{ value?: any }>>();

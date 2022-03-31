@@ -42,10 +42,10 @@ export const date: Modifier.T<Modifier.DateProps> = ({ value, props, defaultValu
   if (!locale) return '';
 
 
-  const { dateStyle: dateStyleDefault, timeStyle: timeStyleDefault, ...defaults } = getModifierDefaults<Modifier.DateProps>('date', parserOptions);
-  const { dateStyle = dateStyleDefault || 'medium', timeStyle = timeStyleDefault || 'short', ...rest } = props?.date || {};
+  const { ...defaults } = getModifierDefaults<Modifier.DateProps>('date', parserOptions);
+  const { ...rest } = props?.date || {};
 
-  return new Intl.DateTimeFormat(locale, { ...defaults, dateStyle, timeStyle, ...rest }).format(+value || +defaultValue);
+  return new Intl.DateTimeFormat(locale, { ...defaults, ...rest }).format(+value || +defaultValue);
 };
 
 const agoMap = [
