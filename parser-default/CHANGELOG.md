@@ -1,3 +1,11 @@
+# 1.0.3
+This version includes these changes:
+* fixed `date` modifier props so date modifier can be used without time formatter:
+
+```js
+$t('content.date', { value }, { date: { year: '2-digit', month: 'numeric', day: 'short' } });
+```
+
 # 1.0.2
 This version includes these changes:
 * fixed `ago` modifier plural formats (until this version only singular was accepted)
