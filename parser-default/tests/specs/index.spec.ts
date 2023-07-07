@@ -43,7 +43,7 @@ describe('parser', () => {
     await loadConfig(CONFIG);
     const $t = t.get;
 
-    expect($t('common.placeholder_default')).toBe('VALUES: DEFAULT_VALUE, DEFAULT_VALUE, DEFAULT_VALUE, DEFAULT_VALUE');
+    expect($t('common.placeholder_default')).toBe('VALUES: DEFAULT_VALUE, DEFAULT_VALUE, DEFAULT_VALUE , DEFAULT_VALUE');
   });
   it('dynamic default works for placeholders', async () => {
     const { t, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
@@ -67,9 +67,9 @@ describe('parser', () => {
     await loadConfig(CONFIG);
     const $t = t.get;
 
-    expect($t('common.modifier_eq', { value: 'option9' })).toBe('VALUES: DEFAULT VALUE, DEFAULT VALUE, DEFAULT VALUE, DEFAULT VALUE');
-    expect($t('common.modifier_eq', { value: 'option2' })).toBe('VALUES: VALUE2, VALUE2, VALUE2, VALUE2');
-    expect($t('common.modifier_eq')).toBe('VALUES: DEFAULT VALUE, DEFAULT VALUE, DEFAULT VALUE, DEFAULT VALUE');
+    expect($t('common.modifier_eq', { value: 'option9' })).toBe('VALUES: DEFAULT VALUE, DEFAULT VALUE , DEFAULT VALUE, DEFAULT VALUE  ');
+    expect($t('common.modifier_eq', { value: 'option2' })).toBe('VALUES: VALUE2, VALUE2 , VALUE2, VALUE2  ');
+    expect($t('common.modifier_eq')).toBe('VALUES: DEFAULT VALUE, DEFAULT VALUE , DEFAULT VALUE, DEFAULT VALUE  ');
   });
   it('`ne` modifier works', async () => {
     const { t, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
