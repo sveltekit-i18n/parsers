@@ -11,10 +11,10 @@ const placeholders: Interpolate = ({ value: text, props, payload, parserOptions,
   const key = unesc(`${placeholder.match(/(?!{|\s).+?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/)}`);
   const value = payload?.[key as keyof Parser.Payload];
 
-  let [,defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*([^\s:;].+?(?:\\[:;]|[^;\s}])*)(?=\s*(?:;|}}$))/i) || [];
+  let [, defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*([^\s:;].+?(?:\\[:;]|[^;}])*)(?=\s*(?:;|}}$))/i) || [];
   defaultValue = defaultValue || payload?.default || '';
 
-  let [,modifierKey = ''] = placeholder.match(/{{\s*(?:[^;]|(?:\\;))+\s*(?:(?!\\:).[:])\s*(?!\s)((?:\\;|[^;])+?)(?=\s*(?:[;]|}}$))/i) || [];
+  let [, modifierKey = ''] = placeholder.match(/{{\s*(?:[^;]|(?:\\;))+\s*(?:(?!\\:).[:])\s*(?!\s)((?:\\;|[^;])+?)(?=\s*(?:[;]|}}$))/i) || [];
 
   if (value === undefined && modifierKey !== 'ne') return defaultValue;
 
@@ -27,15 +27,15 @@ const placeholders: Interpolate = ({ value: text, props, payload, parserOptions,
 
   const modifier = modifiers[modifierKey as keyof typeof modifiers];
   const options = (
-    placeholder.match(/[^\s:;{](?:[^;]|\\[;])+[^\s:;}]/gi) || []
+    placeholder.match(/[^\s:;{](?:[^;]|\\[;])+[^:;}]/gi) as RegExpMatchArray || []
   ).reduce(
     (acc, option, i) => {
-      // NOTE: First item is placeholder and modifier
+      // NOTE: First item is a placeholder and modifier
       if (i > 0) {
         const optionKey = unesc(`${option.match(/(?:(?:\\:)|[^:])+/)}`.trim());
-        const optionValue = `${option.match(/(?:(?:\\:)|[^:])+$/)}`.trim();
+        const optionValue = `${option.match(/(?:(?:\\:)|[^:])+$/)}`.trimStart();
 
-        if (optionKey && optionKey !== 'default' && optionValue) return ([ ...acc, { key: optionKey, value: optionValue }]);
+        if (optionKey && optionKey !== 'default' && optionValue) return ([...acc, { key: optionKey, value: optionValue }]);
       }
 
       return acc;
@@ -61,11 +61,11 @@ const parser: Parser.Factory = (parserOptions) => ({
   parse: (value, [payload, props], locale, key) => {
 
     if (payload?.default && value === undefined) {
-      value = `${payload.default}`;
+      value = payload.default;
     }
 
     if (value === undefined) {
-      value = `${key}`;
+      value = key;
     }
 
     return interpolate({ value, payload, props, parserOptions, locale });
