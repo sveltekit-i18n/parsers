@@ -1,3 +1,27 @@
+# 1.0.4
+This version includes these changes:
+* Fixed trailing spaces handling. In previous versions, all trailing spaces have been trimmed. This change results in this behavior:
+
+```handlebars
+{{ undefined_key; default: Default value; }}
+// => 'Default value'
+```
+
+```handlebars
+{{ undefined_key; default: Default value ; }}
+// => 'Default value '
+```
+
+```handlebars
+{{undefined_key; default: Default value}}
+// => 'Default value'
+```
+
+```handlebars
+{{ undefined_key; default: Default value }}
+// => 'Default value '
+```
+
 # 1.0.3
 This version includes these changes:
 * fixed `date` modifier props so date modifier can be used without time formatter:
