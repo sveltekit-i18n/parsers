@@ -220,7 +220,13 @@ describe('parser', () => {
   it('custom modifier works', async () => {
     const { t, loadConfig } = new i18n<Parser.Params<{ data?: any }>>();
 
-    await loadConfig(CONFIG);
+    await loadConfig({
+      ...CONFIG, parser: parser({
+        customModifiers: {
+          test: ({ value }) => value,
+        },
+      }),
+    });
     const $t = t.get;
 
     expect($t('common.modifier_custom', { data: 'TEST_STRING' })).toBe('TEST_STRING');
