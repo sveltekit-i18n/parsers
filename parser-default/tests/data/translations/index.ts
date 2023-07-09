@@ -1,6 +1,6 @@
-import * as common from './en/common.json';
-import * as route from './en/route.json';
-import * as common_cs from './cs/common.json';
+import { default as common } from './en/common.json';
+import { default as route } from './en/route.json';
+import { default as common_cs } from './cs/common.json';
 
 export default ({
   en: {

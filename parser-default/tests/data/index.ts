@@ -14,24 +14,24 @@ export const CONFIG: Config = {
     {
       key: 'common',
       locale: 'EN',
-      loader: () => import('../data/translations/en/common.json'),
+      loader: async () => (await import('../data/translations/en/common.json')).default,
     },
     {
       key: 'route1',
       locale: 'EN',
       routes: [/./],
-      loader: () => import('../data/translations/en/route.json'),
+      loader: async () => (await import('../data/translations/en/route.json')).default,
     },
     {
       key: 'route2',
       locale: 'EN',
       routes: ['/path#hash?a=b&c=d'],
-      loader: () => import('../data/translations/en/route.json'),
+      loader: async () => (await import('../data/translations/en/route.json')).default,
     },
     {
       key: 'common',
       locale: 'cs',
-      loader: () => import('../data/translations/cs/common.json'),
+      loader: async () => (await import('../data/translations/cs/common.json')).default,
     },
   ],
 };
