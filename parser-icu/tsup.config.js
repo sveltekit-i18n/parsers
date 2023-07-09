@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
+/* eslint-disable */
 import { defineConfig } from 'tsup';
 
 export default defineConfig(
@@ -10,5 +10,6 @@ export default defineConfig(
     entry: ['src/index.ts'],
     minify: !options.watch,
     sourcemap: options.watch,
+    splitting: true,
   }),
 );
