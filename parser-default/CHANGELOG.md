@@ -1,3 +1,7 @@
+# 1.0.5
+This version includes these changes:
+* Fixed CommonJS build
+
 # 1.0.4
 This version includes these changes:
 * Fixed trailing spaces handling. In previous versions, all trailing spaces have been trimmed. This change results in this behavior:
