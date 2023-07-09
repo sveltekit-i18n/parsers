@@ -8,7 +8,7 @@ export const CONFIG: Config = {
     {
       key: 'common',
       locale: 'EN',
-      loader: () => import('./common.json'),
+      loader: async () => (await import('./common.json')).default,
     },
   ],
 };
