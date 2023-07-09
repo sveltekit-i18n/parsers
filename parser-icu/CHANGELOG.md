@@ -1,3 +1,6 @@
+# 1.0.6
+Fixed CommonJS build.
+
 # 1.0.5
 Readme update.
 
