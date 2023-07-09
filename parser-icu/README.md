@@ -54,30 +54,27 @@ export const { t, locale, locales, loading, loadTranslations } = new i18n(config
 ```
 
 ...add translations to your app.
+```js
+/*  routes/+layout.js */
+import { loadTranslations, locale } from '$lib/translations';
+
+export const load = async ({ url }) => {
+  const { pathname } = url;
+
+  const initLocale = 'en'; // get from cookie, user session, ...
+  
+  await loadTranslations(initLocale, pathname); // keep this just before the `return`
+
+  return {};
+}
+```
+
 ```svelte
-<!-- routes/__layout.svelte -->
+<!-- routes/+page.svelte -->
 
-<script context="module" lang="ts">
-  import {loadTranslations, locale} from '$lib/translations';
+<script>
+  import { t } from '$lib/translations';
 
-  export const load = async ({ url }) => {
-    const { pathname } = url;
-
-    const defaultLocale = 'en'; // get from cookie, user session, ...
-    
-    const initLocale = locale.get() || defaultLocale; // set default if no locale already set
-
-    await loadTranslations(initLocale, pathname); // keep this just before the `return`
-
-    return {};
-  }
-</script>
-
-
-<!-- routes/index.svelte -->
-
-<script lang="ts">
-  import {t} from '$lib/translations';
   const value = 'female';
 </script>
 
