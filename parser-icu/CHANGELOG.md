@@ -1,3 +1,15 @@
+# 1.0.5
+Readme update.
+
+# 1.0.4
+Readme update to be compatible with Svelte 4.
+
+# 1.0.3
+Dependency update.
+
+# 1.0.2
+Dependency update.
+
 # 1.0.1
 Dependency update.
 

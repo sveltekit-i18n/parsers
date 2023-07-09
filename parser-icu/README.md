@@ -24,9 +24,9 @@ Format your translations to ICU...
 // $lib/translations/index.ts
 
 import i18n from '@sveltekit-i18n/base';
-import parser from '@sveltekit-i18n/parsers-icu';
+import parser from '@sveltekit-i18n/parser-icu';
 
-import type { Config } from '@sveltekit-i18n/parsers-icu';
+import type { Config } from '@sveltekit-i18n/parser-icu';
 
 const config: Config<{/* You can add types for your payload here. */}> = {
   parser: parser({
@@ -55,7 +55,8 @@ export const { t, locale, locales, loading, loadTranslations } = new i18n(config
 
 ...add translations to your app.
 ```js
-/*  routes/+layout.js */
+/*  ./src/routes/+layout.js */
+
 import { loadTranslations, locale } from '$lib/translations';
 
 export const load = async ({ url }) => {
@@ -70,7 +71,7 @@ export const load = async ({ url }) => {
 ```
 
 ```svelte
-<!-- routes/+page.svelte -->
+<!-- ./src/routes/+page.svelte -->
 
 <script>
   import { t } from '$lib/translations';
