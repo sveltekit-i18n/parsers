@@ -1,3 +1,7 @@
+# 1.0.6
+This version includes these changes:
+* Removed unused type declarations from build.
+
 # 1.0.5
 This version includes these changes:
 * Fixed CommonJS build
