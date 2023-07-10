@@ -1,3 +1,6 @@
+# 1.0.7
+Removed unused type declarations from build.
+
 # 1.0.6
 Fixed CommonJS build.
 
