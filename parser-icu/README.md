@@ -1,8 +1,11 @@
 [![npm version](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-icu.svg)](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-icu) ![](https://github.com/sveltekit-i18n/parsers/workflows/Tests/badge.svg) [![Tests](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-icu.yml/badge.svg)](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-icu.yml)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/cd425de0-b200-4a6a-8ab6-68cf34b8b6c7/deploy-status)](https://app.netlify.com/sites/parser-icu/deploys)
 
 # @sveltekit-i18n/parser-icu
 This parser implements [`intl-messageformat`](https://www.npmjs.com/package/intl-messageformat) library and brings [ICU message syntax](https://unicode-org.github.io/icu/userguide/format_parse/messages/) to [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base).
 
+## Preview
+You can see this parser in action on [Netlify](https://parser-icu.netlify.app).
 
 ## Usage
 
