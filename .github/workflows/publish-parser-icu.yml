@@ -30,7 +30,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
         run: |
-          cd parser-default
+          cd parser-icu
           npm install
           npm version ${{ inputs.version }}
           npm publish
