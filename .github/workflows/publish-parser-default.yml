@@ -29,12 +29,12 @@ jobs:
         with:
           node-version: 18
           registry-url: https://registry.npmjs.org/
-      - env:
+      - name: Publish package
+        env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
         run: |
           cd parser-default
           npm install
           npm version ${{ inputs.version }}
-          npm run build
-          npm publish
-          git push
+      - name: Push changes
+        uses: ad-m/github-push-action@master
