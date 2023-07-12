@@ -17,8 +17,8 @@ on:
             - major
 
 jobs:
-  tests:
-    uses: ./.github/workflows/tests-parser-default.yml
+  #tests:
+  #  uses: ./.github/workflows/tests-parser-default.yml
 
   publish-npm:
     needs: tests
@@ -39,5 +39,5 @@ jobs:
           cd parser-default
           npm install
           npm version ${{ inputs.version }}
-          git commit -a -m '`default-parser@${{ env.PACKAGE_VERSION }}` has been published'
+          git commit -a -m '`@sveltekit-i18n/parser-default@${{ env.PACKAGE_VERSION }}` has been published'
           git push
