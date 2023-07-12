@@ -217,6 +217,29 @@ describe('parser', () => {
     await loadConfig({ ...CONFIG, parser: parser({ modifierDefaults: { ago: { format: 'week' } } }) });
     expect(t.get('common.modifier_ago', { value })).not.toBe(new Intl.RelativeTimeFormat(initLocale).format(-7, 'day'));
   });
+  it('`currency` modifier works', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ value?: number }>>();
+
+    await loadConfig(CONFIG);
+    const value = 10;
+    const ratio = 21.4;
+
+    expect(t.get('common.modifier_currency', { value }, { currency: { currency: 'USD', ratio: 1 } })).toBe(new Intl.NumberFormat(initLocale, { style: 'currency', currency: 'USD' }).format(value));
+
+    expect(t.get('common.modifier_currency', { value }, { currency: { currency: 'CZK', ratio } })).toBe(new Intl.NumberFormat(initLocale, { style: 'currency', currency: 'CZK' }).format(value * ratio));
+  });
+  it('`currency` defaults work', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ value?: number }>>();
+
+    const value = 10;
+    const ratio = 21.4;
+
+    await loadConfig({ ...CONFIG, parser: parser({ modifierDefaults: { currency: { currency: 'USD', ratio: 1 } } }) });
+    expect(t.get('common.modifier_currency', { value })).toBe(new Intl.NumberFormat(initLocale, { style: 'currency', currency: 'USD' }).format(value));
+
+    await loadConfig({ ...CONFIG, parser: parser({ modifierDefaults: { currency: { currency: 'CZK', ratio } } }) });
+    expect(t.get('common.modifier_currency', { value })).toBe(new Intl.NumberFormat(initLocale, { style: 'currency', currency: 'CZK' }).format(value * ratio));
+  });
   it('custom modifier works', async () => {
     const { t, loadConfig } = new i18n<Parser.Params<{ data?: any }>>();
 

@@ -10,17 +10,19 @@ export module Modifier {
 
   export type DefaultKeys = keyof typeof modifiers;
 
-  export type AgoProps = { 'ago'?: Intl.RelativeTimeFormatOptions & { format?: Intl.RelativeTimeFormatUnit | 'auto' } };
+  export type AgoProps = { ago?: Intl.RelativeTimeFormatOptions & { format?: Intl.RelativeTimeFormatUnit | 'auto' } };
 
-  export type DateProps = { 'date'?: Intl.DateTimeFormatOptions };
+  export type DateProps = { date?: Intl.DateTimeFormatOptions };
 
-  export type NumberProps = { 'number'?: Intl.NumberFormatOptions };
+  export type NumberProps = { number?: Intl.NumberFormatOptions };
 
-  export type DefaultProps = NumberProps & AgoProps & DateProps;
+  export type CurrencyProps = { currency?: Intl.NumberFormatOptions & { ratio?: number } };
+
+  export type DefaultProps = NumberProps & AgoProps & DateProps & CurrencyProps;
 
   export type Props<T = DefaultProps> = T & DefaultProps;
 
-  export type ModifierOption =  Record<'key' | 'value', string>;
+  export type ModifierOption = Record<'key' | 'value', string>;
 
   export type DefaultValue = string | undefined;
 

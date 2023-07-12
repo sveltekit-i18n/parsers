@@ -49,13 +49,13 @@ export const date: Modifier.T<Modifier.DateProps> = ({ value, props, defaultValu
 };
 
 const agoMap = [
-  { key:'second', multiplier:1000 },
-  { key:'minute', multiplier:60 },
-  { key:'hour', multiplier:60 },
-  { key:'day', multiplier:24 },
-  { key:'week', multiplier:7 },
-  { key:'month', multiplier:13 / 3 },
-  { key:'year', multiplier:12 },
+  { key: 'second', multiplier: 1000 },
+  { key: 'minute', multiplier: 60 },
+  { key: 'hour', multiplier: 60 },
+  { key: 'day', multiplier: 24 },
+  { key: 'week', multiplier: 7 },
+  { key: 'month', multiplier: 13 / 3 },
+  { key: 'year', multiplier: 12 },
 ] as { key: Intl.RelativeTimeFormatUnit, multiplier: number }[];
 
 const testResolution = (defKey: string = '', testKey: string = '') => new RegExp(`^${defKey}s?$`).test(testKey);
@@ -84,4 +84,13 @@ export const ago: Modifier.T<Modifier.AgoProps> = ({ value, defaultValue = '', l
   const formatParams = agoFormat(inputValue, format);
 
   return new Intl.RelativeTimeFormat(locale, { ...defaults, numeric, ...rest }).format(...formatParams);
+};
+
+export const currency: Modifier.T<Modifier.CurrencyProps> = ({ value, defaultValue = '', locale = '', props, parserOptions }) => {
+  if (!locale) return '';
+
+  const { ratio: ratioDefault, currency: currencyDefault, ...defaults } = getModifierDefaults<Modifier.CurrencyProps>('currency', parserOptions);
+  const { ratio = ratioDefault || 1, currency = currencyDefault, ...rest } = props?.currency || {};
+
+  return new Intl.NumberFormat(locale, { ...defaults, style: 'currency', currency, ...rest }).format(ratio * (value || defaultValue));
 };
