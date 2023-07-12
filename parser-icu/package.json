@@ -1,6 +1,6 @@
 {
   "name": "@sveltekit-i18n/parser-icu",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "ICU parser compatible with sveltekit-i18n library.",
   "type": "module",
   "main": "./dist/index.cjs",
