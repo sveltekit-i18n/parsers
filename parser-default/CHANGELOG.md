@@ -1,3 +1,7 @@
+# 1.1.1
+This version includes these changes:
+* Readme update.
+
 # 1.1.0
 This version includes these changes:
 * Added `currency` modifier:

@@ -1,3 +1,6 @@
+# 1.0.8
+Readme update.
+
 # 1.0.7
 Removed unused type declarations from build.
 
