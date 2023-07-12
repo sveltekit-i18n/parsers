@@ -43,4 +43,4 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git commit -a -m '`@sveltekit-i18n/parser-default@${{ env.PACKAGE_VERSION }}` has been published'
       - name: Push changes
-        uses: ad-m/github-push-action@master
+        run: git push
