@@ -87,7 +87,7 @@ Modifiers don't represent the payload value directly, but they can use it for fu
 `gte` – input value is greater than or equal to the value in your definition.\
 `number` – input value is converted to locale formatted number string.\
 `date` – input value is converted to locale date string.\
-`ago` – input value is converted to locale relative date string.
+`ago` – input value is converted to locale relative date string.\
 `currency` – input value is converted to locale relative currency string.
 
 Each modifier returns a string value based on these input properties:
