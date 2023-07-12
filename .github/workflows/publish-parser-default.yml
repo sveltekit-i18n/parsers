@@ -33,7 +33,7 @@ jobs:
           cd parser-default
           npm install
           npm version ${{ inputs.version }}
-          npm build
+          npm run build
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
