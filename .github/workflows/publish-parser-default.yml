@@ -29,6 +29,9 @@ jobs:
         with:
           node-version: 18
           registry-url: https://registry.npmjs.org/
+      - uses: nyaa8/package-version@v1
+        with:
+          path: 'parser-default/package.json'
       - name: Publish package
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
@@ -36,5 +39,5 @@ jobs:
           cd parser-default
           npm install
           npm version ${{ inputs.version }}
-      - name: Push changes
-        uses: ad-m/github-push-action@master
+          git commit -a -m '`default-parser@${{ env.PACKAGE_VERSION }}` has been published'
+          git push
