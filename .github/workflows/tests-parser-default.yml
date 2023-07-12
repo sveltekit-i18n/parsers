@@ -1,10 +1,11 @@
 name: Default parser tests
 
-on: 
+on:
   push:
     paths:
       - parser-default/**
       - .github/workflows/tests-parser-default.yml
+  workflow_call:
   workflow_dispatch:
 
 jobs:
