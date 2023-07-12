@@ -1,3 +1,23 @@
+# 1.1.0
+This version includes these changes:
+* Added `currency` modifier:
+
+```jsonc
+// translation json
+
+{
+  "currency_placeholder": "The price is: {{value:currency}}"
+}
+```
+
+```svelte
+<!-- svelte file -->
+
+{$t('currency_placeholder', { value: 10 }, { currency: { currency: 'USD', ratio: 1 }  })}
+
+{$t('currency_placeholder', { value: 10 }, { currency: { currency: 'CZK', ratio: 21.4 }  })}
+```
+
 # 1.0.6
 This version includes these changes:
 * Removed unused type declarations from build.

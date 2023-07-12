@@ -14,14 +14,15 @@ You can specify default values for built-in modifiers using this prop. Configura
 `number`?: __Intl.NumberFormatOptions__\
 `date`?: __Intl.DateTimeFormatOptions__\
 `ago`?: __Intl.RelativeTimeFormatOptions & { format?: Intl.RelativeTimeFormatUnit | 'auto' }__
+`currency`?: __Intl.NumberFormatOptions & { ratio?: number }__
 
 ### `customModifiers`?: __Record<string, Modifier.T>__
 You can use this property to include your own set of modifiers.
 
 For example custom modifier `eqAbs`...
-```typescript
-{
-  eqAbs: (value, options, defaultValue, locale) => options.find(({ key }) => Math.abs(key) === Math.abs(value))?.value || defaultValue
+```javascript
+const customModifiers = {
+  eqAbs: ({ value, options, defaultValue, locale }) => options.find(({ key }) => Math.abs(+key) === Math.abs(value))?.value || defaultValue
 }
 
 ```
@@ -29,7 +30,7 @@ For example custom modifier `eqAbs`...
 ...can be used in the definitions like this:
 
 ```hbs
-{{placeholder:eqAbs; key1:value1; key2:value2; default:defaultValue;}}
+{{placeholder:eqAbs; 10:Value is absolutely equal to ten.; default:Value is not absolutely equal to ten.;}}
 ```
 Read more about [Modifiers](#modifiers).
 
@@ -87,6 +88,7 @@ Modifiers don't represent the payload value directly, but they can use it for fu
 `number` – input value is converted to locale formatted number string.\
 `date` – input value is converted to locale date string.\
 `ago` – input value is converted to locale relative date string.
+`currency` – input value is converted to locale relative currency string.
 
 Each modifier returns a string value based on these input properties:
 
