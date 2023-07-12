@@ -1,4 +1,4 @@
-name: Default parser publish
+name: ICU parser publish
 
 on:
   workflow_dispatch:
