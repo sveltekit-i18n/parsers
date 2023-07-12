@@ -5,6 +5,7 @@ on:
     paths:
       - parser-icu/**
       - .github/workflows/tests-parser-icu.yml
+  workflow_call:
   workflow_dispatch:
 
 jobs:
@@ -17,10 +18,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Node setup
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
 
