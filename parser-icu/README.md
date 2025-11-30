@@ -2,93 +2,428 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/cd425de0-b200-4a6a-8ab6-68cf34b8b6c7/deploy-status)](https://app.netlify.com/sites/parser-icu/deploys)
 
 # @sveltekit-i18n/parser-icu
-This parser implements [`intl-messageformat`](https://www.npmjs.com/package/intl-messageformat) library and brings [ICU message syntax](https://unicode-org.github.io/icu/userguide/format_parse/messages/) to [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base).
 
-## Preview
-You can see this parser in action on [Netlify](https://parser-icu.netlify.app).
+ICU message format parser for [@sveltekit-i18n/base](https://github.com/sveltekit-i18n/base), powered by [`intl-messageformat`](https://www.npmjs.com/package/intl-messageformat). This brings industry-standard [ICU message syntax](https://unicode-org.github.io/icu/userguide/format_parse/messages/) to your SvelteKit applications.
+
+**[Live Demo](https://parser-icu.netlify.app)** – See it in action
+
+## Features
+
+- 🌍 **Industry standard** – ICU message format used worldwide
+- 📐 **Advanced plurals** – Complex plural rules for any language
+- 🎯 **Select format** – Gender and other categorical selections
+- 🔢 **Number formatting** – Locale-aware number display
+- 📅 **Date/time formatting** – Full internationalization support
+- 🔧 **Flexible** – Rich formatting options
+- 📝 **TypeScript** – Full type support
+
+## Installation
+
+```bash
+npm install @sveltekit-i18n/parser-icu
+```
+
+**Note:** This parser has an external dependency (`intl-messageformat`) which is installed automatically.
 
 ## Usage
 
-Format your translations to ICU...
-```jsonc
-// $lib/translations/en/home.json
+### Basic Setup
 
-{
-  "plural": "You have {value, plural, =0 {no photos.} =1 {one photo.} other {# photos.}}",
-  "select": "{value, select, male {He} female {She} other {They}} will respond shortly.",
-  "selectordinal": "It's my cat's {value, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} birthday",
-  "number": "The price is: {value, number, ::currency/EUR}",
-  "date": "Today is: {value, date, ::yyyyMd}"
-}
-```
-
-...config `sveltekit-i18n`...
-```ts
-// $lib/translations/index.ts
-
+```typescript
+// src/lib/translations/index.ts
 import i18n from '@sveltekit-i18n/base';
 import parser from '@sveltekit-i18n/parser-icu';
-
 import type { Config } from '@sveltekit-i18n/parser-icu';
 
-const config: Config<{/* You can add types for your payload here. */}> = {
+const config: Config = {
   parser: parser({
-    // Intl MessageFormat `opts` go here
-    // see https://formatjs.io/docs/intl-messageformat/#intlmessageformat-constructor
+    // Optional: Intl.MessageFormat options
+    // See: https://formatjs.io/docs/intl-messageformat/
   }),
   loaders: [
     {
-      key: 'home',
       locale: 'en',
+      key: 'home',
       routes: ['/'],
-      loader: () => import('./en/home.json'), // or you could fetch it from server...
+      loader: async () => (await import('./en/home.json')).default,
     },
     {
+      locale: 'cs',
       key: 'home',
-      locale: 'it',
       routes: ['/'],
-      loader: () => import('./it/home.json'),
+      loader: async () => (await import('./cs/home.json')).default,
     },
-    // Other pages and language mutations...
   ],
 };
 
 export const { t, locale, locales, loading, loadTranslations } = new i18n(config);
 ```
 
-...add translations to your app.
-```js
-/*  ./src/routes/+layout.js */
+### Load Translations
 
-import { loadTranslations, locale } from '$lib/translations';
+```typescript
+// src/routes/+layout.ts
+import { loadTranslations } from '$lib/translations';
 
-/** @type {import('@sveltejs/kit').Load} */
 export const load = async ({ url }) => {
   const { pathname } = url;
-
-  const initLocale = 'en'; // get from cookie, user session, ...
+  const initLocale = 'en';
   
-  await loadTranslations(initLocale, pathname); // keep this just before the `return`
-
+  await loadTranslations(initLocale, pathname);
+  
   return {};
+};
+```
+
+### Use in Components
+
+```svelte
+<script>
+  import { t } from '$lib/translations';
+  
+  let itemCount = 5;
+  let gender = 'female';
+</script>
+
+<p>{$t('home.items', { count: itemCount })}</p>
+<p>{$t('home.response', { gender })}</p>
+```
+
+## ICU Message Syntax
+
+### Simple Messages
+
+Basic text with simple placeholders:
+
+```json
+{
+  "greeting": "Hello, {name}!",
+  "welcome": "Welcome to {appName}."
+}
+```
+
+```javascript
+$t('greeting', { name: 'Alice' })
+// → "Hello, Alice!"
+```
+
+### Plural Format
+
+Handle pluralization with proper grammar:
+
+```json
+{
+  "items": "You have {count, plural, =0 {no items} one {# item} other {# items}}.",
+  "photos": "{count, plural, =0 {No photos.} =1 {One photo.} other {# photos.}}"
+}
+```
+
+```javascript
+$t('items', { count: 0 })
+// → "You have no items."
+
+$t('items', { count: 1 })
+// → "You have 1 item."
+
+$t('items', { count: 5 })
+// → "You have 5 items."
+```
+
+**Plural categories:** `zero`, `one`, `two`, `few`, `many`, `other`
+
+Use `#` to display the actual number, or `=N` for exact matches.
+
+### Select Format
+
+Choose text based on a value (like gender):
+
+```json
+{
+  "response": "{gender, select, male {He} female {She} other {They}} will respond shortly.",
+  "role": "{role, select, admin {Administrator} user {User} guest {Guest} other {Unknown}}",
+  "status": "{status, select, active {✓ Active} inactive {✗ Inactive} other {? Unknown}}"
+}
+```
+
+```javascript
+$t('response', { gender: 'female' })
+// → "She will respond shortly."
+
+$t('role', { role: 'admin' })
+// → "Administrator"
+```
+
+### SelectOrdinal Format
+
+For ordinal numbers (1st, 2nd, 3rd, etc.):
+
+```json
+{
+  "birthday": "It's my cat's {count, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} birthday!",
+  "place": "You finished {position, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}!"
+}
+```
+
+```javascript
+$t('birthday', { count: 1 })
+// → "It's my cat's 1st birthday!"
+
+$t('birthday', { count: 3 })
+// → "It's my cat's 3rd birthday!"
+
+$t('place', { position: 22 })
+// → "You finished 22nd!"
+```
+
+### Number Formatting
+
+Format numbers according to locale:
+
+```json
+{
+  "price": "The price is: {value, number}",
+  "currency": "Total: {amount, number, ::currency/USD}",
+  "percent": "Discount: {value, number, ::percent}",
+  "compact": "Population: {count, number, ::compact-short}"
+}
+```
+
+```javascript
+$t('price', { value: 1234.56 })
+// → "The price is: 1,234.56" (en) or "1.234,56" (cs)
+
+$t('currency', { amount: 99.99 })
+// → "Total: $99.99"
+
+$t('percent', { value: 0.15 })
+// → "Discount: 15%"
+
+$t('compact', { count: 1500000 })
+// → "Population: 1.5M"
+```
+
+### Date and Time Formatting
+
+Format dates according to locale:
+
+```json
+{
+  "today": "Today is: {date, date}",
+  "full": "Date: {date, date, ::yyyyMMdd}",
+  "time": "Time: {timestamp, time, ::HHmm}",
+  "datetime": "Last seen: {value, date, ::MMMddyyyy} at {value, time, ::HHmmss}"
+}
+```
+
+```javascript
+$t('today', { date: new Date() })
+// → "Today is: 1/15/2024" (en) or "15. 1. 2024" (cs)
+
+$t('full', { date: new Date('2024-01-15') })
+// → "Date: 20240115"
+
+$t('time', { timestamp: new Date() })
+// → "Time: 1430" (2:30 PM)
+```
+
+### Nested Messages
+
+Combine multiple formats:
+
+```json
+{
+  "notification": "{count, plural, =0 {No new messages} one {One new message from {sender}} other {# new messages, latest from {sender}}}",
+  "cart": "Your cart has {items, plural, =0 {no items} one {# item} other {# items}} totaling {total, number, ::currency/USD}"
+}
+```
+
+```javascript
+$t('notification', { count: 1, sender: 'Alice' })
+// → "One new message from Alice"
+
+$t('notification', { count: 5, sender: 'Bob' })
+// → "5 new messages, latest from Bob"
+
+$t('cart', { items: 3, total: 149.97 })
+// → "Your cart has 3 items totaling $149.97"
+```
+
+## Parser Options
+
+Configure the parser with Intl.MessageFormat options:
+
+```typescript
+import parser from '@sveltekit-i18n/parser-icu';
+
+const config = {
+  parser: parser({
+    // Optional MessageFormat options
+    ignoreTag: false,
+    captureLocation: false,
+    // See: https://formatjs.io/docs/intl-messageformat/#intlmessageformat-constructor
+  }),
+};
+```
+
+## Format Options
+
+Pass formatting options as the third parameter to `$t()`:
+
+```svelte
+<script>
+  import { t } from '$lib/translations';
+</script>
+
+<!-- Number formatting -->
+<p>{$t('price', { value: 1234.56 }, {
+  number: {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }
+})}</p>
+
+<!-- Date formatting -->
+<p>{$t('date', { value: new Date() }, {
+  date: {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }
+})}</p>
+```
+
+## TypeScript Support
+
+Full TypeScript support with complete type definitions:
+
+```typescript
+import i18n from '@sveltekit-i18n/base';
+import parser from '@sveltekit-i18n/parser-icu';
+import type { Config } from '@sveltekit-i18n/parser-icu';
+
+const config: Config = {
+  parser: parser(),
+  loaders: [/* ... */],
+};
+
+const { t } = new i18n(config);
+```
+
+All ICU message format options and configurations are fully typed. The library provides type definitions for the parser and configuration, but does not automatically infer translation keys from your JSON files.
+
+## Examples
+
+### Complete Multi-page App
+
+```typescript
+// src/lib/translations/index.ts
+import i18n from '@sveltekit-i18n/base';
+import parser from '@sveltekit-i18n/parser-icu';
+import type { Config } from '@sveltekit-i18n/parser-icu';
+
+const config: Config = {
+  parser: parser(),
+  loaders: [
+    {
+      locale: 'en',
+      key: 'common',
+      loader: async () => (await import('./en/common.json')).default,
+    },
+    {
+      locale: 'en',
+      key: 'home',
+      routes: ['/'],
+      loader: async () => (await import('./en/home.json')).default,
+    },
+    {
+      locale: 'cs',
+      key: 'common',
+      loader: async () => (await import('./cs/common.json')).default,
+    },
+    {
+      locale: 'cs',
+      key: 'home',
+      routes: ['/'],
+      loader: async () => (await import('./cs/home.json')).default,
+    },
+  ],
+};
+
+export const { t, locale, locales, loading, loadTranslations } = new i18n(config);
+```
+
+```json
+// src/lib/translations/en/common.json
+{
+  "app.name": "My App",
+  "nav.home": "Home",
+  "nav.about": "About",
+  "items": "You have {count, plural, =0 {no items} one {# item} other {# items}}."
 }
 ```
 
 ```svelte
-<!-- ./src/routes/+page.svelte -->
-
+<!-- src/routes/+page.svelte -->
 <script>
-  import { t } from '$lib/translations';
-
-  const value = 'female';
+  import { t, locale } from '$lib/translations';
+  
+  let cartItems = 3;
 </script>
 
-{$t('home.select', { value }, {/* Intl MessageFormat `formats` go here */})}
+<h1>{$t('common.app.name')}</h1>
+<p>Current locale: {$locale}</p>
+<p>{$t('common.items', { count: cartItems })}</p>
 ```
 
-## More info
-[Example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-icu)\
-[Changelog](https://github.com/sveltekit-i18n/parsers/blob/master/parser-icu/CHANGELOG.md)
+See the [parser-icu example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-icu) for a complete working application.
+
+**[Live Demo](https://parser-icu.netlify.app)** – Interactive examples
+
+## When to Use ICU Parser
+
+### Use parser-icu if:
+- ✅ You need industry-standard ICU message format
+- ✅ You're migrating from other i18n libraries (react-intl, vue-i18n, etc.)
+- ✅ You need advanced plural rules for complex languages
+- ✅ You want comprehensive number/date/time formatting
+- ✅ You're comfortable with ICU syntax
+
+### Use parser-default if:
+- ✅ You want zero external dependencies
+- ✅ You prefer simpler, more readable syntax
+- ✅ You need a lightweight solution
+- ✅ Your pluralization needs are basic
+
+## Comparison
+
+**ICU (parser-icu):**
+```json
+{
+  "items": "You have {count, plural, =0 {no items} one {# item} other {# items}}."
+}
+```
+
+**Default (parser-default):**
+```json
+{
+  "items": "You have {{count}} {{count; 1:item; default:items;}}."
+}
+```
+
+Both achieve the same result, choose based on your preference and requirements.
+
+## More Resources
+
+- 📖 [ICU Message Format Guide](https://unicode-org.github.io/icu/userguide/format_parse/messages/) – Official ICU documentation
+- 📚 [FormatJS Documentation](https://formatjs.io/docs/intl-messageformat/) – intl-messageformat docs
+- 🎨 [All Parsers](https://github.com/sveltekit-i18n/parsers) – Parser overview
+- 💡 [Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples) – Working examples
+- 📋 [Changelog](./CHANGELOG.md) – Version history
 
 ## Issues
-If you are facing difficulties regarding to this implementation of [`intl-messageformat`](https://www.npmjs.com/package/intl-messageformat), create a ticket [here](https://github.com/sveltekit-i18n/lib/issues).
+
+If you're facing issues with this parser, create a ticket [here](https://github.com/sveltekit-i18n/lib/issues).
+
+## License
+
+MIT
