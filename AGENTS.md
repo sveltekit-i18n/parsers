@@ -37,3 +37,8 @@ Official message parsers for the
 - The v3 work is tracked in
   [lib#214](https://github.com/sveltekit-i18n/lib/issues/214) (#223-#227 and
   #173). Issues for this repo live in the `lib` tracker.
+
+## Comments
+
+If you need a paragraph-long comment to justify why the workaround is OK,
+the code is wrong — fix the code.
