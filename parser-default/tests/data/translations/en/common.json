@@ -18,6 +18,7 @@
   "modifier_escaped": "{{va\\:lue; option\\:1:VA\\;\\{\\{LUE\\}\\}\\:1; option\\:2:VA\\;\\{\\{LUE\\}\\}\\:2; default:DEFAULT \\{\\{VALUE\\}\\}\\;}}",
   "modifier_default_single_char": "as {{age; 8:an; 11:an; 18:an; default:a;}} {{age}}-year-old",
   "placeholder_default_escaped": "VALUES: {{value; default:\\;SEMI}}, {{value; default:SEMI\\;}}, {{value; default:\\;}}",
+  "placeholder_chain": "{{v1}}",
   "preprocess": [
     {
       "test": "passed"

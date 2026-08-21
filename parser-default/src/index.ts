@@ -47,14 +47,36 @@ const placeholders: Interpolate = ({ value: text, props, payload, parserOptions,
   return modifier({ value, options, props, defaultValue, locale, parserOptions });
 });
 
-const interpolate: Interpolate = ({ value, props, payload, parserOptions, locale }) => {
-  if (hasPlaceholders(value)) {
-    const output = placeholders({ value, payload, props, parserOptions, locale });
+const MAX_INTERPOLATION_PASSES = 10;
 
-    return interpolate({ value: output, payload, props, parserOptions, locale });
-  } else {
-    return unesc(value);
+const MAX_INTERPOLATION_LENGTH = 100000;
+
+const MAX_REPORTED_LENGTH = 120;
+
+const excerpt = (value: string) => JSON.stringify(value.length > MAX_REPORTED_LENGTH ? `${value.slice(0, MAX_REPORTED_LENGTH)}...` : value);
+
+const interpolate: Interpolate = ({ value, props, payload, parserOptions, locale }) => {
+  let output = value;
+
+  for (let pass = 0; hasPlaceholders(output); pass += 1) {
+    if (pass === MAX_INTERPOLATION_PASSES) {
+      console.warn(`[i18n]: Interpolation stopped after ${MAX_INTERPOLATION_PASSES} passes. A payload value probably references its own placeholder: ${excerpt(output)}.`);
+
+      break;
+    }
+
+    const next = placeholders({ value: output, payload, props, parserOptions, locale });
+
+    if (next.length > MAX_INTERPOLATION_LENGTH) {
+      console.warn(`[i18n]: Interpolation stopped before exceeding ${MAX_INTERPOLATION_LENGTH} characters. A payload value probably multiplies its own placeholder: ${excerpt(output)}.`);
+
+      break;
+    }
+
+    output = next;
   }
+
+  return unesc(output);
 };
 
 const parser: Parser.Factory = (parserOptions) => ({

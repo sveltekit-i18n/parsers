@@ -284,6 +284,67 @@ describe('parser', () => {
     expect($t('common.placeholder_default_escaped')).toBe('VALUES: ;SEMI, SEMI;, ;');
     expect($t('common.placeholder_default_escaped', { value: 'TEST_VALUE' })).toBe('VALUES: TEST_VALUE, TEST_VALUE, TEST_VALUE');
   });
+  it('self-referential payload values do not overflow', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ value?: any, first?: string, second?: string }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    expect($t('common.placeholder', { value: '{{value}}' })).toBe('VALUES: {{value}}, {{value}}, {{value}}, {{value}}');
+    expect($t('common.placeholder', { value: '{{first}}', first: '{{second}}', second: 'TEST_VALUE' })).toBe('VALUES: TEST_VALUE, TEST_VALUE, TEST_VALUE, TEST_VALUE');
+  });
+  it('reaching the interpolation cap reports a bounded excerpt', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ [key: string]: any }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    const chain = (length: number) => Array.from({ length }, (_, i) => [`v${i + 1}`, i + 1 === length ? 'END' : `{{v${i + 2}}}`])
+      .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as Record<string, any>);
+
+    const { warn } = console;
+    const warnings: string[] = [];
+
+    console.warn = (message: string) => { warnings.push(message); };
+
+    try {
+      expect($t('common.placeholder_chain', chain(10))).toBe('END');
+      expect($t('common.placeholder_chain', chain(11))).toBe('{{v11}}');
+      expect($t('common.placeholder_chain', { v1: `{{v1}}\n[i18n]: FORGED${'x'.repeat(1000)}` })).toContain('[i18n]: FORGED');
+    } finally {
+      console.warn = warn;
+    }
+
+    expect(warnings).toHaveLength(2);
+    expect(warnings[0]).toContain('"{{v11}}"');
+    expect(warnings[1].length).toBeLessThan(300);
+    expect(warnings[1]).not.toContain('\n');
+  });
+  it('exceeding the output budget stops interpolation and reports it', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ v1?: string }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    const { warn } = console;
+    const warnings: string[] = [];
+
+    console.warn = (message: string) => { warnings.push(message); };
+
+    try {
+      const output = $t('common.placeholder_chain', { v1: `${'{{v1}}'.repeat(4)}${'x'.repeat(64)}` });
+
+      expect(output.length).toBeLessThanOrEqual(100000);
+      expect(output.length).toBe(27968);
+    } finally {
+      console.warn = warn;
+    }
+
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toContain('stopped before exceeding');
+    expect(warnings[0].length).toBeLessThan(300);
+    expect(warnings[0]).not.toContain('\n');
+  });
   it('with user-defined locale works', async () => {
     const { t, l, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
 
