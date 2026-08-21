@@ -108,6 +108,11 @@ $t('welcome', { default: $t('common.anonymous') })
 // Uses translation from 'common.anonymous' as default
 ```
 
+> **Note:** `default` is a reserved payload key — it is the fallback for *every*
+> placeholder in the message that resolves to no value, and `{{default}}` reads
+> that same fallback rather than a placeholder of its own. An inline
+> `default:...;` takes precedence over it.
+
 ### Modifiers
 
 Modifiers transform values before displaying them.
