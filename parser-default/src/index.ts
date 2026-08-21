@@ -8,10 +8,10 @@ const hasPlaceholders = (value: any) => typeof value === 'string' && /{{(?:(?!{{
 const unesc = (value: any) => typeof value === 'string' ? value.replace(/\\(?=:|;|{|})/g, '') : value;
 
 const placeholders: Interpolate = ({ value: text, props, payload, parserOptions, locale }) => `${text}`.replace(/{{\s*(?:(?!{{|}}).)+\s*}}/g, (placeholder) => {
-  const key = unesc(`${placeholder.match(/(?!{|\s).+?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/)}`);
+  const key = unesc(`${placeholder.match(/(?!{|\s).*?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/)}`);
   const value = payload?.[key as keyof Parser.Payload];
 
-  let [, defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*([^\s:;].+?(?:\\[:;]|[^;}])*)(?=\s*(?:;|}}$))/i) || [];
+  let [, defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*([^\s:;].*?(?:\\[:;]|[^;}])*)(?=\s*(?:;|}}$))/i) || [];
   defaultValue = defaultValue || payload?.default || '';
 
   let [, modifierKey = ''] = placeholder.match(/{{\s*(?:[^;]|(?:\\;))+\s*(?:(?!\\:).[:])\s*(?!\s)((?:\\;|[^;])+?)(?=\s*(?:[;]|}}$))/i) || [];

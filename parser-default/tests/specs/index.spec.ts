@@ -29,6 +29,14 @@ describe('parser', () => {
 
     expect($t('common.placeholder', { value: 'TEST_VALUE' })).toBe('VALUES: TEST_VALUE, TEST_VALUE, TEST_VALUE, TEST_VALUE');
   });
+  it('single-character placeholders work', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ a?: any }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    expect($t('common.placeholder_single_char', { a: 'TEST_VALUE' })).toBe('VALUES: TEST_VALUE, TEST_VALUE, TEST_VALUE, TEST_VALUE');
+  });
   it('placeholders in payload work', async () => {
     const { t, loadConfig } = new i18n<Parser.Params<{ value?: any, another: string }>>();
 
@@ -44,6 +52,14 @@ describe('parser', () => {
     const $t = t.get;
 
     expect($t('common.placeholder_default')).toBe('VALUES: DEFAULT_VALUE, DEFAULT_VALUE, DEFAULT_VALUE , DEFAULT_VALUE');
+  });
+  it('single-character default values work for placeholders', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    expect($t('common.placeholder_single_char_default')).toBe('VALUES: X, X, X , X');
   });
   it('dynamic default works for placeholders', async () => {
     const { t, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
