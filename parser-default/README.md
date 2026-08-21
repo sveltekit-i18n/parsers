@@ -271,6 +271,15 @@ $t('notification', { count: 0 })
 // → "You have no messages."
 ```
 
+> **Note:** Nesting is resolved by re-interpolating the output, up to 10 passes.
+> A payload value that references its own placeholder (`{{value}}` resolving to
+> `'{{value}}'`) would never settle, and a chain of more than 10 references does
+> not resolve in time either. Both stop at the cap, where the parser reports a
+> truncated excerpt of the unresolved string through `console.warn` and returns
+> that string. A pass whose output would exceed 100 000 characters is likewise
+> discarded and reported — a payload value that multiplies its own placeholder
+> grows geometrically and would reach hundreds of megabytes within the pass cap.
+
 ## Options
 
 Configure the parser with custom defaults and modifiers:
