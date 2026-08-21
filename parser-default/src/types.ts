@@ -41,7 +41,7 @@ export module Parser {
 
   export type PayloadDefault = { [key in 'default']?: any };
 
-  export type Payload<T = any> = T & PayloadDefault;
+  export type Payload<T = any> = [Exclude<keyof T, keyof PayloadDefault>] extends [never] ? Record<string, any> & PayloadDefault : T & PayloadDefault;
 
   export type Params<P = PayloadDefault, M = Modifier.DefaultProps> = [payload?: Payload<P>, props?: Modifier.Props<M>];
 
