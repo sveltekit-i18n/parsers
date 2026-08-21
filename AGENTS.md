@@ -29,11 +29,15 @@ Official message parsers for the
 - The root holds only `README.md`, this file, `CLAUDE.md`, `.gitignore`, and
   `.github/workflows/`.
 
-## Current state: v1, frozen for the v3 train
+## Current state: v3 in progress on `master`
 
-- `master` still carries the **v1 packages** (Jest, tsup — see each package's
-  configs). The v1 line is frozen: critical fixes only, applied on the `1.x`
-  maintenance branch.
+- **`master` is the v3 development line** — v3 work lands here. The checked-in
+  packages are still the **v1 sources** (Jest, tsup — see each package's
+  configs) until the rewrite lands (#223-#227).
+- **`1.x` is a frozen snapshot** of the published v1 line. It receives nothing
+  unless a critical v1 fix is explicitly requested.
+- Nothing publishes until the whole family is ready: `base`, `parsers` and
+  `extensions` release aligned at **3.0.0**, `lib` last.
 - The v3 work is tracked in
   [lib#214](https://github.com/sveltekit-i18n/lib/issues/214) (#223-#227 and
   #173). Issues for this repo live in the `lib` tracker.
