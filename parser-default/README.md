@@ -380,6 +380,30 @@ const config: Config = {
 
 All parser options and modifier configurations are fully typed.
 
+### Typing the payload
+
+Left bare, `Config` accepts any payload key. Pass the payload type your
+translations take to have `$t` check it:
+
+```typescript
+import type { Config } from '@sveltekit-i18n/parser-default';
+
+type Payload = { applicationName: string };
+
+const config: Config<Payload> = {
+  parser: parser(),
+  loaders: [/* ... */],
+};
+
+$t('common.welcome', { applicationName: 'My app' })
+// → ok
+
+$t('common.welcome', { aplicationName: 'My app' })
+// → type error: typo caught
+```
+
+The second type argument types the props your custom modifiers take.
+
 ## Special Characters
 
 The following characters have special meaning: `;`, `:`, `{`, `}`
