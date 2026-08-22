@@ -8,13 +8,13 @@ const hasPlaceholders = (value: any) => typeof value === 'string' && /{{(?:(?!{{
 const unesc = (value: any) => typeof value === 'string' ? value.replace(/\\(?=:|;|{|})/g, '') : value;
 
 const placeholders: Interpolate = ({ value: text, props, payload, parserOptions, locale }) => `${text}`.replace(/{{\s*(?:(?!{{|}}).)+\s*}}/g, (placeholder) => {
-  const key = unesc(`${placeholder.match(/(?!{|\s).+?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/)}`);
+  const key = unesc(`${placeholder.match(/(?!{|\s).*?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/)}`);
   const value = payload?.[key as keyof Parser.Payload];
 
   let [, defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*((?:\\[:;]|[^\s:;]).*?(?:\\[:;]|[^;}])*)(?=\s*(?:;|}}$))/i) || [];
   defaultValue = defaultValue || payload?.default || '';
 
-  let [, modifierKey = ''] = placeholder.match(/{{\s*(?:[^;]|(?:\\;))+\s*(?:(?!\\:).[:])\s*(?!\s)((?:\\;|[^;])+?)(?=\s*(?:[;]|}}$))/i) || [];
+  let [, modifierKey = ''] = placeholder.match(/{{\s*(?:[^;]|(?:\\;))*\s*(?:(?!\\:).[:])\s*(?!\s)((?:\\;|[^;])+?)(?=\s*(?:[;]|}}$))/i) || [];
 
   if (value === undefined && modifierKey !== 'ne') return defaultValue;
 
@@ -27,7 +27,7 @@ const placeholders: Interpolate = ({ value: text, props, payload, parserOptions,
 
   const modifier = modifiers[modifierKey as keyof typeof modifiers];
   const options = (
-    placeholder.match(/[^\s:;{](?:[^;]|\\[;])+[^:;}]/gi) as RegExpMatchArray || []
+    placeholder.match(/(?:\\[;]|[^\s:;{}])(?:(?:[^;]|\\[;])*[^:;}])?/gi) as RegExpMatchArray || []
   ).reduce(
     (acc, option, i) => {
       // NOTE: First item is a placeholder and modifier

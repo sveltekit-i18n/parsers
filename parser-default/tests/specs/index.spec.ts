@@ -284,6 +284,38 @@ describe('parser', () => {
     expect($t('common.placeholder_default_escaped')).toBe('VALUES: ;SEMI, SEMI;, ;');
     expect($t('common.placeholder_default_escaped', { value: 'TEST_VALUE' })).toBe('VALUES: TEST_VALUE, TEST_VALUE, TEST_VALUE');
   });
+  it('short keys work', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ n?: any, nn?: any }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    expect($t('common.placeholder_short_key', { n: 'TEST_VALUE', nn: 'TEST_VALUE' })).toBe('VALUES: TEST_VALUE, TEST_VALUE, TEST_VALUE, TEST_VALUE, TEST_VALUE');
+    expect($t('common.modifier_short_key', { n: 1, nn: 1 })).toBe('VALUES: VALUE1, VALUE1, DEFAULT VALUE');
+    expect($t('common.modifier_short_key', { n: 15, nn: 10 })).toBe('VALUES: DEFAULT VALUE, VALUE2, VALUE2');
+    expect($t('common.modifier_short_key')).toBe('VALUES: DEFAULT VALUE, DEFAULT VALUE, DEFAULT VALUE');
+  });
+  it('short option segments work', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    expect($t('common.modifier_short_option')).toBe('VALUES: DEF, DEF, z');
+    expect($t('common.modifier_short_option', { value: 'x' })).toBe('VALUES: x, DEF, z');
+    expect($t('common.modifier_short_option', { value: 5 })).toBe('VALUES: FIVE, 1, z');
+    expect($t('common.modifier_short_option', { value: 2 })).toBe('VALUES: DEF, 1, z');
+  });
+  it('keys starting with an escaped semicolon work', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ ';value'?: any }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    expect($t('common.placeholder_escaped_leading', { ';value': 'TEST_VALUE' })).toBe('VALUES: TEST_VALUE, DEFAULT VALUE');
+    expect($t('common.placeholder_escaped_leading', { ';value': 1 })).toBe('VALUES: 1, VALUE1');
+    expect($t('common.placeholder_escaped_leading')).toBe('VALUES: , DEFAULT VALUE');
+  });
   it('self-referential payload values do not overflow', async () => {
     const { t, loadConfig } = new i18n<Parser.Params<{ value?: any, first?: string, second?: string }>>();
 
