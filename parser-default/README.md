@@ -115,7 +115,9 @@ $t('welcome', { default: $t('common.anonymous') })
 
 ### Modifiers
 
-Modifiers transform values before displaying them.
+Modifiers transform values before displaying them. Formatting modifiers read
+their `Intl` options from the props argument (the third `$t` argument), grouped
+under the modifier's name — e.g. `{ date: { dateStyle: 'full' } }`.
 
 #### Number Formatting
 
@@ -144,10 +146,10 @@ $t('population', { count: 1000000 })
 ```
 
 ```javascript
-$t('published', { date: new Date() }, { dateStyle: 'full' })
+$t('published', { date: new Date('2024-01-01T00:00:00') }, { date: { dateStyle: 'full' } })
 // → "Published: Monday, January 1, 2024"
 
-$t('time', { timestamp: Date.now() }, { timeStyle: 'short' })
+$t('time', { timestamp: new Date('2024-01-01T10:30:00') }, { date: { timeStyle: 'short' } })
 // → "Time: 10:30 AM"
 ```
 
@@ -161,12 +163,16 @@ $t('time', { timestamp: Date.now() }, { timeStyle: 'short' })
 ```
 
 ```javascript
-$t('updated', { time: Date.now() - 3600000 })
+$t('updated', { time: -3600000 })
 // → "Updated 1 hour ago"
 
-$t('posted', { timestamp: Date.now() - 86400000 })
-// → "Posted 1 day ago"
+$t('posted', { timestamp: -86400000 })
+// → "Posted yesterday"
 ```
+
+> **Note:** The value is a signed millisecond delta relative to now — negative
+> values lie in the past, e.g. `updatedAt.getTime() - Date.now()` — not an
+> absolute timestamp.
 
 #### Currency
 
@@ -178,10 +184,10 @@ $t('posted', { timestamp: Date.now() - 86400000 })
 ```
 
 ```javascript
-$t('cost', { amount: 99.99 }, { style: 'currency', currency: 'USD' })
+$t('cost', { amount: 99.99 }, { currency: { currency: 'USD' } })
 // → "Cost: $99.99"
 
-$t('total', { price: 1299 }, { style: 'currency', currency: 'EUR' })
+$t('total', { price: 1299 }, { currency: { currency: 'EUR' } })
 // → "Total: €1,299.00"
 ```
 
@@ -362,8 +368,8 @@ $t('score', { value: -10 })
 $t('title', { text: 'hello world' })
 // → "HELLO WORLD"
 
-$t('description', { text: 'Very long text...' }, { maxLength: 20 })
-// → "Very long text......"
+$t('description', { text: 'This text is far too long to display' }, { maxLength: 20 })
+// → "This text is far too..."
 ```
 
 ## TypeScript
