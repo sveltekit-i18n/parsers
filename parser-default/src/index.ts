@@ -11,7 +11,7 @@ const placeholders: Interpolate = ({ value: text, props, payload, parserOptions,
   const key = unesc(`${placeholder.match(/(?!{|\s).+?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/)}`);
   const value = payload?.[key as keyof Parser.Payload];
 
-  let [, defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*([^\s:;].+?(?:\\[:;]|[^;}])*)(?=\s*(?:;|}}$))/i) || [];
+  let [, defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*((?:\\[:;]|[^\s:;]).*?(?:\\[:;]|[^;}])*)(?=\s*(?:;|}}$))/i) || [];
   defaultValue = defaultValue || payload?.default || '';
 
   let [, modifierKey = ''] = placeholder.match(/{{\s*(?:[^;]|(?:\\;))+\s*(?:(?!\\:).[:])\s*(?!\s)((?:\\;|[^;])+?)(?=\s*(?:[;]|}}$))/i) || [];
