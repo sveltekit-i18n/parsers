@@ -264,6 +264,26 @@ describe('parser', () => {
     expect($t('common.modifier_escaped', { 'va:lue': 'option:2' })).toBe('VA;{{LUE}}:2');
     expect($t('common.modifier_escaped')).toBe('DEFAULT {{VALUE}};');
   });
+  it('single character default value works', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ age?: number, value?: any }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    expect($t('common.modifier_default_single_char', { age: 7 })).toBe('as a 7-year-old');
+    expect($t('common.modifier_default_single_char', { age: 18 })).toBe('as an 18-year-old');
+    expect($t('common.placeholder_default_single_char')).toBe('VALUES: a, a, a , a');
+    expect($t('common.placeholder_default_single_char', { value: 'TEST_VALUE' })).toBe('VALUES: TEST_VALUE, TEST_VALUE, TEST_VALUE, TEST_VALUE');
+  });
+  it('escaped semicolons in default values work', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    expect($t('common.placeholder_default_escaped')).toBe('VALUES: ;SEMI, SEMI;, ;');
+    expect($t('common.placeholder_default_escaped', { value: 'TEST_VALUE' })).toBe('VALUES: TEST_VALUE, TEST_VALUE, TEST_VALUE');
+  });
   it('with user-defined locale works', async () => {
     const { t, l, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
 
