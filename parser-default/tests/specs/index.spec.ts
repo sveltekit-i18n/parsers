@@ -403,39 +403,97 @@ describe('parser', () => {
     expect(warnings[0].length).toBeLessThan(300);
     expect(warnings[0]).not.toContain('\n');
   });
-  it('interpolating a padded placeholder does not cost cubic time', async () => {
+  const timePerOp = (run: () => void) => {
+    run();
+
+    return Math.min(...Array.from({ length: 3 }, () => {
+      const start = performance.now();
+      let iterations = 0;
+      let elapsed = 0;
+
+      do {
+        run();
+        iterations += 1;
+        elapsed = performance.now() - start;
+      } while (elapsed < 25);
+
+      return elapsed / iterations;
+    }));
+  };
+
+  // Quadrupling the input puts the square root of the per-op ratio near 2 when
+  // cost is linear, 4 when quadratic and 8 when cubic; asserting < 3 passes a
+  // linear scan with headroom and fails any polynomial backtracking.
+  const growthWhenInputQuadruples = (runAt: (size: number) => () => void, size: number) => Math.sqrt(timePerOp(runAt(size * 4)) / timePerOp(runAt(size)));
+  it('interpolating a padded placeholder costs linear time', async () => {
     const { t, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
 
     await loadConfig(CONFIG);
     const $t = t.get;
 
-    const timePerOp = (size: number) => {
+    const runAt = (size: number) => {
       const payload = { value: `{{${' '.repeat(size)}}}` };
 
-      $t('common.placeholder', payload);
-
-      return Math.min(...Array.from({ length: 3 }, () => {
-        const start = performance.now();
-        let iterations = 0;
-        let elapsed = 0;
-
-        do {
-          $t('common.placeholder', payload);
-          iterations += 1;
-          elapsed = performance.now() - start;
-        } while (elapsed < 25);
-
-        return elapsed / iterations;
-      }));
+      return () => { $t('common.placeholder', payload); };
     };
 
-    const small = timePerOp(240);
-    const large = timePerOp(960);
+    expect(growthWhenInputQuadruples(runAt, 240)).toBeLessThan(3);
+  }, 30000);
+  it('interpolating a placeholder key padded with inner whitespace costs linear time', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
 
-    // 240 -> 960 quadruples the input, so sqrt of the per-op ratio is ~2 when
-    // cost is linear, ~4 when quadratic and ~8 when cubic; 6 separates the
-    // remaining quadratic baseline from the cubic backtracking this guards.
-    expect(Math.sqrt(large / small)).toBeLessThan(6);
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    const runAt = (size: number) => {
+      const payload = { value: `{{a${' '.repeat(size)}b}}` };
+
+      return () => { $t('common.placeholder', payload); };
+    };
+
+    expect(growthWhenInputQuadruples(runAt, 500)).toBeLessThan(3);
+  }, 30000);
+  it('scanning an unclosed trailing placeholder costs linear time', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ value?: any, a?: string }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    const runAt = (size: number) => {
+      const payload = { value: `{{a}}{{${' \n'.repeat(size / 2)}`, a: 'A' };
+
+      return () => { $t('common.placeholder', payload); };
+    };
+
+    expect(growthWhenInputQuadruples(runAt, 500)).toBeLessThan(3);
+  }, 60000);
+  it('collecting a long modifier options list costs linear time', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ value?: any, a?: string }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    const runAt = (size: number) => {
+      const payload = { value: `{{${'a;'.repeat(size / 2)}}}`, a: 'A' };
+
+      return () => { $t('common.placeholder', payload); };
+    };
+
+    expect(growthWhenInputQuadruples(runAt, 500)).toBeLessThan(3);
+  }, 30000);
+  it('splitting a long modifier option costs linear time', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ value?: any, a?: string }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    const runAt = (size: number) => {
+      const payload = { value: `{{a; ${'x'.repeat(size)}:v}}`, a: 'A' };
+
+      return () => { $t('common.placeholder', payload); };
+    };
+
+    expect(growthWhenInputQuadruples(runAt, 500)).toBeLessThan(3);
   }, 30000);
   it('with user-defined locale works', async () => {
     const { t, l, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
