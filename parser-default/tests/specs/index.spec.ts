@@ -403,6 +403,40 @@ describe('parser', () => {
     expect(warnings[0].length).toBeLessThan(300);
     expect(warnings[0]).not.toContain('\n');
   });
+  it('interpolating a padded placeholder does not cost cubic time', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    const timePerOp = (size: number) => {
+      const payload = { value: `{{${' '.repeat(size)}}}` };
+
+      $t('common.placeholder', payload);
+
+      return Math.min(...Array.from({ length: 3 }, () => {
+        const start = performance.now();
+        let iterations = 0;
+        let elapsed = 0;
+
+        do {
+          $t('common.placeholder', payload);
+          iterations += 1;
+          elapsed = performance.now() - start;
+        } while (elapsed < 25);
+
+        return elapsed / iterations;
+      }));
+    };
+
+    const small = timePerOp(240);
+    const large = timePerOp(960);
+
+    // 240 -> 960 quadruples the input, so sqrt of the per-op ratio is ~2 when
+    // cost is linear, ~4 when quadratic and ~8 when cubic; 6 separates the
+    // remaining quadratic baseline from the cubic backtracking this guards.
+    expect(Math.sqrt(large / small)).toBeLessThan(6);
+  }, 30000);
   it('with user-defined locale works', async () => {
     const { t, l, loadConfig } = new i18n<Parser.Params<{ value?: any }>>();
 
