@@ -19,6 +19,10 @@
   "modifier_default_single_char": "as {{age; 8:an; 11:an; 18:an; default:a;}} {{age}}-year-old",
   "placeholder_default_escaped": "VALUES: {{value; default:\\;SEMI}}, {{value; default:SEMI\\;}}, {{value; default:\\;}}",
   "placeholder_chain": "{{v1}}",
+  "placeholder_short_key": "VALUES: {{n}}, {{n;}}, {{ n }}, {{ n; }}, {{nn}}",
+  "modifier_short_key": "VALUES: {{n; 1:VALUE1; 10:VALUE2; default:DEFAULT VALUE;}}, {{nn; 1:VALUE1; 10:VALUE2; default:DEFAULT VALUE;}}, {{n:gt; 1:VALUE1; 10:VALUE2; default:DEFAULT VALUE;}}",
+  "modifier_short_option": "VALUES: {{value; x:; 5:FIVE; default:DEF;}}, {{value:gt; 1:; 5:FIVE; default:DEF;}}, {{value:ne; z; default:DEF;}}",
+  "placeholder_escaped_leading": "VALUES: {{\\;value}}, {{\\;value; 1:VALUE1; default:DEFAULT VALUE;}}",
   "preprocess": [
     {
       "test": "passed"
