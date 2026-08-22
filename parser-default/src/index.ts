@@ -9,15 +9,15 @@ const unesc = (value: any) => typeof value === 'string' ? value.replace(/\\(?=:|
 
 const ownValue = (target: any, key?: PropertyKey) => (key !== undefined && !!target && Object.prototype.hasOwnProperty.call(target, key) ? target[key] : undefined);
 
-const placeholders: Interpolate = ({ value: text, props, payload, parserOptions, locale }) => `${text}`.replace(/{{\s*(?:(?!{{|}}).)+\s*}}/g, (placeholder) => {
-  const [escapedKey] = placeholder.match(/(?!{|\s).*?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/) || [];
+const placeholders: Interpolate = ({ value: text, props, payload, parserOptions, locale }) => `${text}`.replace(/{{(?:\s*(?!{{|}})\S(?:(?:(?!{{|}})[^\n\r\u2028\u2029])*(?!{{|}})\S)?\s*|[\n\r\u2028\u2029]*[^\S\n\r\u2028\u2029]\s*)}}/g, (placeholder) => {
+  const [escapedKey] = placeholder.match(/(?!{|\s)(?:\\[:;]|\\(?![:;])|[^:;\\\n\r\u2028\u2029])*?(?:\\[:;]|\\(?![:;])|[^:;\s\\])(?=\s*(?:[:;]|}}$))/) || [];
   const key = escapedKey === undefined ? undefined : unesc(escapedKey) as keyof Parser.Payload;
   const value = ownValue(payload, key);
 
-  let [, defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*((?:\\[:;]|[^\s:;]).*?(?:\\[:;]|[^;}])*)(?=\s*(?:;|}}$))/i) || [];
+  let [, defaultValue = ''] = placeholder.match(/{{(?:[^\\]|\\;|\\(?!;))*?;\s*default\s*:\s*((?:\\[:;]|[^\s:;])(?:\\[:;]|\\(?![:;])|[^;\\])*?)(?=;|}}$)/i) || [];
   defaultValue = defaultValue || ownValue(payload, 'default') || '';
 
-  let [, modifierKey = ''] = placeholder.match(/{{(?:[^;\\]|\\;|\\(?!;))*(?:\\;|[^\\\n\r\u2028\u2029]):\s*(?!\s)((?:\\;|[^;])+?)(?=\s*(?:[;]|}}$))/i) || [];
+  let [, modifierKey = ''] = placeholder.match(/{{(?:[^;\\]|\\;|\\(?!;))*(?:\\;|[^\\\n\r\u2028\u2029]):\s*(?!\s)((?:\\;|[^;\s])(?:(?:\\;|[^;])*(?:\\;|[^;\s]))?)(?=\s*(?:[;]|}}$))/i) || [];
 
   if (value === undefined && modifierKey !== 'ne') return defaultValue;
 
@@ -35,10 +35,11 @@ const placeholders: Interpolate = ({ value: text, props, payload, parserOptions,
     (acc, option, i) => {
       // NOTE: First item is a placeholder and modifier
       if (i > 0) {
-        const optionKey = unesc(`${option.match(/(?:(?:\\:)|[^:])+/)}`.trim());
-        const optionValue = `${option.match(/(?:(?:\\:)|[^:])+$/)}`.trimStart();
+        const parts = option.split(/(?<!\\):/);
+        const optionKey = unesc(parts[0].trim());
+        const optionValue = parts[parts.length - 1].trimStart();
 
-        if (optionKey && optionKey !== 'default' && optionValue) return ([...acc, { key: optionKey, value: optionValue }]);
+        if (optionKey && optionKey !== 'default' && optionValue) acc.push({ key: optionKey, value: optionValue });
       }
 
       return acc;
