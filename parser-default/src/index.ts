@@ -7,12 +7,15 @@ const hasPlaceholders = (value: any) => typeof value === 'string' && /{{(?:(?!{{
 
 const unesc = (value: any) => typeof value === 'string' ? value.replace(/\\(?=:|;|{|})/g, '') : value;
 
+const ownValue = (target: any, key?: PropertyKey) => (key !== undefined && !!target && Object.prototype.hasOwnProperty.call(target, key) ? target[key] : undefined);
+
 const placeholders: Interpolate = ({ value: text, props, payload, parserOptions, locale }) => `${text}`.replace(/{{\s*(?:(?!{{|}}).)+\s*}}/g, (placeholder) => {
-  const key = unesc(`${placeholder.match(/(?!{|\s).*?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/)}`);
-  const value = payload?.[key as keyof Parser.Payload];
+  const [escapedKey] = placeholder.match(/(?!{|\s).*?(?!\\[:;]).(?=\s*(?:[:;]|}}$))/) || [];
+  const key = escapedKey === undefined ? undefined : unesc(escapedKey) as keyof Parser.Payload;
+  const value = ownValue(payload, key);
 
   let [, defaultValue = ''] = placeholder.match(/.+?(?!\\;).;\s*default\s*:\s*((?:\\[:;]|[^\s:;]).*?(?:\\[:;]|[^;}])*)(?=\s*(?:;|}}$))/i) || [];
-  defaultValue = defaultValue || payload?.default || '';
+  defaultValue = defaultValue || ownValue(payload, 'default') || '';
 
   let [, modifierKey = ''] = placeholder.match(/{{\s*(?:[^;]|(?:\\;))*\s*(?:(?!\\:).[:])\s*(?!\s)((?:\\;|[^;])+?)(?=\s*(?:[;]|}}$))/i) || [];
 
@@ -82,8 +85,10 @@ const interpolate: Interpolate = ({ value, props, payload, parserOptions, locale
 const parser: Parser.Factory = (parserOptions) => ({
   parse: (value, [payload, props], locale, key) => {
 
-    if (payload?.default && value === undefined) {
-      value = payload.default;
+    const payloadDefault = ownValue(payload, 'default');
+
+    if (payloadDefault && value === undefined) {
+      value = payloadDefault;
     }
 
     if (value === undefined) {

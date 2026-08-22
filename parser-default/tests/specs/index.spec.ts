@@ -316,6 +316,32 @@ describe('parser', () => {
     expect($t('common.placeholder_escaped_leading', { ';value': 1 })).toBe('VALUES: 1, VALUE1');
     expect($t('common.placeholder_escaped_leading')).toBe('VALUES: , DEFAULT VALUE');
   });
+  it('unparsable placeholders do not resolve a payload key', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ [key: string]: any }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    expect($t('common.placeholder_unparsable', { null: 'LEAKED_VALUE' })).toBe('VALUES: , , ');
+    expect($t('common.placeholder_unparsable', { undefined: 'LEAKED_VALUE' })).toBe('VALUES: , , ');
+    expect($t('common.placeholder_unparsable', { '': 'LEAKED_VALUE' })).toBe('VALUES: , , ');
+    expect($t('common.placeholder_unparsable', { null: 'LEAKED_VALUE', default: 'DEFAULT VALUE' })).toBe('VALUES: DEFAULT VALUE, DEFAULT VALUE, DEFAULT VALUE');
+  });
+  it('inherited payload members are not resolved', async () => {
+    const { t, loadConfig } = new i18n<Parser.Params<{ [key: string]: any }>>();
+
+    await loadConfig(CONFIG);
+    const $t = t.get;
+
+    expect($t('common.placeholder_inherited')).toBe('VALUES: , , , INLINE DEFAULT');
+    expect($t('common.placeholder_inherited', { default: 'DEFAULT VALUE' })).toBe('VALUES: DEFAULT VALUE, DEFAULT VALUE, DEFAULT VALUE, INLINE DEFAULT');
+    expect($t('common.placeholder_inherited', { constructor: 'OWN VALUE' })).toBe('VALUES: OWN VALUE, , , INLINE DEFAULT');
+
+    const inherited = Object.create({ default: 'INHERITED DEFAULT' });
+
+    expect($t('common.placeholder', inherited)).toBe('VALUES: , , , ');
+    expect($t('common.undefined', inherited)).toBe('common.undefined');
+  });
   it('self-referential payload values do not overflow', async () => {
     const { t, loadConfig } = new i18n<Parser.Params<{ value?: any, first?: string, second?: string }>>();
 
