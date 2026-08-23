@@ -1,6 +1,8 @@
 # 3.0.0
 ESM-only build (the CommonJS entry point has been removed), [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, [`intl-messageformat`](https://www.npmjs.com/package/intl-messageformat) updated to v11, and Node.js 22 or newer required.
 
+Compiled messages are now cached per parser instance (least-recently-used, up to 10,000 entries), making repeated reads of the same message roughly 7× faster. The parser also fails soft: a message that cannot be compiled or formatted is returned raw with a logged warning instead of throwing.
+
 # 1.0.8
 Readme update.
 

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import parser, { Parser } from '../../src';
 import { TRANSLATIONS } from '../data';
 
@@ -41,5 +41,37 @@ describe('parser', () => {
     const date = new Date();
 
     expect($t('common.date', { value: +date })).toBe(`Today is: ${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`);
+  });
+  it('repeated reads of one message stay correct', () => {
+    const $t = localize<{ value?: number }>(initLocale);
+
+    expect($t('common.plural', { value: 1 })).toBe('You have one photo.');
+    expect($t('common.plural', { value: 1000 })).toBe('You have 1,000 photos.');
+    expect($t('common.plural', { value: 0 })).toBe('You have no photos.');
+  });
+  it('`formats` apply per call and do not stick to the message', () => {
+    const $t = localize<{ value?: number }>(initLocale);
+    const money = { number: { money: { style: 'currency', currency: 'USD' } as const } };
+
+    expect($t('common.price', { value: 10 }, money)).toBe('Price: $10.00');
+    expect($t('common.price', { value: 10 })).toBe('Price: 10');
+  });
+  it('returns the raw message for malformed ICU syntax', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const $t = localize<{ name?: string }>(initLocale);
+
+    expect($t('common.malformed', { name: 'Alice' })).toBe('Hello {name');
+    expect(warn).toHaveBeenCalled();
+
+    warn.mockRestore();
+  });
+  it('returns the raw message when the payload lacks a variable', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const $t = localize(initLocale);
+
+    expect($t('common.missing')).toBe('Hi {name}!');
+    expect(warn).toHaveBeenCalled();
+
+    warn.mockRestore();
   });
 });
