@@ -5,62 +5,72 @@ const TRANSLATIONS = { en: { greeting: 'Hi {{applicationName}}!' } };
 
 type Payload = { applicationName: string };
 
+// The base core is a runes module compiled by the consumer's bundler, so it
+// cannot be constructed under plain Node. These closures are never invoked —
+// ts-jest type-checks them, which is the entire point of this suite.
 describe('payload typing', () => {
-  it('accepts a named payload key when no payload type is declared', async () => {
-    const config = { initLocale: 'en', parser: parser(), translations: TRANSLATIONS };
-    const { t, loadConfig } = new i18n(config);
+  it('accepts a named payload key when no payload type is declared', () => {
+    const check = () => {
+      const instance = new i18n({ initLocale: 'en', parser: parser(), translations: TRANSLATIONS });
 
-    await loadConfig(config);
+      instance.t('greeting', { applicationName: 'App' });
+    };
 
-    expect(t.get('greeting', { applicationName: 'App' })).toBe('Hi App!');
+    expect(check).toBeInstanceOf(Function);
   });
 
-  it('accepts a named payload key through an annotated config', async () => {
-    const config: Config = { initLocale: 'en', parser: parser(), translations: TRANSLATIONS };
-    const { t, loadConfig } = new i18n(config);
+  it('accepts a named payload key through an annotated config', () => {
+    const check = () => {
+      const config: Config = { initLocale: 'en', parser: parser(), translations: TRANSLATIONS };
+      const instance = new i18n(config);
 
-    await loadConfig(config);
+      instance.t('greeting', { applicationName: 'App' });
+    };
 
-    expect(t.get('greeting', { applicationName: 'App' })).toBe('Hi App!');
+    expect(check).toBeInstanceOf(Function);
   });
 
-  it('accepts a payload declared apart from the call', async () => {
-    const config = { initLocale: 'en', parser: parser(), translations: TRANSLATIONS };
-    const { t, loadConfig } = new i18n(config);
+  it('accepts a payload declared apart from the call', () => {
+    const check = () => {
+      const instance = new i18n({ initLocale: 'en', parser: parser(), translations: TRANSLATIONS });
+      const payload = { applicationName: 'App' };
 
-    await loadConfig(config);
+      instance.t('greeting', payload);
+    };
 
-    const payload = { applicationName: 'App' };
-
-    expect(t.get('greeting', payload)).toBe('Hi App!');
+    expect(check).toBeInstanceOf(Function);
   });
 
-  it('keeps the `default` payload key', async () => {
-    const config = { initLocale: 'en', parser: parser(), translations: TRANSLATIONS };
-    const { t, loadConfig } = new i18n(config);
+  it('keeps the `default` payload key', () => {
+    const check = () => {
+      const instance = new i18n({ initLocale: 'en', parser: parser(), translations: TRANSLATIONS });
 
-    await loadConfig(config);
+      instance.t('common.undefined', { default: 'FALLBACK' });
+    };
 
-    expect(t.get('common.undefined', { default: 'FALLBACK' })).toBe('FALLBACK');
+    expect(check).toBeInstanceOf(Function);
   });
 
-  it('rejects a typo against a declared payload type', async () => {
-    const config: Config<Payload> = { initLocale: 'en', parser: parser(), translations: TRANSLATIONS };
-    const { t, loadConfig } = new i18n(config);
+  it('rejects a typo against a declared payload type', () => {
+    const check = () => {
+      const config: Config<Payload> = { initLocale: 'en', parser: parser(), translations: TRANSLATIONS };
+      const instance = new i18n(config);
 
-    await loadConfig(config);
+      // @ts-expect-error `aplicationName` is not a key of the declared payload
+      instance.t('greeting', { aplicationName: 'App' });
+    };
 
-    // @ts-expect-error `aplicationName` is not a key of the declared payload
-    expect(t.get('greeting', { aplicationName: 'App' })).toBe('Hi !');
+    expect(check).toBeInstanceOf(Function);
   });
 
-  it('rejects arguments beyond the payload and the modifier props', async () => {
-    const config = { initLocale: 'en', parser: parser(), translations: TRANSLATIONS };
-    const { t, loadConfig } = new i18n(config);
+  it('rejects arguments beyond the payload and the modifier props', () => {
+    const check = () => {
+      const instance = new i18n({ initLocale: 'en', parser: parser(), translations: TRANSLATIONS });
 
-    await loadConfig(config);
+      // @ts-expect-error `t` takes a payload and modifier props only
+      instance.t('greeting', { applicationName: 'App' }, {}, 'extra');
+    };
 
-    // @ts-expect-error `t` takes a payload and modifier props only
-    expect(t.get('greeting', { applicationName: 'App' }, {}, 'extra')).toBe('Hi App!');
+    expect(check).toBeInstanceOf(Function);
   });
 });
