@@ -80,7 +80,7 @@ export default tseslint.config(
   {
     // The v1 sources predate the formatting contract (final newlines, blank
     // lines); they ship byte-identical, so `--fix` must not rewrite them.
-    files: ['src/index.ts', 'src/modifiers.ts', 'src/types.ts', 'src/utils.ts', 'tests/utils/index.ts'],
+    files: ['src/index.ts', 'src/modifiers.ts', 'src/types.ts', 'src/utils.ts'],
     rules: {
       '@stylistic/eol-last': 'off',
       '@stylistic/no-multiple-empty-lines': 'off',
