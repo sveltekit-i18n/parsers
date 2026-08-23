@@ -1,3 +1,6 @@
+# 3.0.0
+ESM-only build (the CommonJS entry point has been removed), [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, [`intl-messageformat`](https://www.npmjs.com/package/intl-messageformat) updated to v11, and Node.js 22 or newer required.
+
 # 1.0.8
 Readme update.
 

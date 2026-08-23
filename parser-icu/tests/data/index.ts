@@ -1,14 +1,5 @@
-import parser from '../../src';
-import type { Config } from '../../src/types';
+import common from './common.json';
 
-export const CONFIG: Config = {
-  initLocale: 'en',
-  parser: parser(),
-  loaders: [
-    {
-      key: 'common',
-      locale: 'EN',
-      loader: async () => (await import('./common.json')).default,
-    },
-  ],
+export const TRANSLATIONS: Record<string, any> = {
+  en: { common },
 };

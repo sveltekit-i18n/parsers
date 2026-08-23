@@ -1,18 +1,18 @@
 {
   "name": "@sveltekit-i18n/parser-icu",
-  "version": "1.0.8",
+  "version": "3.0.0-next.0",
   "description": "ICU parser compatible with sveltekit-i18n library.",
   "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "scripts": {
     "dev": "tsup --watch",
@@ -42,8 +42,11 @@
     "url": "https://github.com/sveltekit-i18n/lib/issues"
   },
   "homepage": "https://github.com/sveltekit-i18n/parsers/parser-icu#readme",
+  "peerDependencies": {
+    "@sveltekit-i18n/base": "^3.0.0-next.0"
+  },
   "devDependencies": {
-    "@sveltekit-i18n/base": "^1.0.0-rc",
+    "@sveltekit-i18n/base": "^3.0.0-next.0",
     "@types/jest": "^29.5.2",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
@@ -57,6 +60,6 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "intl-messageformat": "^10.1.1"
+    "intl-messageformat": "^11.2.14"
   }
 }

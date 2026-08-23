@@ -25,6 +25,8 @@ npm install @sveltekit-i18n/parser-icu
 
 **Note:** This parser has an external dependency (`intl-messageformat`) which is installed automatically.
 
+**Requirements:** Node.js 22 or newer. Version 3 is ESM-only, expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, and builds on `intl-messageformat` v11.
+
 ## Usage
 
 ### Basic Setup
