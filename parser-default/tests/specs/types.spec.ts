@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import i18n from '@sveltekit-i18n/base';
 import parser, { Config } from '../../src';
 
@@ -7,7 +8,8 @@ type Payload = { applicationName: string };
 
 // The base core is a runes module compiled by the consumer's bundler, so it
 // cannot be constructed under plain Node. These closures are never invoked —
-// ts-jest type-checks them, which is the entire point of this suite.
+// the typecheck step (tsc --noEmit, run by pretest) compiles them, which is
+// the entire point of this suite.
 describe('payload typing', () => {
   it('accepts a named payload key when no payload type is declared', () => {
     const check = () => {
