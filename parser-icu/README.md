@@ -294,6 +294,12 @@ Pass formatting options as the third parameter to `i18n.t()`:
 })}</p>
 ```
 
+## Caching and Error Handling
+
+Compiled messages are cached per parser instance (least-recently-used, up to 10,000 entries keyed by locale and message), so repeated reads of the same message skip recompilation. Calls that pass per-call [format options](#format-options) bypass the cache, because those options change the compilation.
+
+If a message cannot be compiled (malformed ICU syntax) or formatted (for example, a payload variable is missing), the parser does not throw. It logs a warning through `console.warn` and returns the raw message, so one broken translation cannot crash your page.
+
 ## TypeScript Support
 
 Full TypeScript support with complete type definitions:

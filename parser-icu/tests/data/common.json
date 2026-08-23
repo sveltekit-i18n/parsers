@@ -3,5 +3,8 @@
   "select": "{value, select, male {He} female {She} other {They}} will respond shortly.",
   "selectordinal": "It's my cat's {value, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} birthday",
   "number": "The price is: {value, number, ::currency/EUR}",
-  "date": "Today is: {value, date, ::yyyyMd}"
+  "date": "Today is: {value, date, ::yyyyMd}",
+  "price": "Price: {value, number, money}",
+  "malformed": "Hello {name",
+  "missing": "Hi {name}!"
 }
