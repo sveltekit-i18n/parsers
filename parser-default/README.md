@@ -1,4 +1,4 @@
-[![npm version](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-default.svg)](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-default) ![](https://github.com/sveltekit-i18n/parsers/workflows/Tests/badge.svg) [![Tests](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-default.yml/badge.svg)](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-default.yml)
+[![npm version](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-default.svg)](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-default) [![Tests](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-default.yml/badge.svg)](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-default.yml)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/61a65082-1dc8-4c2a-94f2-0334c005dad0/deploy-status)](https://app.netlify.com/sites/parser-default/deploys)
 
 # @sveltekit-i18n/parser-default
@@ -32,7 +32,7 @@ This parser is included by default in [sveltekit-i18n](https://github.com/svelte
 ### With @sveltekit-i18n/base
 
 ```javascript
-import i18n from '@sveltekit-i18n/base';
+import { I18n } from '@sveltekit-i18n/base';
 import parser from '@sveltekit-i18n/parser-default';
 
 const config = {
@@ -48,18 +48,20 @@ const config = {
   ],
 };
 
-export const { t } = new i18n(config);
+export const i18n = new I18n(config);
 ```
 
 ### With sveltekit-i18n
 
 ```javascript
-import i18n from 'sveltekit-i18n';
+import { I18n } from 'sveltekit-i18n';
 
 const config = {
   // parser-default is already included
   loaders: [/* ... */],
 };
+
+export const i18n = new I18n(config);
 ```
 
 ## Syntax
@@ -78,10 +80,10 @@ Replace a value in your translation:
 ```
 
 ```javascript
-$t('greeting', { name: 'Alice' })
+i18n.t('greeting', { name: 'Alice' })
 // → "Hello, Alice!"
 
-$t('message', { count: 5 })
+i18n.t('message', { count: 5 })
 // → "You have 5 new messages."
 ```
 
@@ -96,17 +98,17 @@ Provide a fallback when value is missing:
 ```
 
 ```javascript
-$t('welcome', { name: 'Bob' })
+i18n.t('welcome', { name: 'Bob' })
 // → "Welcome, Bob!"
 
-$t('welcome', {})
+i18n.t('welcome', {})
 // → "Welcome, Guest!"
 ```
 
 You can also set dynamic defaults:
 
 ```javascript
-$t('welcome', { default: $t('common.anonymous') })
+i18n.t('welcome', { default: i18n.t('common.anonymous') })
 // Uses translation from 'common.anonymous' as default
 ```
 
@@ -118,7 +120,7 @@ $t('welcome', { default: $t('common.anonymous') })
 ### Modifiers
 
 Modifiers transform values before displaying them. Formatting modifiers read
-their `Intl` options from the props argument (the third `$t` argument), grouped
+their `Intl` options from the props argument (the third `i18n.t` argument), grouped
 under the modifier's name — e.g. `{ date: { dateStyle: 'full' } }`.
 
 #### Number Formatting
@@ -131,10 +133,10 @@ under the modifier's name — e.g. `{ date: { dateStyle: 'full' } }`.
 ```
 
 ```javascript
-$t('price', { amount: 1234.56 })
+i18n.t('price', { amount: 1234.56 })
 // → "Total: 1,234.56" (locale-dependent)
 
-$t('population', { count: 1000000 })
+i18n.t('population', { count: 1000000 })
 // → "Population: 1,000,000"
 ```
 
@@ -148,10 +150,10 @@ $t('population', { count: 1000000 })
 ```
 
 ```javascript
-$t('published', { date: new Date('2024-01-01T00:00:00') }, { date: { dateStyle: 'full' } })
+i18n.t('published', { date: new Date('2024-01-01T00:00:00') }, { date: { dateStyle: 'full' } })
 // → "Published: Monday, January 1, 2024"
 
-$t('time', { timestamp: new Date('2024-01-01T10:30:00') }, { date: { timeStyle: 'short' } })
+i18n.t('time', { timestamp: new Date('2024-01-01T10:30:00') }, { date: { timeStyle: 'short' } })
 // → "Time: 10:30 AM"
 ```
 
@@ -165,10 +167,10 @@ $t('time', { timestamp: new Date('2024-01-01T10:30:00') }, { date: { timeStyle: 
 ```
 
 ```javascript
-$t('updated', { time: -3600000 })
+i18n.t('updated', { time: -3600000 })
 // → "Updated 1 hour ago"
 
-$t('posted', { timestamp: -86400000 })
+i18n.t('posted', { timestamp: -86400000 })
 // → "Posted yesterday"
 ```
 
@@ -186,10 +188,10 @@ $t('posted', { timestamp: -86400000 })
 ```
 
 ```javascript
-$t('cost', { amount: 99.99 }, { currency: { currency: 'USD' } })
+i18n.t('cost', { amount: 99.99 }, { currency: { currency: 'USD' } })
 // → "Cost: $99.99"
 
-$t('total', { price: 1299 }, { currency: { currency: 'EUR' } })
+i18n.t('total', { price: 1299 }, { currency: { currency: 'EUR' } })
 // → "Total: €1,299.00"
 ```
 
@@ -206,13 +208,13 @@ Use modifiers with conditions to render different text based on values.
 ```
 
 ```javascript
-$t('status', { state: 'active' })
+i18n.t('status', { state: 'active' })
 // → "Online"
 
-$t('status', { state: 'inactive' })
+i18n.t('status', { state: 'inactive' })
 // → "Offline"
 
-$t('status', { state: 'pending' })
+i18n.t('status', { state: 'pending' })
 // → "Unknown"
 ```
 
@@ -225,10 +227,10 @@ $t('status', { state: 'pending' })
 ```
 
 ```javascript
-$t('items', { count: 1 })
+i18n.t('items', { count: 1 })
 // → "You have 1 item."
 
-$t('items', { count: 5 })
+i18n.t('items', { count: 5 })
 // → "You have 5 items."
 ```
 
@@ -245,16 +247,16 @@ Available operators: `eq`, `ne`, `lt`, `lte`, `gt`, `gte`
 ```
 
 ```javascript
-$t('stock', { count: 5 })
+i18n.t('stock', { count: 5 })
 // → "In stock (5)"
 
-$t('stock', { count: 0 })
+i18n.t('stock', { count: 0 })
 // → "Out of stock"
 
-$t('age', { age: 25 })
+i18n.t('age', { age: 25 })
 // → "Adult"
 
-$t('temp', { degrees: -5 })
+i18n.t('temp', { degrees: -5 })
 // → "Freezing"
 ```
 
@@ -269,13 +271,13 @@ Placeholders and modifiers can be nested:
 ```
 
 ```javascript
-$t('notification', { count: 1 })
+i18n.t('notification', { count: 1 })
 // → "You have 1 new message!"
 
-$t('notification', { count: 5 })
+i18n.t('notification', { count: 5 })
 // → "You have 5 new messages!"
 
-$t('notification', { count: 0 })
+i18n.t('notification', { count: 0 })
 // → "You have no messages."
 ```
 
@@ -364,13 +366,13 @@ Use in translations:
 ```
 
 ```javascript
-$t('score', { value: -10 })
+i18n.t('score', { value: -10 })
 // → "Perfect score!"
 
-$t('title', { text: 'hello world' })
+i18n.t('title', { text: 'hello world' })
 // → "HELLO WORLD"
 
-$t('description', { text: 'This text is far too long to display' }, { maxLength: 20 })
+i18n.t('description', { text: 'This text is far too long to display' }, { maxLength: 20 })
 // → "This text is far too..."
 ```
 
@@ -379,7 +381,7 @@ $t('description', { text: 'This text is far too long to display' }, { maxLength:
 Full TypeScript support with complete type definitions:
 
 ```typescript
-import i18n from '@sveltekit-i18n/base';
+import { I18n } from '@sveltekit-i18n/base';
 import parser from '@sveltekit-i18n/parser-default';
 import type { Config } from '@sveltekit-i18n/parser-default';
 
@@ -400,7 +402,7 @@ All parser options and modifier configurations are fully typed.
 ### Typing the payload
 
 Left bare, `Config` accepts any payload key. Pass the payload type your
-translations take to have `$t` check it:
+translations take to have `i18n.t` check it:
 
 ```typescript
 import type { Config } from '@sveltekit-i18n/parser-default';
@@ -412,10 +414,10 @@ const config: Config<Payload> = {
   loaders: [/* ... */],
 };
 
-$t('common.welcome', { applicationName: 'My app' })
+i18n.t('common.welcome', { applicationName: 'My app' })
 // → ok
 
-$t('common.welcome', { aplicationName: 'My app' })
+i18n.t('common.welcome', { aplicationName: 'My app' })
 // → type error: typo caught
 ```
 
