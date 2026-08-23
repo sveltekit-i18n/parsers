@@ -25,6 +25,8 @@ npm install @sveltekit-i18n/parser-default
 
 This parser is included by default in [sveltekit-i18n](https://github.com/sveltekit-i18n/lib).
 
+**Requirements:** Node.js 22 or newer. Version 3 is ESM-only and expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency.
+
 ## Usage
 
 ### With @sveltekit-i18n/base

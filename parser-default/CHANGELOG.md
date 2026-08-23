@@ -1,3 +1,9 @@
+# 3.0.0
+This version includes these changes:
+* ESM-only build — the CommonJS entry point has been removed.
+* [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 is now a peer dependency.
+* Requires Node.js 22 or newer.
+
 # 1.1.1
 This version includes these changes:
 * Readme update.
