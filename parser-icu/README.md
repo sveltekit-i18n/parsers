@@ -396,7 +396,7 @@ See the [parser-icu example](https://github.com/sveltekit-i18n/lib/tree/master/e
 - ✅ You want comprehensive number/date/time formatting
 - ✅ You're comfortable with ICU syntax
 
-### Use parser-default if:
+### Use parser-curly if:
 - ✅ You want zero external dependencies
 - ✅ You prefer simpler, more readable syntax
 - ✅ You need a lightweight solution
@@ -411,7 +411,7 @@ See the [parser-icu example](https://github.com/sveltekit-i18n/lib/tree/master/e
 }
 ```
 
-**Default (parser-default):**
+**Curly (parser-curly):**
 ```json
 {
   "items": "You have {{count}} {{count; 1:item; default:items;}}."

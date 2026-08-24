@@ -6,10 +6,10 @@ on:
         package:
           description: 'Package to publish'
           required: true
-          default: 'parser-default'
+          default: 'parser-curly'
           type: choice
           options:
-            - parser-default
+            - parser-curly
             - parser-icu
         version:
           description: 'Version'

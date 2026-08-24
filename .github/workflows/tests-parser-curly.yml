@@ -1,10 +1,10 @@
-name: Default parser tests
+name: Curly parser tests
 
 on:
   push:
     paths:
-      - parser-default/**
-      - .github/workflows/tests-parser-default.yml
+      - parser-curly/**
+      - .github/workflows/tests-parser-curly.yml
       - .github/workflows/tests.yml
   workflow_dispatch:
 
@@ -12,4 +12,4 @@ jobs:
   tests:
     uses: ./.github/workflows/tests.yml
     with:
-      package: parser-default
+      package: parser-curly

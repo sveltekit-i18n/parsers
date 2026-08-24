@@ -1,7 +1,7 @@
-[![npm version](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-default.svg)](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-default) [![Tests](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-default.yml/badge.svg)](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-default.yml)
+[![npm version](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-curly.svg)](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-curly) [![Tests](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-curly.yml/badge.svg)](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-curly.yml)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/61a65082-1dc8-4c2a-94f2-0334c005dad0/deploy-status)](https://app.netlify.com/sites/parser-default/deploys)
 
-# @sveltekit-i18n/parser-default
+# @sveltekit-i18n/parser-curly
 
 A lightweight, flexible message parser for [@sveltekit-i18n/base](https://github.com/sveltekit-i18n/base). This parser supports placeholders, modifiers, and conditional rendering without any external dependencies.
 
@@ -20,7 +20,7 @@ A lightweight, flexible message parser for [@sveltekit-i18n/base](https://github
 ## Installation
 
 ```bash
-npm install @sveltekit-i18n/parser-default
+npm install @sveltekit-i18n/parser-curly
 ```
 
 This parser is included by default in [sveltekit-i18n](https://github.com/sveltekit-i18n/lib).
@@ -33,7 +33,7 @@ This parser is included by default in [sveltekit-i18n](https://github.com/svelte
 
 ```javascript
 import { I18n } from '@sveltekit-i18n/base';
-import parser from '@sveltekit-i18n/parser-default';
+import parser from '@sveltekit-i18n/parser-curly';
 
 const config = {
   parser: parser({
@@ -57,7 +57,7 @@ export const i18n = new I18n(config);
 import { I18n } from 'sveltekit-i18n';
 
 const config = {
-  // parser-default is already included
+  // parser-curly is already included
   loaders: [/* ... */],
 };
 
@@ -295,7 +295,7 @@ i18n.t('notification', { count: 0 })
 Configure the parser with custom defaults and modifiers:
 
 ```javascript
-import parser from '@sveltekit-i18n/parser-default';
+import parser from '@sveltekit-i18n/parser-curly';
 
 const config = {
   parser: parser({
@@ -382,8 +382,8 @@ Full TypeScript support with complete type definitions:
 
 ```typescript
 import { I18n } from '@sveltekit-i18n/base';
-import parser from '@sveltekit-i18n/parser-default';
-import type { Config } from '@sveltekit-i18n/parser-default';
+import parser from '@sveltekit-i18n/parser-curly';
+import type { Config } from '@sveltekit-i18n/parser-curly';
 
 const config: Config = {
   parser: parser({
@@ -405,7 +405,7 @@ Left bare, `Config` accepts any payload key. Pass the payload type your
 translations take to have `i18n.t` check it:
 
 ```typescript
-import type { Config } from '@sveltekit-i18n/parser-default';
+import type { Config } from '@sveltekit-i18n/parser-curly';
 
 type Payload = { applicationName: string };
 
@@ -439,7 +439,7 @@ To use them literally in your translations, escape them with double backslash:
 
 ## Examples
 
-See the [parser-default example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-default) for a complete working application.
+See the [parser-curly example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-default) for a complete working application.
 
 **[Live Demo](https://parser-default.netlify.app)** – Interactive examples
 
@@ -447,7 +447,7 @@ See the [parser-default example](https://github.com/sveltekit-i18n/lib/tree/mast
 
 ### vs. ICU Message Format
 
-**parser-default:**
+**parser-curly:**
 ```json
 {
   "items": "You have {{count}} {{count; 1:item; default:items;}}."
@@ -461,12 +461,12 @@ See the [parser-default example](https://github.com/sveltekit-i18n/lib/tree/mast
 }
 ```
 
-- `parser-default` has simpler syntax
+- `parser-curly` has simpler syntax
 - ICU has more advanced plural rules for complex languages
-- `parser-default` has no external dependencies
+- `parser-curly` has no external dependencies
 - ICU is an industry standard
 
-Choose `parser-default` for simplicity, ICU for standards compliance.
+Choose `parser-curly` for simplicity, ICU for standards compliance.
 
 ## More Resources
 

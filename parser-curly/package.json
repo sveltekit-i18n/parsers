@@ -1,7 +1,7 @@
 {
-  "name": "@sveltekit-i18n/parser-default",
+  "name": "@sveltekit-i18n/parser-curly",
   "version": "3.0.0-next.0",
-  "description": "Default parser for sveltekit-i18n library.",
+  "description": "Curly braces parser for sveltekit-i18n library.",
   "type": "module",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -22,7 +22,7 @@
     "build": "tsup",
     "prepublishOnly": "npm run build",
     "lint": "eslint --fix .",
-    "prepare": "cd .. && simple-git-hooks parser-default/.simple-git-hooks.json"
+    "prepare": "cd .. && simple-git-hooks parser-curly/.simple-git-hooks.json"
   },
   "files": [
     "dist"
@@ -33,6 +33,7 @@
   },
   "keywords": [
     "parser",
+    "curly",
     "sveltekit-i18n"
   ],
   "author": "Jarda Svoboda",
@@ -40,7 +41,7 @@
   "bugs": {
     "url": "https://github.com/sveltekit-i18n/lib/issues"
   },
-  "homepage": "https://github.com/sveltekit-i18n/parsers/parser-default#readme",
+  "homepage": "https://github.com/sveltekit-i18n/parsers/parser-curly#readme",
   "peerDependencies": {
     "@sveltekit-i18n/base": "^3.0.0-next.0"
   },
