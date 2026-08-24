@@ -1,0 +1,116 @@
+name: NPM Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+        package:
+          description: 'Package to publish'
+          required: true
+          default: 'parser-default'
+          type: choice
+          options:
+            - parser-default
+            - parser-icu
+        version:
+          description: 'Version'
+          required: true
+          default: 'patch'
+          type: choice
+          options:
+            - patch
+            - minor
+            - major
+            - prerelease
+        preid:
+          description: 'Prerelease identifier (used by the prerelease bump)'
+          required: false
+          default: 'next'
+          type: string
+        tag:
+          description: 'npm dist-tag to publish under'
+          required: false
+          default: 'latest'
+          type: string
+
+jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+    with:
+      package: ${{ inputs.package }}
+
+  publish-npm:
+    needs: tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: ${{ inputs.package }}
+    steps:
+      # The release commit lands on a protected branch; the app is on the
+      # bypass allowlist, GITHUB_TOKEN is not.
+      - name: Mint app token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.AUTOMATION_APP_ID }}
+          private-key: ${{ secrets.AUTOMATION_APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-tags: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: npm ci
+
+      # npm version neither commits nor tags below a package that is not its own
+      # git root, so the release commit and the scoped tag are made here.
+      - name: Update version
+        id: bump
+        run: |
+          git config --local user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config --local user.email '${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+          npm version ${{ inputs.version }} --preid=${{ inputs.preid }}
+          VERSION="$(node -p 'require("./package.json").version')"
+          TAG="${{ inputs.package }}@$VERSION"
+          git commit -a -m "chore(${{ inputs.package }}): release @sveltekit-i18n/$TAG"
+          git tag "$TAG"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      # Atomic: the branch and the tag land together or not at all, and the
+      # publish below never runs on a half-pushed release.
+      - name: Push release commit and tag
+        run: git push --atomic origin HEAD:${{ github.ref_name }} '${{ steps.bump.outputs.tag }}'
+
+      - name: Publish package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --tag ${{ inputs.tag }}
+
+      # Last: publishing is irreversible, so a release must never announce a
+      # version that failed to reach the registry.
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PACKAGE: ${{ inputs.package }}
+          TAG: ${{ steps.bump.outputs.tag }}
+          VERSION: ${{ steps.bump.outputs.version }}
+        run: |
+          # Notes span this package's own tags; the tag preceding this release
+          # in the monorepo may belong to the other package.
+          PREVIOUS="$(git tag --list "$PACKAGE@*" --sort=-creatordate | sed -n 2p)"
+          case "$VERSION" in
+            *-*) PRERELEASE=--prerelease ;;
+            *)   PRERELEASE= ;;
+          esac
+          gh release create "$TAG" --title "$TAG" --generate-notes \
+            ${PREVIOUS:+--notes-start-tag "$PREVIOUS"} $PRERELEASE
