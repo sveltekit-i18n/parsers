@@ -21,7 +21,7 @@ Relates to #
 
 <!-- Check which parser(s) this PR affects -->
 
-- [ ] parser-default
+- [ ] parser-curly
 - [ ] parser-icu
 - [ ] Both parsers
 - [ ] General/infrastructure

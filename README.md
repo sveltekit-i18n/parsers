@@ -4,12 +4,12 @@ Message parsers for [sveltekit-i18n](https://github.com/sveltekit-i18n/lib). The
 
 ## Available Parsers
 
-### [@sveltekit-i18n/parser-default](./parser-default)
+### [@sveltekit-i18n/parser-curly](./parser-curly)
 
-The default parser with a simple, flexible syntax for placeholders and modifiers.
+A parser with a simple, flexible curly braces syntax for placeholders and modifiers.
 
 ```bash
-npm install @sveltekit-i18n/parser-default
+npm install @sveltekit-i18n/parser-curly
 ```
 
 **Features:**
@@ -30,7 +30,7 @@ npm install @sveltekit-i18n/parser-default
 }
 ```
 
-[📖 Full documentation](./parser-default/README.md)
+[📖 Full documentation](./parser-curly/README.md)
 
 ### [@sveltekit-i18n/parser-icu](./parser-icu)
 
@@ -60,7 +60,7 @@ npm install @sveltekit-i18n/parser-icu
 
 ## Choosing a Parser
 
-### Use `parser-default` if:
+### Use `parser-curly` if:
 - You want no external dependencies
 - You need a lightweight solution
 - You prefer simple, readable syntax
@@ -78,13 +78,13 @@ npm install @sveltekit-i18n/parser-icu
 
 ### With sveltekit-i18n
 
-The main `sveltekit-i18n` package includes `parser-default` by default:
+The main `sveltekit-i18n` package includes `parser-curly` by default:
 
 ```javascript
 import i18n from 'sveltekit-i18n';
 
 const config = {
-  // parser-default is already included
+  // parser-curly is already included
   loaders: [/* ... */],
 };
 ```
@@ -95,7 +95,7 @@ Use any parser with the base package:
 
 ```javascript
 import i18n from '@sveltekit-i18n/base';
-import parser from '@sveltekit-i18n/parser-default';
+import parser from '@sveltekit-i18n/parser-curly';
 // or: import parser from '@sveltekit-i18n/parser-icu';
 
 const config = {
@@ -197,7 +197,7 @@ export const { t } = new i18n(config);
 
 Each parser accepts its own configuration options. Check the specific parser documentation:
 
-- [parser-default options](./parser-default/README.md#options)
+- [parser-curly options](./parser-curly/README.md#options)
 - [parser-icu options](./parser-icu/README.md#usage)
 
 ## Documentation
@@ -210,7 +210,7 @@ Each parser accepts its own configuration options. Check the specific parser doc
 
 See working examples of different parsers:
 
-- [parser-default example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-default) – [Live demo](https://parser-default.netlify.app)
+- [parser-curly example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-default) – [Live demo](https://parser-default.netlify.app)
 - [parser-icu example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-icu) – [Live demo](https://parser-icu.netlify.app)
 
 ## TypeScript Support
@@ -219,8 +219,8 @@ Both official parsers include full TypeScript support:
 
 ```typescript
 import i18n from '@sveltekit-i18n/base';
-import parser from '@sveltekit-i18n/parser-default';
-import type { Config } from '@sveltekit-i18n/parser-default';
+import parser from '@sveltekit-i18n/parser-curly';
+import type { Config } from '@sveltekit-i18n/parser-curly';
 
 const config: Config = {
   parser: parser({

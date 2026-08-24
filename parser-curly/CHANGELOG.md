@@ -1,5 +1,6 @@
 # 3.0.0
 This version includes these changes:
+* Renamed to [`@sveltekit-i18n/parser-curly`](https://www.npmjs.com/package/@sveltekit-i18n/parser-curly) — the name now describes the syntax instead of the package's former role. The v1 line stays published as `@sveltekit-i18n/parser-default`.
 * ESM-only build — the CommonJS entry point has been removed.
 * [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 is now a peer dependency.
 * Requires Node.js 22 or newer.
