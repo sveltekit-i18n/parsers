@@ -118,5 +118,12 @@ jobs:
             *-*) PRERELEASE=--prerelease ;;
             *)   PRERELEASE= ;;
           esac
-          gh release create "$TAG" --title "$TAG" --generate-notes \
-            ${PREVIOUS:+--notes-start-tag "$PREVIOUS"} $PRERELEASE
+          if [ -n "$PREVIOUS" ]; then
+            gh release create "$TAG" --title "$TAG" --generate-notes \
+              --notes-start-tag "$PREVIOUS" $PRERELEASE
+          else
+            # A package's first release has no range to generate from, and the
+            # range gh picks instead starts at another package's tag.
+            gh release create "$TAG" --title "$TAG" $PRERELEASE \
+              --notes "**Full Changelog**: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commits/$TAG"
+          fi
