@@ -1,6 +1,6 @@
 {
   "name": "@sveltekit-i18n/parser-curly",
-  "version": "3.0.0-next.0",
+  "version": "3.0.0-next.1",
   "description": "Curly Message Format parser for the sveltekit-i18n library.",
   "type": "module",
   "sideEffects": false,
