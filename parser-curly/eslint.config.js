@@ -17,7 +17,7 @@ export default tseslint.config(
       },
     },
     rules: {
-      // The v1 parser contract deliberately types messages and payloads as
+      // The base parser contract deliberately types messages and payloads as
       // `any`; the unsafe-* family would only restate that decision on every
       // line the payload flows through, so it is off. Async correctness rules
       // (no-floating-promises, no-misused-promises, require-await) stay on.
@@ -33,7 +33,7 @@ export default tseslint.config(
   {
     plugins: { 'import-x': importX },
     rules: {
-      // The published package has zero runtime dependencies, so any bare
+      // @curly-message/parser is the only runtime dependency; any other bare
       // import reachable from src/ is a bug.
       'import-x/no-extraneous-dependencies': ['error', {
         devDependencies: [
@@ -59,39 +59,12 @@ export default tseslint.config(
     },
   },
   {
-    // The public types (Parser, Modifier, Config) are namespace-shaped since
-    // v1, spelled with the `module` keyword of that era.
+    // The `Parser` type is a namespace, as base spells its own types.
     files: ['src/types.ts'],
     rules: {
       '@typescript-eslint/no-namespace': 'off',
-      '@typescript-eslint/prefer-namespace-keyword': 'off',
-      // The v1 `Props`/`Payload` generics default to `{}` by design.
+      // The `Factory` generics default to `{}` by design.
       '@typescript-eslint/no-empty-object-type': 'off',
-    },
-  },
-  {
-    // The v1 benchmark helper seeds `elapsed` before a do-while that always
-    // overwrites it — harmless, and the suite stays as written.
-    files: ['tests/specs/index.spec.ts'],
-    rules: {
-      'no-useless-assignment': 'off',
-    },
-  },
-  {
-    // The v1 sources predate the formatting contract (final newlines, blank
-    // lines); they ship byte-identical, so `--fix` must not rewrite them.
-    files: ['src/index.ts', 'src/modifiers.ts', 'src/types.ts', 'src/utils.ts'],
-    rules: {
-      '@stylistic/eol-last': 'off',
-      '@stylistic/no-multiple-empty-lines': 'off',
-    },
-  },
-  {
-    // The v1-era file-wide disable directive stays; without this opt-out,
-    // `--fix` would strip it as unused.
-    files: ['tsup.config.js'],
-    linterOptions: {
-      reportUnusedDisableDirectives: 'off',
     },
   },
   {

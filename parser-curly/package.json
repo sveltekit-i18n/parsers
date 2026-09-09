@@ -1,8 +1,9 @@
 {
   "name": "@sveltekit-i18n/parser-curly",
   "version": "3.0.0-next.0",
-  "description": "Curly braces parser for sveltekit-i18n library.",
+  "description": "Curly Message Format parser for the sveltekit-i18n library.",
   "type": "module",
+  "sideEffects": false,
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
@@ -34,6 +35,8 @@
   "keywords": [
     "parser",
     "curly",
+    "curly-message",
+    "i18n",
     "sveltekit-i18n"
   ],
   "author": "Jarda Svoboda",
@@ -44,6 +47,9 @@
   "homepage": "https://github.com/sveltekit-i18n/parsers/parser-curly#readme",
   "peerDependencies": {
     "@sveltekit-i18n/base": "^3.0.0-next.0"
+  },
+  "dependencies": {
+    "@curly-message/parser": "^1.0.0-next.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
