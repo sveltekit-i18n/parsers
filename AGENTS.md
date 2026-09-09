@@ -31,11 +31,16 @@ Official message parsers for the
 
 ## Current state: v3 in progress on `master`
 
-- **`master` is the v3 development line** — v3 work lands here. The checked-in
-  packages are still the **v1 sources** (Jest, tsup — see each package's
-  configs) until the rewrite lands (#223-#227).
+- **`master` is the v3 development line** — v3 work lands here. `parser-curly`
+  is a thin adapter over `@curly-message/parser` (the Curly Message Format's
+  reference implementation; the format lives in
+  https://github.com/curly-message/spec) and runs the format's conformance set
+  in its tests; `parser-icu` wraps `intl-messageformat`. Both build with tsup
+  and test with vitest.
 - **`1.x` is a frozen snapshot** of the published v1 line. It receives nothing
-  unless a critical v1 fix is explicitly requested.
+  unless a critical v1 fix is explicitly requested. `parser-curly` carries none
+  of that history: it starts at 3.0.0, and `@sveltekit-i18n/parser-default` on
+  `1.x` is a different package.
 - Nothing publishes until the whole family is ready: `base`, `parsers` and
   `extensions` release aligned at **3.0.0**, `lib` last.
 - The v3 work is tracked in
