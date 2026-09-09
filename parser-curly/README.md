@@ -344,7 +344,7 @@ A report never raises: the placeholder takes its fallback (the empty string for 
 
 ## Limits
 
-Resolution is bounded three ways: 10 interpolation passes (a value referencing its own placeholder stops with its placeholders unresolved, reported as `pass-limit`), 100 000 UTF-16 code units of output (a pass that would exceed it is discarded and the last output under the bound stands, reported as `output-limit`) and 100 000 nodes per value conversion (a value past it is read as missing, reported as `unserializable-value`).
+Resolution is bounded three ways: 10 interpolation passes (a value referencing its own placeholder stops with its placeholders unresolved, reported as `pass-limit`), 100 000 UTF-16 code units of output (a pass that would exceed it is discarded and the last output under the bound stands, reported as `output-limit`) and 100 000 nodes per value conversion (a value past it is read as missing, reported as `unserializable-value`). The specification's conformance set, `@curly-message/conformance`, runs against this package's public API in its tests, at every level the format defines (Core, Intl, Extensions).
 
 ## TypeScript
 
