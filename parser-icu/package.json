@@ -42,7 +42,7 @@
   "bugs": {
     "url": "https://github.com/sveltekit-i18n/lib/issues"
   },
-  "homepage": "https://github.com/sveltekit-i18n/parsers/parser-icu#readme",
+  "homepage": "https://github.com/sveltekit-i18n/parsers/tree/master/parser-icu#readme",
   "peerDependencies": {
     "@sveltekit-i18n/base": "^3.0.0-next.0"
   },
