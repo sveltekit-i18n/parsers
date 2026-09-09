@@ -29,7 +29,8 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/sveltekit-i18n/parsers.git"
+    "url": "git+ssh://git@github.com/sveltekit-i18n/parsers.git",
+    "directory": "parser-icu"
   },
   "keywords": [
     "parser",
