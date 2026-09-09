@@ -1,33 +1,9 @@
 {
-  "no_placeholder": "NO_PLACEHOLDER",
-  "placeholder": "VALUES: {{value}}, {{value;}}, {{ value }}, {{ value; }}",
-  "placeholder_default": "VALUES: {{value; default: DEFAULT_VALUE}}, {{value; default: DEFAULT_VALUE;}}, {{ value; default: DEFAULT_VALUE }}, {{ value; default: DEFAULT_VALUE; }}",
-  "placeholder_default_single_char": "VALUES: {{value; default:a}}, {{value; default:a;}}, {{ value; default:a }}, {{ value; default:a; }}",
-  "placeholder_escaped": "{{pl\\:ace\\;holder}}",
-  "modifier_eq": "VALUES: {{value; option1:VALUE1; option2:VALUE2; default:DEFAULT VALUE;}}, {{ value ; option1 : VALUE1 ; option2 : VALUE2 ; default : DEFAULT VALUE ;}}, {{value:eq; option1:VALUE1; option2:VALUE2; default:DEFAULT VALUE;}}, {{ value : eq  ; option1 : VALUE1  ; option2 : VALUE2  ; default : DEFAULT VALUE  ;}}",
-  "modifier_ne": "{{value:ne; 10:VALUE2; default:DEFAULT VALUE;}}",
-  "modifier_lt": "{{value:lt; 1:VALUE1; 10:VALUE2; default:DEFAULT VALUE;}}",
-  "modifier_lte": "{{value:lte; 1:VALUE1; 10:VALUE2; default:DEFAULT VALUE;}}",
-  "modifier_gt": "{{value:gt; 1:VALUE1; 10:VALUE2; default:DEFAULT VALUE;}}",
-  "modifier_gte": "{{value:gte; 1:VALUE1; 10:VALUE2; default:DEFAULT VALUE;}}",
-  "modifier_number": "{{value:number;}}",
-  "modifier_date": "{{value:date;}}",
-  "modifier_ago": "{{value:ago;}}",
-  "modifier_currency": "{{value:currency;}}",
-  "modifier_custom": "{{data:test;}}",
-  "modifier_escaped": "{{va\\:lue; option\\:1:VA\\;\\{\\{LUE\\}\\}\\:1; option\\:2:VA\\;\\{\\{LUE\\}\\}\\:2; default:DEFAULT \\{\\{VALUE\\}\\}\\;}}",
-  "modifier_default_single_char": "as {{age; 8:an; 11:an; 18:an; default:a;}} {{age}}-year-old",
-  "placeholder_default_escaped": "VALUES: {{value; default:\\;SEMI}}, {{value; default:SEMI\\;}}, {{value; default:\\;}}",
-  "placeholder_chain": "{{v1}}",
-  "placeholder_short_key": "VALUES: {{n}}, {{n;}}, {{ n }}, {{ n; }}, {{nn}}",
-  "modifier_short_key": "VALUES: {{n; 1:VALUE1; 10:VALUE2; default:DEFAULT VALUE;}}, {{nn; 1:VALUE1; 10:VALUE2; default:DEFAULT VALUE;}}, {{n:gt; 1:VALUE1; 10:VALUE2; default:DEFAULT VALUE;}}",
-  "modifier_short_option": "VALUES: {{value; x:; 5:FIVE; default:DEF;}}, {{value:gt; 1:; 5:FIVE; default:DEF;}}, {{value:ne; z; default:DEF;}}",
-  "placeholder_escaped_leading": "VALUES: {{\\;value}}, {{\\;value; 1:VALUE1; default:DEFAULT VALUE;}}",
-  "placeholder_unparsable": "VALUES: {{ }}, {{{}}, {{  }}",
-  "placeholder_inherited": "VALUES: {{constructor}}, {{toString}}, {{__proto__}}, {{valueOf; default:INLINE DEFAULT}}",
-  "preprocess": [
-    {
-      "test": "passed"
-    }
-  ]
+  "greeting": "Hello, {{name; default:Guest;}}!",
+  "placeholder": "{{value}}",
+  "number": "{{value:number;}}",
+  "date": "{{value:date;}}",
+  "custom": "{{value:test;}}",
+  "unknown_modifier": "{{value:nosuch; default:FALLBACK;}}",
+  "inherited": "VALUES: {{constructor}}, {{toString}}, {{__proto__}}"
 }
