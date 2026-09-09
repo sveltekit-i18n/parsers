@@ -6,7 +6,7 @@ Message parsers for [sveltekit-i18n](https://github.com/sveltekit-i18n/lib). The
 
 ### [@sveltekit-i18n/parser-curly](./parser-curly)
 
-A parser with a simple, flexible curly braces syntax for placeholders and modifiers.
+The [Curly Message Format](https://github.com/curly-message/spec) — placeholders, defaults, modifiers and comparisons in double curly braces — resolved by [`@curly-message/parser`](https://github.com/curly-message/parsers), the format's reference implementation.
 
 ```bash
 npm install @sveltekit-i18n/parser-curly
@@ -18,7 +18,7 @@ npm install @sveltekit-i18n/parser-curly
 - Conditional rendering: `{{count; 1:item; default:items;}}`
 - Comparison operators: `eq`, `ne`, `lt`, `gt`, `lte`, `gte`
 - Custom modifiers support
-- No external dependencies
+- One dependency: the format's reference implementation
 
 **Example:**
 ```json
@@ -61,7 +61,7 @@ npm install @sveltekit-i18n/parser-icu
 ## Choosing a Parser
 
 ### Use `parser-curly` if:
-- You want no external dependencies
+- You want a small, specified syntax with a conformance set behind it
 - You need a lightweight solution
 - You prefer simple, readable syntax
 - You want to create custom modifiers easily
