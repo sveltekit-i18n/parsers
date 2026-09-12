@@ -18,6 +18,7 @@ npm install @sveltekit-i18n/parser-curly
 - Conditional rendering: `{{count; 1:item; default:items;}}`
 - Comparison operators: `eq`, `ne`, `lt`, `gt`, `lte`, `gte`
 - Custom modifiers support
+- Build-time parameter extraction: `extractParamsFactory`
 - One dependency: the format's reference implementation
 
 **Example:**

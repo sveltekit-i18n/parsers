@@ -378,6 +378,40 @@ i18n.t('common.welcome', { aplicationName: 'My app' })
 
 `Config<Payload, Props>` types the payload and the props `i18n.t` accepts; left bare, `Config` accepts any payload key and the built-in modifiers' props. A custom modifier types its own props through `Modifier.T<OwnProps>`. The factory's type arguments check the parser options the same way: with `Props` spelled as the second, `parser<Payload, Props>({ ... })`, a `modifierDefaults` entry for a custom modifier is checked; a modifier written inline reads typed `props` once the modifier names are spelled as the third argument too, `parser<Payload, Props, 'truncate'>({ ... })`. `Parser` holds the option and parameter types (`Parser.Options`, `Parser.OnReport`, `Parser.Params`, `Parser.Payload`), `Modifier` the modifier and wrapper types (`Modifier.T`, `Modifier.Wrapper`, `Modifier.Props`), and `Report` is the report.
 
+## Extracting Parameters
+
+What a message expects of its payload is fixed when the message is written, so a catalogue can be read for its parameters instead of them being discovered at render time. `extractParamsFactory` is the build-time half of the base parser contract, a named export beside the default one: a message scanner is of no use while rendering, so the package declares `sideEffects: false` and a bundle that never reaches it drops it.
+
+```typescript
+import { extractParamsFactory } from '@sveltekit-i18n/parser-curly';
+
+const extractParams = extractParamsFactory();
+
+extractParams('You have {{count:number;}} {{count; 1:message; default:messages;}}.');
+// → [{ name: 'count', kind: 'number', values: ['1'], optional: true }]
+```
+
+Each parameter is reported once, in the order the message first names it, and says what every placeholder naming it says together. `name` is the payload key, already unescaped and arbitrary text rather than an identifier, so whatever writes it down quotes it. `kind` is what the modifiers narrow the value to; every value reaches a modifier as text, so a modifier reading it as text narrows nothing and the parameter accepts `unknown`.
+
+| Modifier | `kind` |
+| --- | --- |
+| none, `eq`, `ne` | `'unknown'` |
+| `lt`, `gt` | `'number'` |
+| `lte`, `gte` | `['number', 'string']` — the equality leg selects on text before the numeric one is reached |
+| `number`, `currency` | `'number'` |
+| `ago` | `'number'` — a signed millisecond delta relative to now, not a point in time |
+| `date` | `['date', 'string']` — milliseconds since the epoch, and failing that text the host reads as a date |
+
+A parameter several placeholders name accepts what all of them say together, and `unknown` is the top of that lattice rather than a member of it: it is what a parameter accepts while nothing has narrowed it, and it drops out the moment something does. So `{{count}}` alone reports `unknown`, and the example above — where a second placeholder formats the same key with `number` — reports `'number'` rather than `['unknown', 'number']`.
+
+`values` lists the option keys of an `eq` selection, which is the one comparison whose keys are values of the parameter: `ne`'s are what the value must differ from, and an inequality's are thresholds it is ordered against. It is a hint and never a closed set — a value none of them matches takes the fallback chain rather than failing.
+
+`optional` reports what the message says rather than what resolution tolerates. Every placeholder renders without its value, an absent one taking the fallback chain, so a placeholder declaring an inline `default` is the message saying the value may be missing, and one declaring none is the message saying it is expected.
+
+Build the extractor from the same options `parser()` is built from: a custom modifier registered under a name the format defines changes what a message naming it says about its value. `onReport` is not required here, and neither it nor `modifierDefaults` reaches anything — extraction formats nothing and reports nothing.
+
+Only the text of a message is scanned. A translation leaf that is not text names no parameters rather than throwing, and a placeholder a payload value carries into a later interpolation pass is not one the message itself names.
+
 ## Examples
 
 See the [parser-curly example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-default) for a complete working application.

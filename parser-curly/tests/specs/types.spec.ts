@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import i18n from '@sveltekit-i18n/base';
-import parser, { Config } from '../../src';
+import type { Parser as BaseParser } from '@sveltekit-i18n/base';
+import parser, { Config, extractParamsFactory, Parser } from '../../src';
 
 const TRANSLATIONS = { en: { greeting: 'Hi {{applicationName}}!' } };
 
@@ -102,5 +103,39 @@ describe('payload typing', () => {
     };
 
     expect(check).toBeInstanceOf(Function);
+  });
+});
+
+// The extractor needs no base instance, so unlike the suite above these run
+// for real: the contract it satisfies is a type, and a value that satisfies it
+// is the assertion.
+describe('extractor typing', () => {
+  it('satisfies the build-time half of the base parser contract', () => {
+    const contract: BaseParser.ExtractParamsFactory<Parser.ExtractOptions> = extractParamsFactory;
+    const specs: readonly BaseParser.ParamSpec[] = contract()(TRANSLATIONS.en.greeting);
+
+    expect(specs).toEqual([{ name: 'applicationName', kind: 'unknown', optional: false }]);
+  });
+
+  it('takes the options `parser()` takes, without requiring `onReport`', () => {
+    const options: Parser.ExtractOptions = { customModifiers: { test: ({ value }) => value }, onReport: null };
+
+    expect(extractParamsFactory(options)(TRANSLATIONS.en.greeting)).toHaveLength(1);
+    expect(extractParamsFactory({ customModifiers: options.customModifiers })(TRANSLATIONS.en.greeting)).toHaveLength(1);
+    expect(extractParamsFactory()(TRANSLATIONS.en.greeting)).toHaveLength(1);
+  });
+
+  it('reads the props a declared table names', () => {
+    const extractParams = extractParamsFactory<Props, 'test'>({
+      customModifiers: { test: ({ value, props }) => `${value}${props.unit ?? ''}` },
+      modifierDefaults: { test: { unit: 'kg' } },
+    });
+
+    expect(extractParams(TRANSLATIONS.en.greeting)).toHaveLength(1);
+  });
+
+  it('rejects an option bag the parser does not read', () => {
+    // @ts-expect-error the extractor is built from the parser's options, which name no `messages`
+    expect(extractParamsFactory({ messages: {} })(TRANSLATIONS.en.greeting)).toHaveLength(1);
   });
 });
