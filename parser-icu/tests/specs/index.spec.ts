@@ -10,7 +10,7 @@ const message = (locale: string, key: string) => {
   return TRANSLATIONS[locale]?.[namespace]?.[path.join('.')];
 };
 
-const defaultParser = parser();
+const defaultParser = parser({ onReport: null });
 
 const localize = <P extends Parser.PayloadDefault = Parser.PayloadDefault>(locale: string, { parse }: Parser.T = defaultParser) => (key: string, ...params: Parser.Params<P>): string => parse(message(locale, key), params, locale, key);
 
@@ -57,21 +57,42 @@ describe('parser', () => {
     expect($t('common.price', { value: 10 })).toBe('Price: 10');
   });
   it('returns the raw message for malformed ICU syntax', () => {
+    const reports: Parser.Report[] = [];
+    const $t = localize<{ name?: string }>(initLocale, parser({ onReport: (report) => reports.push(report) }));
+
+    expect($t('common.malformed', { name: 'Alice' })).toBe('Hello {name');
+    expect(reports).toMatchObject([{ code: 'failed-message', key: 'common.malformed', locale: initLocale }]);
+    expect(reports[0]?.error).toBeInstanceOf(Error);
+  });
+  it('returns the raw message when the payload lacks a variable', () => {
+    const reports: Parser.Report[] = [];
+    const $t = localize(initLocale, parser({ onReport: (report) => reports.push(report) }));
+
+    expect($t('common.missing')).toBe('Hi {name}!');
+    expect(reports).toMatchObject([{ code: 'failed-message', key: 'common.missing' }]);
+  });
+  it('joins a message it cannot render as text, and reports the loss', () => {
+    const reports: Parser.Report[] = [];
+    const $t = localize<{ value?: unknown }>(initLocale, parser({ onReport: (report) => reports.push(report) }));
+
+    expect($t('common.missing', { name: { rich: 'value' } } as never)).toBe('Hi [object Object]!');
+    expect(reports).toMatchObject([{ code: 'unserializable-output', key: 'common.missing', locale: initLocale }]);
+  });
+  it('writes to no channel of its own', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const $t = localize<{ name?: string }>(initLocale);
 
     expect($t('common.malformed', { name: 'Alice' })).toBe('Hello {name');
-    expect(warn).toHaveBeenCalled();
+    expect(warn).not.toHaveBeenCalled();
+    expect(error).not.toHaveBeenCalled();
 
     warn.mockRestore();
+    error.mockRestore();
   });
-  it('returns the raw message when the payload lacks a variable', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const $t = localize(initLocale);
+  it('survives a report channel that throws', () => {
+    const $t = localize<{ name?: string }>(initLocale, parser({ onReport: () => { throw new Error('channel down'); } }));
 
-    expect($t('common.missing')).toBe('Hi {name}!');
-    expect(warn).toHaveBeenCalled();
-
-    warn.mockRestore();
+    expect($t('common.malformed', { name: 'Alice' })).toBe('Hello {name');
   });
 });
