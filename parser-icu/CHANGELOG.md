@@ -7,6 +7,8 @@ Compiled messages are now cached per parser instance (least-recently-used, up to
 
 `parse` is now declared, and guaranteed, to return a string. `IntlMessageFormat.format()` yields a message in pieces as soon as a value it interpolates is not text - an object in the payload, or a tag callback returning one - and those pieces are now joined, reported as `unserializable-output`, rather than reaching `t()` as an array the declared type denied.
 
+The package also runs base's parser contract checks (the repository's `contract/` set) beside the ICU tests: what a message MEANS is ICU's to certify, that the parser can be called the way base calls it is base's.
+
 `extractParamsFactory` reads the parameters a message names, as a named export beside the default one. Each parameter says the payload key it is named by, what the placeholder's format narrows it to, the values a `select` or an exact plural match names explicitly, and the selector branches it lives under. It is the build-time half of the base parser contract, which is why it is a named export rather than a member of the parser object: a message scanner is of no use while rendering, and the package declares `sideEffects: false` so a bundle that never reaches it drops it. `@formatjs/icu-messageformat-parser`, which `intl-messageformat` compiles messages with, is now a direct dependency: extraction reads the same AST the runtime reads.
 
 # 1.0.8

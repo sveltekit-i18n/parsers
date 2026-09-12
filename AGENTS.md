@@ -26,8 +26,17 @@ Official message parsers for the
 - **Monorepo without workspaces** — no root `package.json`; each `parser-*/`
   directory is a fully standalone npm package with its own `package.json`,
   lockfile, configs, tests, README, LICENSE, and CHANGELOG.
-- The root holds only `README.md`, this file, `CLAUDE.md`, `.gitignore`, and
-  `.github/workflows/`.
+- The root holds only `README.md`, this file, `CLAUDE.md`, `.gitignore`,
+  `.github/workflows/`, and `contract/`.
+- **`contract/` is the one shared source file.** It holds base's parser
+  contract as a set of checks each package runs from its own
+  `tests/specs/contract.spec.ts`. It resolves nothing — no types, no test
+  runner, no package of its own — because each package carries its own
+  `node_modules` and the root has none; a package's `tsc` pulls it in through
+  that spec. ESLint does not reach it — a flat config's base path is its own
+  directory, and a root config would mean a root package — so match the
+  formatting conventions by hand there. Both test workflows watch
+  `contract/**`.
 
 ## Current state: v3 in progress on `master`
 

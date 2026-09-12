@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - parser-icu/**
+      - contract/**
       - .github/workflows/tests-parser-icu.yml
       - .github/workflows/tests.yml
   workflow_dispatch:
