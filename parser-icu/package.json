@@ -3,6 +3,7 @@
   "version": "3.0.0-next.1",
   "description": "ICU parser compatible with sveltekit-i18n library.",
   "type": "module",
+  "sideEffects": false,
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
@@ -60,6 +61,7 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
+    "@formatjs/icu-messageformat-parser": "^3.5.17",
     "intl-messageformat": "^11.2.14"
   }
 }
