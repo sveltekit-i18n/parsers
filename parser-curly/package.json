@@ -53,7 +53,7 @@
     "@curly-message/parser": "^1.0.0"
   },
   "devDependencies": {
-    "@curly-message/conformance": "^1.0.0-next.2",
+    "@curly-message/conformance": "^1.0.0",
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@sveltekit-i18n/base": "^3.0.0-next.0",
