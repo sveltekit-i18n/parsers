@@ -15,6 +15,7 @@ ICU message format parser for [@sveltekit-i18n/base](https://github.com/svelteki
 - 🔢 **Number formatting** – Locale-aware number display
 - 📅 **Date/time formatting** – Full internationalization support
 - 🔧 **Flexible** – Rich formatting options
+- 🧩 **Build-time extraction** – Read a catalogue for the parameters its messages name
 - 📝 **TypeScript** – Full type support
 
 ## Installation
@@ -23,7 +24,7 @@ ICU message format parser for [@sveltekit-i18n/base](https://github.com/svelteki
 npm install @sveltekit-i18n/parser-icu
 ```
 
-**Note:** This parser has an external dependency (`intl-messageformat`) which is installed automatically.
+**Note:** This parser has external dependencies (`intl-messageformat` and `@formatjs/icu-messageformat-parser`) which are installed automatically.
 
 **Requirements:** Node.js 22 or newer. Version 3 is ESM-only, expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, and builds on `intl-messageformat` v11.
 
@@ -318,6 +319,40 @@ const i18n = new I18n(config);
 ```
 
 All ICU message format options and configurations are fully typed. The library provides type definitions for the parser and configuration, but does not automatically infer translation keys from your JSON files.
+
+## Extracting Parameters
+
+What a message expects of its payload is fixed when the message is written, so a catalogue can be read for its parameters instead of them being discovered at render time. `extractParamsFactory` is the build-time half of the base parser contract, a named export beside the default one: a message scanner is of no use while rendering, so the package declares `sideEffects: false` and a bundle that never reaches it drops it.
+
+```typescript
+import { extractParamsFactory } from '@sveltekit-i18n/parser-icu';
+
+const extractParams = extractParamsFactory();
+
+extractParams('You have {count, plural, =0 {no photos} other {# photos}}.');
+// -> [{ name: 'count', kind: 'number', values: ['0'], optional: false }]
+```
+
+Each parameter is reported once, in the order the message first names it, and says what every placeholder naming it says together. `name` is the payload key, arbitrary text rather than an identifier, so whatever writes it down quotes it. `kind` is what the placeholder's format narrows the value to:
+
+| Placeholder | `kind` |
+| --- | --- |
+| `{value}` | `'unknown'` |
+| `{value, number, ...}` | `'number'` |
+| `{value, date, ...}`, `{value, time, ...}` | `'date'` - a `Date` or milliseconds since the epoch |
+| `{value, select, ...}` | `'string'` |
+| `{value, plural, ...}`, `{value, selectordinal, ...}` | `'number'` |
+| `<value>...</value>` | `'function'` - the callback the payload carries for the tag |
+
+A parameter several placeholders name accepts what all of them say together, and `unknown` is the top of that lattice rather than a member of it: it is what a parameter accepts while nothing has narrowed it, and it drops out the moment something does. So `{value}` alone reports `unknown`, while `{value} of {value, number}` reports `'number'`.
+
+`values` lists a `select`'s option keys and a plural's exact matches (`=0`, `=1`), which are the option keys that are values of the parameter - a plural's `one`/`few`/`other` are categories the locale decides for a number the caller does not choose, and `other` is a fallback branch rather than a value. It is a hint and never a closed set: a value none of them matches takes the `other` branch rather than failing.
+
+`optional` reports a parameter every placeholder naming it puts inside a selector branch, since only some branches of the message use it, and `when` names those branches outermost first so a generator can emit a discriminated payload instead of the flat approximation. Named outside every branch once, the parameter is expected outright.
+
+Build the extractor from the same options `parser()` is built from: an option that changes what a message means changes what it names. `ignoreTag: true` turns `<b>text</b>` into literal text, and the callback the payload carried for it is gone. `formatters` reaches nothing here - extraction formats nothing.
+
+Only the text of a message is scanned. A translation leaf that is not text names no parameters rather than throwing, and neither does a message this parser cannot compile.
 
 ## Examples
 

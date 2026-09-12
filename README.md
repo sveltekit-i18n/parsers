@@ -47,6 +47,7 @@ npm install @sveltekit-i18n/parser-icu
 - Select format: `{gender, select, male {He} female {She} other {They}}`
 - Number formatting: `{price, number, ::currency/USD}`
 - Date/time formatting: `{date, date, ::yyyyMMdd}`
+- Build-time parameter extraction: `extractParamsFactory`
 
 **Example:**
 ```json

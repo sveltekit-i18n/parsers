@@ -3,6 +3,11 @@ import type { Parser, Config } from './types';
 
 export type { Parser, Config };
 
+// The build-time half of the contract is a named export of this entry rather
+// than a subpath of its own: the package is ESM and declares
+// `sideEffects: false`, so a bundle that never reaches it drops it.
+export { extractParamsFactory } from './extract';
+
 const CACHE_LIMIT = 10000;
 
 const parser: Parser.Factory = (parserOptions) => {
