@@ -45,7 +45,7 @@ describe('extractParamsFactory', () => {
     const options = { ignoreTag: true };
     const tagged = 'Hi <b>{name}</b>';
 
-    expect(parser(options).parse(tagged, [{ name: 'Jarda' }], initLocale, 'k')).toBe('Hi <b>Jarda</b>');
+    expect(parser({ ...options, onReport: null }).parse(tagged, [{ name: 'Jarda' }], initLocale, 'k')).toBe('Hi <b>Jarda</b>');
     expect(extractParamsFactory(options)(tagged)).toEqual([{ name: 'name', kind: 'unknown', optional: false }]);
   });
 
