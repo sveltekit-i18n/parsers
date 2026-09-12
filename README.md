@@ -114,7 +114,7 @@ You can create your own parser to support any message syntax you need.
 
 ### Basic Structure
 
-A parser is a function that returns an object with a `parse` method:
+A parser is a function that returns an object with a `parse` method. What base guarantees before it calls `parse`, and what it requires back, is the [parser contract](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#the-parser-contract); this repository keeps it as a set of checks in [`contract/`](./contract) that both shipped parsers run against themselves:
 
 ```javascript
 const customParser = (config = {}) => ({

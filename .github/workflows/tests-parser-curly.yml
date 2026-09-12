@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - parser-curly/**
+      - contract/**
       - .github/workflows/tests-parser-curly.yml
       - .github/workflows/tests.yml
   workflow_dispatch:
