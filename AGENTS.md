@@ -53,9 +53,9 @@ Official message parsers for the
 - Nothing publishes until the whole family is ready: `base`, `parsers` and
   `extensions` release aligned at **3.0.0**, `lib` last.
 - The v3 work is tracked in
-  [lib#214](https://github.com/sveltekit-i18n/lib/issues/214); #226 and #227
-  are what remains for this repo. Issues for this repo live in the `lib`
-  tracker.
+  [lib#214](https://github.com/sveltekit-i18n/lib/issues/214), and this repo's
+  part of it has landed — the release itself is what remains, behind `lib`
+  (#228-#230). Issues for this repo live in the `lib` tracker.
 
 ## Comments
 
