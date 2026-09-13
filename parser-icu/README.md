@@ -311,6 +311,8 @@ Pass formatting options as the third parameter to `i18n.t()`:
 
 Compiled messages are cached per parser instance (least-recently-used, up to 10,000 entries keyed by locale and message), so repeated reads of the same message skip recompilation. Calls that pass per-call [format options](#format-options) bypass the cache, because those options change the compilation.
 
+A key naming no message is nothing to format and yields the empty string; what a missing translation renders as is [`fallbackValue`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#fallbackvalue), which base answers before this parser is called.
+
 If a message cannot be compiled (malformed ICU syntax) or formatted (for example, a payload variable is missing), the parser does not throw. It reports the failure through [`onReport`](#parser-options) and returns the raw message, so one broken translation cannot crash your page. A report channel that throws is contained too.
 
 `parse` always returns a string. `IntlMessageFormat.format()` yields the message in pieces as soon as a value it interpolates is not text - an object in the payload, or a tag callback returning one - and this parser joins them, reporting `unserializable-output`. Rich, non-string output belongs to a parser that declares it (base admits one) or to an extension that renders parts; it is not what this parser promises.

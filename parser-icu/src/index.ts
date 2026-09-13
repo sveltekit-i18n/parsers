@@ -48,8 +48,10 @@ const parser: Parser.Factory = ({ onReport, ...parserOptions }) => {
   return {
     parse: (message, [payload, formats], locale, key) => {
 
+      // Nothing to format. What a missing translation renders as is base's
+      // `fallbackValue`, which base answers with before this is reached.
       if (message === undefined) {
-        return `${key}`;
+        return '';
       }
 
       try {

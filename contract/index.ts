@@ -44,7 +44,8 @@ const call = ({ parser }: Subject, value: unknown, params: readonly unknown[] = 
  * way base calls it.
  *
  * Every check states a requirement the base docs' parser contract spells out.
- * A parser breaking one throws out of `t()`, which is a render.
+ * Breaking one throws out of `t()`, which is a render - except where a check
+ * notes that base makes no such call.
  */
 export const CONTRACT_CHECKS: readonly Check[] = [
   {
@@ -56,6 +57,9 @@ export const CONTRACT_CHECKS: readonly Check[] = [
   {
     name: 'answers an undefined message rather than throwing',
     run: (subject) => {
+      // Base answers a key resolving to no translation itself and never hands
+      // one over, so this is the direct call: a parser is a public function
+      // too. What it answers WITH is the format's to decide.
       assert(call(subject, undefined) !== undefined, 'an undefined message yielded nothing to render');
     },
   },

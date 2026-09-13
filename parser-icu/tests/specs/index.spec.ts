@@ -15,6 +15,13 @@ const defaultParser = parser({ onReport: null });
 const localize = <P extends Parser.PayloadDefault = Parser.PayloadDefault>(locale: string, { parse }: Parser.T = defaultParser) => (key: string, ...params: Parser.Params<P>): string => parse(message(locale, key), params, locale, key);
 
 describe('parser', () => {
+  it('formats a message that does not exist as the empty string', () => {
+    const $t = localize(initLocale);
+
+    // Nothing to format, and the key is not read: what a missing translation
+    // renders as is base's `fallbackValue`, not this parser's business.
+    expect($t('common.undefined')).toBe('');
+  });
   it('`plural` formatter works', () => {
     const $t = localize<{ value?: number }>(initLocale);
 
