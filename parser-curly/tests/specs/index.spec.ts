@@ -19,10 +19,12 @@ const localize = <P = Parser.PayloadDefault, M = Modifier.DefaultProps>(locale: 
 // these tests cover what the adapter adds: base's calling convention unpacked
 // into the neutral parser's, and a report channel the host has to state.
 describe('parser', () => {
-  it('echoes the key of a message that does not exist', () => {
+  it('resolves a message that does not exist to the empty string', () => {
     const $t = localize(initLocale);
 
-    expect($t('common.undefined')).toBe('common.undefined');
+    // Nothing to resolve, and the id is not read: what a missing translation
+    // renders as is base's `fallbackValue`, not this parser's business.
+    expect($t('common.undefined')).toBe('');
   });
   it('resolves placeholders from the payload slot', () => {
     const $t = localize<{ name?: string }>(initLocale);
@@ -56,12 +58,12 @@ describe('parser', () => {
     expect($tAlt('common.date', { value: stamp })).toBe(date(altLocale));
     expect(date(initLocale)).not.toBe(date(altLocale));
   });
-  it('forwards the key into reports', () => {
+  it('forwards the id into reports', () => {
     const reports: Report[] = [];
     const $t = localize<{ value?: string }>(initLocale, parser({ onReport: (report) => { reports.push(report); } }));
 
     expect($t('common.unknown_modifier', { value: 'V' })).toBe('FALLBACK');
-    expect(reports.map(({ key }) => key)).toEqual(['common.unknown_modifier']);
+    expect(reports.map(({ id }) => id)).toEqual(['common.unknown_modifier']);
   });
   it('hands `customModifiers` the value, the locale and their own props', () => {
     const seen: unknown[] = [];
@@ -113,7 +115,7 @@ describe('parser', () => {
         code: 'unknown-modifier',
         origin: 'message',
         message: expect.any(String),
-        key: 'common.unknown_modifier',
+        id: 'common.unknown_modifier',
         text: '{{value:nosuch; default:FALLBACK;}}',
       }]);
       expect(warn).not.toHaveBeenCalled();
@@ -127,7 +129,7 @@ describe('parser', () => {
     const { parse: untyped } = parser();
 
     expect(parse('Hello, {{name}}!', [{ name: 'Alice' }], initLocale, 'greeting')).toBe('Hello, Alice!');
-    expect(parse(undefined, [], initLocale, 'greeting')).toBe('greeting');
+    expect(parse(undefined, [], initLocale, 'greeting')).toBe('');
     expect(untyped('Hello, {{name:nosuch; default:D}}!', [{ name: 'Alice' }], initLocale, 'greeting')).toBe('Hello, D!');
   });
   it('resolves nothing from a payload\'s prototype', () => {
@@ -136,6 +138,6 @@ describe('parser', () => {
     expect($t('common.inherited', {})).toBe('VALUES: , , ');
     expect($t('common.inherited', { constructor: 'OWN' })).toBe('VALUES: OWN, , ');
     expect($t('common.placeholder', Object.create({ value: 'INHERITED', default: 'INHERITED' }))).toBe('');
-    expect($t('common.undefined', Object.create({ default: 'INHERITED' }))).toBe('common.undefined');
+    expect($t('common.undefined', Object.create({ default: 'INHERITED' }))).toBe('');
   });
 });
