@@ -1,11 +1,8 @@
 [![npm version](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-curly.svg)](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-curly) [![Tests](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-curly.yml/badge.svg)](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-curly.yml)
-[![Netlify Status](https://api.netlify.com/api/v1/badges/61a65082-1dc8-4c2a-94f2-0334c005dad0/deploy-status)](https://app.netlify.com/sites/parser-default/deploys)
 
 # @sveltekit-i18n/parser-curly
 
 The [Curly Message Format](https://github.com/curly-message/spec) for [@sveltekit-i18n/base](https://github.com/sveltekit-i18n/base): placeholders, defaults, modifiers and comparisons written in double curly braces. Every message is resolved by [`@curly-message/parser`](https://github.com/curly-message/parsers), the format's reference implementation and this package's only dependency; the package itself unpacks the base library's calling convention and supplies a default diagnostics channel. This README is a practical guide to the syntax — the full grammar and the resolution rules are in the specification repository.
-
-**[Live Demo](https://parser-default.netlify.app)** – See it in action
 
 ## Installation
 
@@ -411,12 +408,6 @@ A parameter several placeholders name accepts what all of them say together, and
 Build the extractor from the same options `parser()` is built from: a custom modifier registered under a name the format defines changes what a message naming it says about its value. `onReport` is not required here, and neither it nor `modifierDefaults` reaches anything — extraction formats nothing and reports nothing.
 
 Only the text of a message is scanned. A translation leaf that is not text names no parameters rather than throwing, and a placeholder a payload value carries into a later interpolation pass is not one the message itself names.
-
-## Examples
-
-See the [parser-curly example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-default) for a complete working application.
-
-**[Live Demo](https://parser-default.netlify.app)** – Interactive examples
 
 ## Comparison with Other Parsers
 

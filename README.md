@@ -83,12 +83,14 @@ npm install @sveltekit-i18n/parser-icu
 The main `sveltekit-i18n` package includes `parser-curly` by default:
 
 ```javascript
-import i18n from 'sveltekit-i18n';
+import { I18n } from 'sveltekit-i18n';
 
 const config = {
   // parser-curly is already included
   loaders: [/* ... */],
 };
+
+export const i18n = new I18n(config);
 ```
 
 ### With @sveltekit-i18n/base
@@ -96,7 +98,7 @@ const config = {
 Use any parser with the base package:
 
 ```javascript
-import i18n from '@sveltekit-i18n/base';
+import { I18n } from '@sveltekit-i18n/base';
 import parser from '@sveltekit-i18n/parser-curly';
 // or: import parser from '@sveltekit-i18n/parser-icu';
 
@@ -106,6 +108,8 @@ const config = {
   }),
   loaders: [/* ... */],
 };
+
+export const i18n = new I18n(config);
 ```
 
 ## Creating Custom Parsers
@@ -120,7 +124,7 @@ A parser is a function that returns an object with a `parse` method. What base g
 const customParser = (config = {}) => ({
   parse: (value, params, locale, key) => {
     // value: translation string from your JSON file
-    // params: array of parameters passed to $t()
+    // params: array of parameters passed to t()
     // locale: current locale (e.g., 'en', 'cs')
     // key: translation key (e.g., 'common.greeting')
     
@@ -184,7 +188,7 @@ const advancedParser = (config = {}) => ({
 ### Using Your Custom Parser
 
 ```javascript
-import i18n from '@sveltekit-i18n/base';
+import { I18n } from '@sveltekit-i18n/base';
 import customParser from './custom-parser';
 
 const config = {
@@ -192,7 +196,7 @@ const config = {
   loaders: [/* ... */],
 };
 
-export const { t } = new i18n(config);
+export const i18n = new I18n(config);
 ```
 
 ## Parser Configuration
@@ -208,19 +212,11 @@ Each parser accepts its own configuration options. Check the specific parser doc
 - 🚀 [Getting Started](https://github.com/sveltekit-i18n/lib/tree/master/docs/GETTING_STARTED.md) – Quick tutorial
 - 📚 [Best Practices](https://github.com/sveltekit-i18n/lib/tree/master/docs/BEST_PRACTICES.md) – Production patterns
 
-## Examples
-
-See working examples of different parsers:
-
-- [parser-curly example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-default) – [Live demo](https://parser-default.netlify.app)
-- [parser-icu example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-icu) – [Live demo](https://parser-icu.netlify.app)
-
 ## TypeScript Support
 
 Both official parsers include full TypeScript support:
 
 ```typescript
-import i18n from '@sveltekit-i18n/base';
 import parser from '@sveltekit-i18n/parser-curly';
 import type { Config } from '@sveltekit-i18n/parser-curly';
 
