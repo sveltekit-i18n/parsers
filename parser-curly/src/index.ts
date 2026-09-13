@@ -11,7 +11,7 @@ export { extractParamsFactory } from './extract';
 const parser: Parser.Factory = (options) => {
   const { resolve } = createParser(options);
 
-  return { parse: (value, [payload, props], locale, key) => resolve(value, { payload, props, locale, key }) };
+  return { parse: (value, [payload, props], locale, id) => resolve(value, { payload, props, locale, id }) };
 };
 
 export default parser;

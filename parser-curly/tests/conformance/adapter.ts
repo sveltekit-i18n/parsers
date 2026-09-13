@@ -3,7 +3,7 @@ import parser, { Modifier, Parser, Report } from '../../src';
 
 /**
  * The adapter of SPEC.md section 14.3, driving this package's public API:
- * `parser(options)` and the `parse(value, [payload, props], locale, key)`
+ * `parser(options)` and the `parse(value, [payload, props], locale, id)`
  * that the base library calls. The levels and the limits are the two
  * statements the specification asks an implementation to make about itself;
  * both are `@curly-message/parser`'s, which resolves every message here, and
@@ -12,7 +12,7 @@ import parser, { Modifier, Parser, Report } from '../../src';
 export const adapter: Adapter = {
   levels: ['core', 'intl', 'extensions'],
   limits: { passes: 10, output: 100000, conversion: 100000 },
-  resolve: ({ message, payload, props, locale, key, modifiers, defaults }) => {
+  resolve: ({ message, payload, props, locale, id, modifiers, defaults }) => {
     const reports: Report[] = [];
 
     // A behaviour of the set's catalogue is a function of section 11's inputs;
@@ -33,11 +33,11 @@ export const adapter: Adapter = {
       onReport: (report) => { reports.push(report); },
     });
 
-    // The base contract spells the locale and the key as strings because the
+    // The base contract spells the locale and the id as strings because the
     // base library always passes strings; the set drives the format's whole
     // input space through the same slots, so both are handed on as they came.
     return {
-      output: parse(message, [payload as Parser.Payload | undefined, props as Modifier.Props | undefined], locale as string, key as string),
+      output: parse(message, [payload as Parser.Payload | undefined, props as Modifier.Props | undefined], locale as string, id as string),
       reports,
     };
   },

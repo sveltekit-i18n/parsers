@@ -107,7 +107,7 @@ i18n.t('welcome', { default: 'Anonymous' })
 // → "Welcome, Anonymous!"
 ```
 
-`default` is a reserved payload key: the fallback for every placeholder in the message whose value is absent, and `{{default}}` reads it. A placeholder with no value takes the first of these that yields text — the entry's own `default` (see [Payload](#payload)), the payload's `default`, the inline `default:`, the empty string — so the payload's `default` outranks the inline one. Only an absent value falls back: `0`, `false` and the empty string are values. A key that names no message resolves to the payload's `default` as well and, where the payload carries none, to the key itself, echoed verbatim and never read as a message.
+`default` is a reserved payload key: the fallback for every placeholder in the message whose value is absent, and `{{default}}` reads it. A placeholder with no value takes the first of these that yields text — the entry's own `default` (see [Payload](#payload)), the payload's `default`, the inline `default:`, the empty string — so the payload's `default` outranks the inline one. Only an absent value falls back: `0`, `false` and the empty string are values. The chain belongs to the placeholder, not to the message: a key naming no message is nothing to resolve and yields the empty string, and what a missing translation renders as is [`fallbackValue`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#fallbackvalue), which base answers before this parser is called.
 
 ### Modifiers
 
@@ -336,7 +336,7 @@ A `Report` carries:
 | `code` | `unknown-modifier`, `failed-modifier`, `missing-options`, `unserializable-value`, `missing-locale`, `pass-limit` or `output-limit` |
 | `origin` | who fixes it: `message` (the message as written), `payload` (what the call passed) or `limit` (a bound this parser set) |
 | `message` | a self-contained English sentence carrying nothing from the payload |
-| `key` | the message's key, where the call passed one |
+| `id` | the message's id, where the call passed one; base passes the translation key |
 | `limit` | the limit reached, for the two limit reports |
 | `text` | the excerpt: the placeholder, or the output that would not settle — cut to 120 code units, with quotes, backslashes and line terminators escaped, so it can be written anywhere |
 
