@@ -60,6 +60,9 @@
     "typescript-eslint": "^8.67.0",
     "vitest": "^4.1.10"
   },
+  "overrides": {
+    "esbuild": "^0.28.1"
+  },
   "dependencies": {
     "@formatjs/icu-messageformat-parser": "^3.5.17",
     "intl-messageformat": "^11.2.14"
