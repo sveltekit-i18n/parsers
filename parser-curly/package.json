@@ -47,7 +47,7 @@
   },
   "homepage": "https://github.com/sveltekit-i18n/parsers/tree/master/parser-curly#readme",
   "peerDependencies": {
-    "@sveltekit-i18n/base": "^3.0.0-next.0"
+    "@sveltekit-i18n/base": "^3.0.0"
   },
   "dependencies": {
     "@curly-message/parser": "^1.0.1"
@@ -56,7 +56,7 @@
     "@curly-message/conformance": "^1.0.1",
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@sveltekit-i18n/base": "^3.0.0-next.0",
+    "@sveltekit-i18n/base": "^3.0.0",
     "eslint": "^10.8.1",
     "eslint-plugin-import-x": "^4.17.1",
     "globals": "^17.11.0",

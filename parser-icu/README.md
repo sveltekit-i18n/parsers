@@ -1,11 +1,8 @@
 [![npm version](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-icu.svg)](https://badge.fury.io/js/@sveltekit-i18n%2Fparser-icu) [![Tests](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-icu.yml/badge.svg)](https://github.com/sveltekit-i18n/parsers/actions/workflows/tests-parser-icu.yml)
-[![Netlify Status](https://api.netlify.com/api/v1/badges/cd425de0-b200-4a6a-8ab6-68cf34b8b6c7/deploy-status)](https://app.netlify.com/sites/parser-icu/deploys)
 
 # @sveltekit-i18n/parser-icu
 
 ICU message format parser for [@sveltekit-i18n/base](https://github.com/sveltekit-i18n/base), powered by [`intl-messageformat`](https://www.npmjs.com/package/intl-messageformat). This brings industry-standard [ICU message syntax](https://unicode-org.github.io/icu/userguide/format_parse/messages/) to your SvelteKit applications.
-
-**[Live Demo](https://parser-icu.netlify.app)** – See it in action
 
 ## Features
 
@@ -433,10 +430,6 @@ export const i18n = new I18n(config);
 <p>Current locale: {i18n.locale}</p>
 <p>{i18n.t('common.items', { count: cartItems })}</p>
 ```
-
-See the [parser-icu example](https://github.com/sveltekit-i18n/lib/tree/master/examples/parser-icu) for a complete working application.
-
-**[Live Demo](https://parser-icu.netlify.app)** – Interactive examples
 
 ## When to Use ICU Parser
 
