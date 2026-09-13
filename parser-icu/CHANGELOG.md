@@ -1,7 +1,7 @@
 # 3.0.0
 ESM-only build (the CommonJS entry point has been removed), [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, [`intl-messageformat`](https://www.npmjs.com/package/intl-messageformat) updated to v11, and Node.js 22 or newer required.
 
-Compiled messages are now cached per parser instance (least-recently-used, up to 10,000 entries), making repeated reads of the same message roughly 7× faster. The parser also fails soft: a message that cannot be compiled or formatted is returned raw instead of throwing.
+Compiled messages are now cached per parser instance (least-recently-used, up to 10,000 entries), making repeated reads of the same message roughly 7× faster. The parser also fails soft: a message that cannot be compiled or formatted is returned raw instead of throwing. A key naming no message is nothing to format and now yields the empty string rather than the key echoed back: what a missing translation renders as is [`fallbackValue`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#fallbackvalue), which base answers before this parser is called.
 
 `parser(options)` now takes `onReport`, and it is required, `null` included: the parser writes to no channel of its own, so where a diagnostic goes is stated by whoever builds it. The raw `console.warn` is gone. A report carries `code` (`failed-message` or `unserializable-output`), the `key` and `locale` of the call, a one-sentence `message`, and the `error` the formatter threw where there was one; a report channel that throws is contained like any other failure.
 
