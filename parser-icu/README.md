@@ -19,11 +19,13 @@ ICU message format parser for [@sveltekit-i18n/base](https://github.com/svelteki
 
 ```bash
 npm install @sveltekit-i18n/parser-icu
+# bun add @sveltekit-i18n/parser-icu
+# deno add npm:@sveltekit-i18n/parser-icu
 ```
 
 **Note:** This parser has external dependencies (`intl-messageformat` and `@formatjs/icu-messageformat-parser`) which are installed automatically.
 
-**Requirements:** Node.js 22 or newer. Version 3 is ESM-only, expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, and builds on `intl-messageformat` v11.
+**Requirements:** Node.js 22, Bun 1.2 or Deno 2, or newer. Version 3 is ESM-only, expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, and builds on `intl-messageformat` v11.
 
 ## Usage
 

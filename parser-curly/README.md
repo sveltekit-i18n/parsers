@@ -8,11 +8,13 @@ The [Curly Message Format](https://github.com/curly-message/spec) for [@svelteki
 
 ```bash
 npm install @sveltekit-i18n/parser-curly
+# bun add @sveltekit-i18n/parser-curly
+# deno add npm:@sveltekit-i18n/parser-curly
 ```
 
 This parser is included by default in [sveltekit-i18n](https://github.com/sveltekit-i18n/lib).
 
-**Requirements:** Node.js 22 or newer. Version 3 is ESM-only and expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency.
+**Requirements:** Node.js 22, Bun 1.2 or Deno 2, or newer. Version 3 is ESM-only and expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency.
 
 ## Usage
 
