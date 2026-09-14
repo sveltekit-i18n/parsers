@@ -44,7 +44,9 @@ Official message parsers for the
   adapter over `@curly-message/parser` (the Curly Message Format's reference
   implementation; the format lives in https://github.com/curly-message/spec)
   and runs the format's conformance set in its tests; `parser-icu` wraps
-  `intl-messageformat`. Both build with tsup and test with vitest.
+  `intl-messageformat`. Both build with tsup and test with vitest, and both
+  run that suite on Node, Bun and Deno — neither package reaches for a
+  runtime API, and the extra legs exist to keep that true.
 - **`1.x` is a frozen snapshot** of the published v1 line. It receives nothing
   unless a critical v1 fix is explicitly requested. `parser-curly` carries none
   of that history: it starts at 3.0.0, and `@sveltekit-i18n/parser-default` on
