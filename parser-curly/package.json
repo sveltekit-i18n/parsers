@@ -48,6 +48,7 @@
     "url": "https://github.com/sveltekit-i18n/lib/issues"
   },
   "homepage": "https://sveltekit-i18n.github.io",
+  "funding": "https://github.com/sponsors/sveltekit-i18n",
   "peerDependencies": {
     "@sveltekit-i18n/base": "^3.0.0"
   },
