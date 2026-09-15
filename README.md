@@ -208,6 +208,7 @@ Each parser accepts its own configuration options. Check the specific parser doc
 
 ## Documentation
 
+- 🌐 [sveltekit-i18n.github.io](https://sveltekit-i18n.github.io) – The documentation site, with a live playground
 - 📖 [Complete Documentation Index](https://github.com/sveltekit-i18n/lib/tree/master/docs/INDEX.md) – All guides and references
 - 🚀 [Getting Started](https://github.com/sveltekit-i18n/lib/tree/master/docs/GETTING_STARTED.md) – Quick tutorial
 - 📚 [Best Practices](https://github.com/sveltekit-i18n/lib/tree/master/docs/BEST_PRACTICES.md) – Production patterns

@@ -470,6 +470,7 @@ Both achieve the same result, choose based on your preference and requirements.
 
 - 📖 [ICU Message Format Guide](https://unicode-org.github.io/icu/userguide/format_parse/messages/) – Official ICU documentation
 - 📚 [FormatJS Documentation](https://formatjs.io/docs/intl-messageformat/) – intl-messageformat docs
+- 🌐 [sveltekit-i18n.github.io](https://sveltekit-i18n.github.io) – The documentation site, with a live playground
 - 🎨 [All Parsers](https://github.com/sveltekit-i18n/parsers) – Parser overview
 - 💡 [Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples) – Working examples
 - 📋 [Changelog](./CHANGELOG.md) – Version history
