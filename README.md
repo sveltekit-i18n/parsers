@@ -6,7 +6,7 @@ Message parsers for [sveltekit-i18n](https://github.com/sveltekit-i18n/lib). The
 
 ### [@sveltekit-i18n/parser-curly](./parser-curly)
 
-The [Curly Message Format](https://github.com/curly-message/spec) — placeholders, defaults, modifiers and comparisons in double curly braces — resolved by [`@curly-message/parser`](https://github.com/curly-message/parsers), the format's reference implementation.
+The [Curly Message Format](https://curlymessage.dev) — placeholders, defaults, modifiers and comparisons in double curly braces — resolved by [`@curly-message/parser`](https://github.com/curly-message/parsers), the format's reference implementation.
 
 ```bash
 npm install @sveltekit-i18n/parser-curly

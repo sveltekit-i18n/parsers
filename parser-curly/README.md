@@ -2,7 +2,7 @@
 
 # @sveltekit-i18n/parser-curly
 
-The [Curly Message Format](https://github.com/curly-message/spec) for [@sveltekit-i18n/base](https://github.com/sveltekit-i18n/base): placeholders, defaults, modifiers and comparisons written in double curly braces. Every message is resolved by [`@curly-message/parser`](https://github.com/curly-message/parsers), the format's reference implementation and this package's only dependency; the package itself unpacks the base library's calling convention and supplies a default diagnostics channel. This README is a practical guide to the syntax — the full grammar and the resolution rules are in the specification repository.
+The [Curly Message Format](https://curlymessage.dev) for [@sveltekit-i18n/base](https://github.com/sveltekit-i18n/base): placeholders, defaults, modifiers and comparisons written in double curly braces. Every message is resolved by [`@curly-message/parser`](https://github.com/curly-message/parsers), the format's reference implementation and this package's only dependency; the package itself unpacks the base library's calling convention and supplies a default diagnostics channel. This README is a practical guide to the syntax — the full grammar and the resolution rules are in the specification.
 
 ## Installation
 
@@ -440,7 +440,7 @@ Choose `parser-curly` for simplicity, ICU for standards compliance.
 
 - [sveltekit-i18n.github.io](https://sveltekit-i18n.github.io) – The documentation site, with a live playground
 - [All Parsers](https://github.com/sveltekit-i18n/parsers) – Parser overview
-- [Curly Message Format](https://github.com/curly-message/spec) – The specification
+- [Curly Message Format](https://curlymessage.dev) – The specification
 - [Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples) – Working examples
 - [Changelog](./CHANGELOG.md) – Version history
 

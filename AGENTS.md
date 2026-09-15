@@ -42,7 +42,7 @@ Official message parsers for the
 
 - **`master` is the v3 line** — v3 work lands here. `parser-curly` is a thin
   adapter over `@curly-message/parser` (the Curly Message Format's reference
-  implementation; the format lives in https://github.com/curly-message/spec)
+  implementation; the format lives in https://curlymessage.dev)
   and runs the format's conformance set in its tests; `parser-icu` wraps
   `intl-messageformat`. Both build with tsup and test with vitest, and both
   run that suite on Node, Bun and Deno — neither package reaches for a
