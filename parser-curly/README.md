@@ -448,6 +448,11 @@ Choose `parser-curly` for simplicity, ICU for standards compliance.
 
 If you're facing issues with this parser, create a ticket [here](https://github.com/sveltekit-i18n/lib/issues).
 
+## Sponsor
+
+You can support the maintenance of this package through
+[GitHub Sponsors](https://github.com/sponsors/sveltekit-i18n).
+
 ## License
 
 MIT

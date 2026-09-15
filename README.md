@@ -235,6 +235,11 @@ For general contribution guidelines, see the [Contributing Guide](https://github
 
 For parser-specific contributions and issues, use this repository's [issues](https://github.com/sveltekit-i18n/parsers/issues).
 
+## Sponsor
+
+You can support the maintenance of these packages through
+[GitHub Sponsors](https://github.com/sponsors/sveltekit-i18n).
+
 ## License
 
 MIT
