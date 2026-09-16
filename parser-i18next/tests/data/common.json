@@ -1,0 +1,18 @@
+{
+  "greeting": "Hi {{name}}!",
+  "unescaped": "{{- html}}",
+  "dotted": "Hello {{user.name}}!",
+  "number": "{{n, number}}",
+  "currency": "{{n, currency(USD)}}",
+  "fraction": "{{n, number(minimumFractionDigits: 2)}}",
+  "euro": "{{n, currency(currency: EUR; minimumFractionDigits: 0)}}",
+  "date": "{{d, datetime}}",
+  "long": "{{d, datetime(dateStyle: long)}}",
+  "ago": "{{d, relativetime}}",
+  "hours": "{{d, relativetime(range: hour)}}",
+  "list": "{{l, list}}",
+  "custom": "{{v, upper}}",
+  "unknown": "{{n, bogus}}",
+  "nested": "$t(greeting) and {{v}}",
+  "malformed": "Hi {{name"
+}

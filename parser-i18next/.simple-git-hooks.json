@@ -1,0 +1,3 @@
+{
+  "pre-commit": "cd parser-i18next && npm run lint"
+}

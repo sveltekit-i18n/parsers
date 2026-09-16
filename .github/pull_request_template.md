@@ -24,6 +24,7 @@ Relates to #
 - [ ] parser-curly
 - [ ] parser-icu
 - [ ] parser-mf2
+- [ ] parser-i18next
 - [ ] Several parsers
 - [ ] General/infrastructure
 

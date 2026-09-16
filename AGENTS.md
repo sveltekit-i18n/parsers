@@ -45,9 +45,10 @@ Official message parsers for the
   implementation; the format lives in https://curlymessage.dev)
   and runs the format's conformance set in its tests; `parser-icu` wraps
   `intl-messageformat`; `parser-mf2` wraps `messageformat` (the Unicode
-  MessageFormat 2 reference implementation). All build with tsup and test
-  with vitest, and all run that suite on Node, Bun and Deno — no package
-  reaches for a runtime API, and the extra legs exist to keep that true.
+  MessageFormat 2 reference implementation); `parser-i18next` wraps
+  `i18next`. All build with tsup and test with vitest, and all run that suite
+  on Node, Bun and Deno — no package reaches for a runtime API, and the extra
+  legs exist to keep that true.
 - **`1.x` is a frozen snapshot** of the published v1 line. It receives nothing
   unless a critical v1 fix is explicitly requested. `parser-curly` carries none
   of that history: it starts at 3.0.0, and `@sveltekit-i18n/parser-default` on

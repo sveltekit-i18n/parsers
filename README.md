@@ -75,6 +75,21 @@ npm install @sveltekit-i18n/parser-mf2
 - Selection with plural categories and exact matches: `.match $count` / `0 {{None}}` / `one {{One}}` / `* {{{$count}}}`
 - Date, time, currency, percent and unit formatting out of the box
 - Build-time parameter extraction: `extractParamsFactory`
+### [@sveltekit-i18n/parser-i18next](./parser-i18next)
+
+The [i18next](https://www.i18next.com) interpolation and formatting syntax, for translation files that already exist in it — an adapter over `i18next` itself, so a message renders as it did there.
+
+```bash
+npm install @sveltekit-i18n/parser-i18next
+```
+
+**Features:**
+- i18next placeholders: `{{name}}`, `{{- html}}`, `{{user.name}}`
+- Built-in formats with their argument syntax: `{{n, currency(USD)}}`, `{{d, datetime(dateStyle: long)}}`
+- Per-call `formatParams` and custom formats
+- i18next's own `interpolation` options and `missingInterpolationHandler`
+- Build-time parameter extraction: `extractParamsFactory`
+- One dependency: `i18next` itself, about 44 kB minified
 
 **Example:**
 ```json
@@ -86,6 +101,14 @@ npm install @sveltekit-i18n/parser-mf2
 ```
 
 [📖 Full documentation](./parser-mf2/README.md)
+  "greeting": "Hi {{name}}!",
+  "price": "{{amount, currency(USD)}}",
+  "updated": "{{days, relativetime}}",
+  "guests": "{{names, list}}"
+}
+```
+
+[📖 Full documentation](./parser-i18next/README.md)
 
 ## Choosing a Parser
 
@@ -108,6 +131,11 @@ npm install @sveltekit-i18n/parser-mf2
 - You need selection on several values at once, or a value declared once and formatted in one place
 - You want number, date, time, currency, percent and unit formatting stated inside the message
 - You want a message format that other tooling, in other languages, reads too
+### Use `parser-i18next` if:
+- Your translation files are already written for i18next
+- You want i18next's own engine rendering them, so nothing changes on the way
+- You need its built-in `number`, `currency`, `datetime`, `relativetime` and `list` formats
+- A dependency of about 44 kB is a fair price for not rewriting a catalogue
 
 ## Using Parsers
 
@@ -135,6 +163,7 @@ import { I18n } from '@sveltekit-i18n/base';
 import parser from '@sveltekit-i18n/parser-curly';
 // or: import parser from '@sveltekit-i18n/parser-icu';
 // or: import parser from '@sveltekit-i18n/parser-mf2';
+// or: import parser from '@sveltekit-i18n/parser-i18next';
 
 const config = {
   parser: parser({
@@ -240,6 +269,7 @@ Each parser accepts its own configuration options. Check the specific parser doc
 - [parser-curly options](./parser-curly/README.md#options)
 - [parser-icu options](./parser-icu/README.md#usage)
 - [parser-mf2 options](./parser-mf2/README.md#parser-options)
+- [parser-i18next options](./parser-i18next/README.md#options)
 
 ## Documentation
 
