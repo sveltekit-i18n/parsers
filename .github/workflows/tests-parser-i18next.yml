@@ -1,0 +1,23 @@
+name: i18next parser tests
+
+on:
+  push:
+    paths:
+      - parser-i18next/**
+      - contract/**
+      - .github/workflows/tests-parser-i18next.yml
+      - .github/workflows/tests.yml
+  pull_request:
+    types: [opened,reopened,synchronize]
+    paths:
+      - parser-i18next/**
+      - contract/**
+      - .github/workflows/tests-parser-i18next.yml
+      - .github/workflows/tests.yml
+  workflow_dispatch:
+
+jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+    with:
+      package: parser-i18next

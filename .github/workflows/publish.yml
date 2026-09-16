@@ -12,6 +12,7 @@ on:
             - parser-curly
             - parser-icu
             - parser-mf2
+            - parser-i18next
         version:
           description: 'Version'
           required: true
