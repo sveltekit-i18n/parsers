@@ -1,0 +1,23 @@
+name: MF2 parser tests
+
+on:
+  push:
+    paths:
+      - parser-mf2/**
+      - contract/**
+      - .github/workflows/tests-parser-mf2.yml
+      - .github/workflows/tests.yml
+  pull_request:
+    types: [opened,reopened,synchronize]
+    paths:
+      - parser-mf2/**
+      - contract/**
+      - .github/workflows/tests-parser-mf2.yml
+      - .github/workflows/tests.yml
+  workflow_dispatch:
+
+jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+    with:
+      package: parser-mf2

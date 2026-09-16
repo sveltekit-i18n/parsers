@@ -35,7 +35,7 @@ Official message parsers for the
   `node_modules` and the root has none; a package's `tsc` pulls it in through
   that spec. ESLint does not reach it — a flat config's base path is its own
   directory, and a root config would mean a root package — so match the
-  formatting conventions by hand there. Both test workflows watch
+  formatting conventions by hand there. Every test workflow watches
   `contract/**`.
 
 ## Current state: v3 released from `master`
@@ -44,18 +44,20 @@ Official message parsers for the
   adapter over `@curly-message/parser` (the Curly Message Format's reference
   implementation; the format lives in https://curlymessage.dev)
   and runs the format's conformance set in its tests; `parser-icu` wraps
-  `intl-messageformat`. Both build with tsup and test with vitest, and both
-  run that suite on Node, Bun and Deno — neither package reaches for a
-  runtime API, and the extra legs exist to keep that true.
+  `intl-messageformat`; `parser-mf2` wraps `messageformat` (the Unicode
+  MessageFormat 2 reference implementation). All build with tsup and test
+  with vitest, and all run that suite on Node, Bun and Deno — no package
+  reaches for a runtime API, and the extra legs exist to keep that true.
 - **`1.x` is a frozen snapshot** of the published v1 line. It receives nothing
   unless a critical v1 fix is explicitly requested. `parser-curly` carries none
   of that history: it starts at 3.0.0, and `@sveltekit-i18n/parser-default` on
   `1.x` is a different package.
-- **Both parsers are published at 3.0.0**, alongside `base`,
-  `extension-stores` and `sveltekit-i18n`. The family released aligned, as
-  [lib#214](https://github.com/sveltekit-i18n/lib/issues/214) set out; a
-  parser's peer range on the core is `^3.0.0`, so a prerelease core cannot be
-  paired underneath one.
+- **`parser-curly` and `parser-icu` are published at 3.0.0**, alongside
+  `base`, `extension-stores` and `sveltekit-i18n`. The family released
+  aligned, as [lib#214](https://github.com/sveltekit-i18n/lib/issues/214) set
+  out; a parser's peer range on the core is `^3.0.0`, so a prerelease core
+  cannot be paired underneath one. `parser-mf2` is at 3.0.0-next.0 on
+  `master`, unreleased until its first publish.
 - Issues for this repo live in the `lib` tracker.
 
 ## Comments

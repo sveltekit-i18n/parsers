@@ -1,0 +1,14 @@
+{
+  "greeting": "Hi {$name}!",
+  "number": "{$value :number}",
+  "integer": "{$value :integer}",
+  "plural": ".input {$count :number}\n.match $count\n0 {{No photos.}}\none {{One photo.}}\n* {{{$count} photos.}}",
+  "select": ".input {$gender :string}\n.match $gender\nmale {{He will respond shortly.}}\nfemale {{She will respond shortly.}}\n* {{They will respond shortly.}}",
+  "date": "Today is {$value :date length=long}",
+  "currency": "Total: {$value :currency currency=USD}",
+  "local": ".local $price = {$value :number minimumFractionDigits=2}\n{{Price: {$price}}}",
+  "malformed": "Hi {$name",
+  "unannotated": ".match $gender\nmale {{He}}\n* {{They}}",
+  "unknown_function": "{$value :nosuch}",
+  "inherited": "{$constructor} {$toString} {$__proto__}"
+}

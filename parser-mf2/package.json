@@ -1,0 +1,76 @@
+{
+  "name": "@sveltekit-i18n/parser-mf2",
+  "version": "3.0.0-next.0",
+  "description": "Unicode MessageFormat 2 parser compatible with sveltekit-i18n library.",
+  "type": "module",
+  "sideEffects": false,
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=22.12",
+    "bun": ">=1.2",
+    "deno": ">=2"
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "pretest": "npm run build && npm run typecheck",
+    "test": "vitest run",
+    "build": "tsup",
+    "prepublishOnly": "npm run build",
+    "lint": "eslint --fix .",
+    "prepare": "cd .. && simple-git-hooks parser-mf2/.simple-git-hooks.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/sveltekit-i18n/parsers.git",
+    "directory": "parser-mf2"
+  },
+  "keywords": [
+    "parser",
+    "mf2",
+    "messageformat",
+    "messageformat2",
+    "unicode",
+    "sveltekit-i18n"
+  ],
+  "author": "Jarda Svoboda",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sveltekit-i18n/lib/issues"
+  },
+  "homepage": "https://sveltekit-i18n.github.io",
+  "funding": "https://github.com/sponsors/sveltekit-i18n",
+  "peerDependencies": {
+    "@sveltekit-i18n/base": "^3.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@sveltekit-i18n/base": "^3.0.0",
+    "@types/node": "^22.20.3",
+    "eslint": "^10.8.1",
+    "eslint-plugin-import-x": "^4.17.1",
+    "globals": "^17.11.0",
+    "simple-git-hooks": "^2.13.1",
+    "tsup": "^8.0.1",
+    "typescript": "^5.1.6",
+    "typescript-eslint": "^8.67.0",
+    "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1"
+  },
+  "dependencies": {
+    "messageformat": "^4.0.0"
+  }
+}

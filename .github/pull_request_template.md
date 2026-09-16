@@ -23,7 +23,8 @@ Relates to #
 
 - [ ] parser-curly
 - [ ] parser-icu
-- [ ] Both parsers
+- [ ] parser-mf2
+- [ ] Several parsers
 - [ ] General/infrastructure
 
 ## Checklist
