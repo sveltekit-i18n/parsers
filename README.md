@@ -60,6 +60,33 @@ npm install @sveltekit-i18n/parser-icu
 
 [📖 Full documentation](./parser-icu/README.md)
 
+### [@sveltekit-i18n/parser-mf2](./parser-mf2)
+
+[Unicode MessageFormat 2](https://unicode.org/reports/tr35/tr35-messageFormat.html) parser powered by [`messageformat`](https://github.com/messageformat/messageformat), the format's reference implementation.
+
+```bash
+npm install @sveltekit-i18n/parser-mf2
+```
+
+**Features:**
+- The Unicode standard's successor to ICU MessageFormat
+- Variables and functions: `{$count :integer}`, `{$price :currency currency=USD}`
+- Declarations: `.input {$count :integer}`, `.local $total = {$price :number}`
+- Selection with plural categories and exact matches: `.match $count` / `0 {{None}}` / `one {{One}}` / `* {{{$count}}}`
+- Date, time, currency, percent and unit formatting out of the box
+- Build-time parameter extraction: `extractParamsFactory`
+
+**Example:**
+```json
+{
+  "greeting": "Hello, {$name}!",
+  "items": ".input {$count :integer}\n.match $count\n0 {{You have no items.}}\none {{You have one item.}}\n* {{You have {$count} items.}}",
+  "response": ".input {$gender :string}\n.match $gender\nmale {{He will respond shortly.}}\nfemale {{She will respond shortly.}}\n* {{They will respond shortly.}}"
+}
+```
+
+[📖 Full documentation](./parser-mf2/README.md)
+
 ## Choosing a Parser
 
 ### Use `parser-curly` if:
@@ -75,6 +102,12 @@ npm install @sveltekit-i18n/parser-icu
 - You need advanced plural rules for complex languages
 - You want built-in number/date/time formatting options
 - You're comfortable with ICU syntax
+
+### Use `parser-mf2` if:
+- You want the Unicode standard's current message format, MessageFormat 2
+- You need selection on several values at once, or a value declared once and formatted in one place
+- You want number, date, time, currency, percent and unit formatting stated inside the message
+- You want a message format that other tooling, in other languages, reads too
 
 ## Using Parsers
 
@@ -101,6 +134,7 @@ Use any parser with the base package:
 import { I18n } from '@sveltekit-i18n/base';
 import parser from '@sveltekit-i18n/parser-curly';
 // or: import parser from '@sveltekit-i18n/parser-icu';
+// or: import parser from '@sveltekit-i18n/parser-mf2';
 
 const config = {
   parser: parser({
@@ -118,7 +152,7 @@ You can create your own parser to support any message syntax you need.
 
 ### Basic Structure
 
-A parser is a function that returns an object with a `parse` method. What base guarantees before it calls `parse`, and what it requires back, is the [parser contract](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#the-parser-contract); this repository keeps it as a set of checks in [`contract/`](./contract) that both shipped parsers run against themselves:
+A parser is a function that returns an object with a `parse` method. What base guarantees before it calls `parse`, and what it requires back, is the [parser contract](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#the-parser-contract); this repository keeps it as a set of checks in [`contract/`](./contract) that every shipped parser runs against itself:
 
 ```javascript
 const customParser = (config = {}) => ({
@@ -205,6 +239,7 @@ Each parser accepts its own configuration options. Check the specific parser doc
 
 - [parser-curly options](./parser-curly/README.md#options)
 - [parser-icu options](./parser-icu/README.md#usage)
+- [parser-mf2 options](./parser-mf2/README.md#parser-options)
 
 ## Documentation
 
@@ -215,7 +250,7 @@ Each parser accepts its own configuration options. Check the specific parser doc
 
 ## TypeScript Support
 
-Both official parsers include full TypeScript support:
+All official parsers include full TypeScript support:
 
 ```typescript
 import parser from '@sveltekit-i18n/parser-curly';

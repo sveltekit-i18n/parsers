@@ -11,6 +11,7 @@ on:
           options:
             - parser-curly
             - parser-icu
+            - parser-mf2
         version:
           description: 'Version'
           required: true
@@ -112,7 +113,7 @@ jobs:
           VERSION: ${{ steps.bump.outputs.version }}
         run: |
           # Notes span this package's own tags; the tag preceding this release
-          # in the monorepo may belong to the other package.
+          # in the monorepo may belong to another package.
           PREVIOUS="$(git tag --list "$PACKAGE@*" --sort=-creatordate | sed -n 2p)"
           case "$VERSION" in
             *-*) PRERELEASE=--prerelease ;;
