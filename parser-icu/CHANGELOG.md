@@ -1,3 +1,6 @@
+# 3.0.1
+A catalogue leaf that is not text and cannot become any - a null-prototype object, or one whose `toString` throws - no longer throws out of `t()` when the engine rejects it: the failure is reported as `failed-message` and the call renders as the empty string, as it already did in `parser-i18next`. The repository's `contract/` set now checks every parser for it.
+
 # 3.0.0
 ESM-only build (the CommonJS entry point has been removed), [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, [`intl-messageformat`](https://www.npmjs.com/package/intl-messageformat) updated to v11, and Node.js 22 or newer required.
 

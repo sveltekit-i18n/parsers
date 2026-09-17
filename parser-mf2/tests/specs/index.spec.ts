@@ -186,4 +186,15 @@ describe('parser', () => {
     expect(parse(Symbol('leaf'), [], initLocale, 'leaf')).toBe('Symbol(leaf)');
     expect(reports).toMatchObject([{ code: 'failed-message', key: 'leaf', locale: initLocale }]);
   });
+  it('renders a catalogue leaf that cannot become text as the empty string, and reports it', () => {
+    const reports: Parser.Report[] = [];
+    const { parse } = parser({ onReport: (report) => reports.push(report) });
+
+    expect(parse(Object.create(null), [], initLocale, 'k')).toBe('');
+    expect(parse({ toString: () => { throw new Error('unprintable'); } }, [], initLocale, 'k')).toBe('');
+    expect(reports).toMatchObject([
+      { code: 'failed-message', key: 'k', locale: initLocale },
+      { code: 'failed-message', key: 'k', locale: initLocale },
+    ]);
+  });
 });

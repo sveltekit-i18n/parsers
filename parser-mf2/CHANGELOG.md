@@ -1,3 +1,6 @@
+# 3.0.1
+A catalogue leaf that is not text and cannot become any - a null-prototype object, or one whose `toString` throws - no longer throws out of `t()` when the engine rejects it: the failure is reported as `failed-message` and the call renders as the empty string, as it already did in `parser-i18next`. The repository's `contract/` set now checks every parser for it.
+
 # 3.0.0
 Initial release. `@sveltekit-i18n/parser-mf2` brings [Unicode MessageFormat 2](https://unicode.org/reports/tr35/tr35-messageFormat.html) to [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3:
 * Every message is compiled and formatted by [`messageformat`](https://github.com/messageformat/messageformat) v4, the format's reference implementation and the package's only runtime dependency. Compiled messages are cached per parser instance (least-recently-used, up to 10,000 entries keyed by locale and message), and base's parser contract checks (the repository's `contract/` set) run beside the package's own tests: what a message MEANS is the specification's to certify, that the parser can be called the way base calls it is base's.
