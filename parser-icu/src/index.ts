@@ -10,6 +10,16 @@ export { extractParamsFactory } from './extract';
 
 const CACHE_LIMIT = 10000;
 
+// A leaf that is no message is returned as its text; a null-prototype object,
+// or a `toString` that throws, has none.
+const raw = (message: unknown): string | undefined => {
+  try {
+    return String(message);
+  } catch {
+    return undefined;
+  }
+};
+
 const parser: Parser.Factory = ({ onReport, ...parserOptions }) => {
   // Compiled messages keyed by locale and message, evicted least-recently-used.
   // Per-call `formats` change the compilation, so those calls bypass the cache.
@@ -80,15 +90,19 @@ const parser: Parser.Factory = ({ onReport, ...parserOptions }) => {
 
         return render(compiled, payload, locale, key);
       } catch (error) {
+        const text = raw(message);
+
         report({
           code: 'failed-message',
           key,
           locale,
-          message: `Message for key '${key}' could not be formatted and was returned raw.`,
+          message: text === undefined
+            ? `Message for key '${key}' could not be rendered as text.`
+            : `Message for key '${key}' could not be formatted and was returned raw.`,
           error,
         });
 
-        return `${message}`;
+        return text ?? '';
       }
     },
   };

@@ -89,6 +89,14 @@ export const CONTRACT_CHECKS: readonly Check[] = [
     },
   },
   {
+    name: 'contains a catalogue leaf that cannot become text',
+    run: (subject) => {
+      // A null-prototype object has no `toString` to call, and one that throws
+      // is the other way `String()` can fail.
+      [Object.create(null), { toString: () => { throw new Error('unprintable'); } }].forEach((leaf) => call(subject, leaf, [{ value: 'x' }]));
+    },
+  },
+  {
     name: 'contains the failure of a message it cannot compile',
     run: (subject) => {
       assert(call(subject, subject.messages.malformed, [{ value: 'x' }]) !== undefined, 'a malformed message yielded nothing to render');

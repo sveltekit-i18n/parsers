@@ -359,7 +359,7 @@ A report carries `code`, the `key` and `locale` the call was made for, a one-sen
 
 | `code` | When |
 | --- | --- |
-| `failed-message` | The message could not be compiled - a syntax error, or a data model error such as a selector without an annotation or a `.match` without a `*` variant - or could not be formatted at all. The raw message is returned. |
+| `failed-message` | The message could not be compiled - a syntax error, or a data model error such as a selector without an annotation or a `.match` without a `*` variant - or could not be formatted at all. The raw message is returned; a leaf that is not text and cannot become any renders as the empty string. |
 | `fallback-value` | One expression could not be resolved: a variable the payload lacks, a function nobody registered, or a function that rejected its operand or options. The rest of the message rendered, and the output carries the format's fallback for that expression, `{$name}`. |
 
 ```javascript

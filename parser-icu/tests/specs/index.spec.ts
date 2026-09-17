@@ -71,6 +71,20 @@ describe('parser', () => {
     expect(reports).toMatchObject([{ code: 'failed-message', key: 'common.malformed', locale: initLocale }]);
     expect(reports[0]?.error).toBeInstanceOf(Error);
   });
+  it('renders a catalogue leaf that cannot become text as the empty string, and reports it', () => {
+    const reports: Parser.Report[] = [];
+    const { parse } = parser({ onReport: (report) => reports.push(report) });
+
+    expect(parse(Object.create(null), [], initLocale, 'k')).toBe('');
+    expect(parse({ toString: () => { throw new Error('unprintable'); } }, [], initLocale, 'k')).toBe('');
+    // The one primitive no concatenation can spell.
+    expect(parse(Symbol('leaf'), [], initLocale, 'k')).toBe('Symbol(leaf)');
+    expect(reports).toMatchObject([
+      { code: 'failed-message', key: 'k', locale: initLocale },
+      { code: 'failed-message', key: 'k', locale: initLocale },
+      { code: 'failed-message', key: 'k', locale: initLocale },
+    ]);
+  });
   it('returns the raw message when the payload lacks a variable', () => {
     const reports: Parser.Report[] = [];
     const $t = localize(initLocale, parser({ onReport: (report) => reports.push(report) }));

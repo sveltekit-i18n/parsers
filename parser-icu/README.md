@@ -276,7 +276,7 @@ A report carries `code`, the `key` and `locale` the call was made for, a one-sen
 
 | `code` | When |
 | --- | --- |
-| `failed-message` | The message could not be compiled (malformed ICU syntax) or formatted (a payload variable is missing). The raw message is returned. |
+| `failed-message` | The message could not be compiled (malformed ICU syntax) or formatted (a payload variable is missing). The raw message is returned; a leaf that is not text and cannot become any renders as the empty string. |
 | `unserializable-output` | A payload value, or a tag callback, yielded something the message could not be rendered into text with. The pieces are joined and something is lost on the way. |
 
 ## Format Options
