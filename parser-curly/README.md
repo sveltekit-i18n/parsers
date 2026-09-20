@@ -210,7 +210,7 @@ i18n.t('notification', { count: 0 })
 // → "You have no messages."
 ```
 
-Nesting is resolved by interpolating the output again, so a payload value may carry a placeholder of its own; the [limits](#limits) bound that.
+An option value is the one position where a placeholder holds another, and only the selected option's is resolved: over `{ count: 0 }` the comparison selects nothing, so no payload entry is read for the inner placeholders and no report they would have made is made. What a placeholder resolves to is nested in nothing — a value is data, so no payload reaches a branch the message did not select for it. How deep a message writes placeholders inside one another is what the [limits](#limits) bound.
 
 ### Escaping
 
@@ -226,7 +226,7 @@ A backslash cancels the structural meaning of the character after it: `:`, `;`, 
 | `\d+` | `\d+` |
 | `\{{v}}` | `{{v}}`, text whatever the payload carries |
 
-Escape sequences are removed once, from the finished text, and a payload value is read by the same rule: a value that must keep a backslash before a reserved character doubles it. A placeholder is written on one line — `{{` and `}}` with a line terminator between them are text — and `{{}}` is a placeholder naming no key, which resolves to the fallback.
+Escape sequences are removed from the message and from nothing else: a payload value is data, so its backslashes and its braces reach the output as they stand and a value holding `\d+` renders `\d+`. A placeholder is written on one line — `{{` and `}}` with a line terminator between them are text — and `{{}}` is a placeholder naming no key, which resolves to the fallback.
 
 ## Payload
 
@@ -241,6 +241,8 @@ i18n.t('greeting', { name: { default: 'stranger' } })
 ```
 
 An entry owning any other key is data, wrapper-shaped or not: `{ value: 1, unit: 'kg' }` becomes JSON. Every entry is read as an own enumerable property — nothing on a prototype resolves.
+
+A value is data throughout: no escape sequence is removed from it and no placeholder is found in it, so it reaches the output as it was passed. Where the payload carries data the caller did not write, pass `recognizeWrappers: false` — an entry of that shape would otherwise reconfigure every modifier its placeholder reaches without spelling any syntax at all.
 
 ## Options
 
@@ -262,6 +264,12 @@ const config = {
     // Where diagnostics go. Required: a function, or `null` to state that
     // reports go nowhere.
     onReport: (report) => { /* ... */ },
+    // Whether a wrapper-shaped payload entry configures its value. On unless
+    // stated; `false` where the payload carries data the caller did not write.
+    recognizeWrappers: true,
+    // A migration aid: where a value holding what version 1 of the format read
+    // as syntax is announced. Nothing is looked for while this is unset.
+    onSuspectValue: null,
   }),
 };
 ```
@@ -332,18 +340,20 @@ A `Report` carries:
 
 | Field | Meaning |
 | --- | --- |
-| `code` | `unknown-modifier`, `failed-modifier`, `missing-options`, `unserializable-value`, `missing-locale`, `pass-limit` or `output-limit` |
+| `code` | `unknown-modifier`, `failed-modifier`, `missing-options`, `unserializable-value`, `missing-locale`, `output-limit`, `read-limit` or `nesting-limit` |
 | `origin` | who fixes it: `message` (the message as written), `payload` (what the call passed) or `limit` (a bound this parser set) |
 | `message` | a self-contained English sentence carrying nothing from the payload |
 | `id` | the message's id, where the call passed one; base passes the translation key |
-| `limit` | the limit reached, for the two limit reports |
-| `text` | the excerpt: the placeholder, or the output that would not settle — cut to 120 code units, with quotes, backslashes and line terminators escaped, so it can be written anywhere |
+| `limit` | the limit reached, for the three limit reports |
+| `text` | the excerpt: the placeholder that named the trouble, or the message as it was passed where the read that refused is of the call's own structure — message text throughout and never a payload value, cut to 120 code units, with quotes, backslashes and line terminators escaped, so it can be written anywhere |
 
 A report never raises: the placeholder takes its fallback (the empty string for `missing-locale`) and the rest of the message resolves.
 
 ## Limits
 
-Resolution is bounded three ways: 10 interpolation passes (a value referencing its own placeholder stops with its placeholders unresolved, reported as `pass-limit`), 100 000 UTF-16 code units of output (a pass that would exceed it is discarded and the last output under the bound stands, reported as `output-limit`) and 100 000 nodes per value conversion (a value past it is read as missing, reported as `unserializable-value`). The specification's conformance set, `@curly-message/conformance`, runs against this package's public API in its tests, at every level the format defines (Core, Intl, Extensions).
+Three budgets bound a resolution. **Output** is what the output carries: 100 000 UTF-16 code units, and a placeholder whose result would carry it past that resolves to the empty string and reports `output-limit`, leaving the next placeholder to resolve. **Read** is what the payload is read for: 100 000 code units as well, spent by every character a placeholder takes from the payload whether or not any of it reaches the output, reported as `read-limit`. **Nesting** is how deep a message writes placeholders inside one another: the outermost is level 1, and one deeper than 8 levels is not resolved at all, taking its fallback chain and reporting `nesting-limit`. A fourth bound holds the conversion that feeds them — 100 000 nodes per value, past which the value is read as missing and reported as `unserializable-value`. A message's own text is the caller's and always reaches the output; what these bound is what the payload and the nesting add to it.
+
+The specification's conformance set, `@curly-message/conformance`, runs against this package's public API in its tests, at every level the format defines (Core, Intl, Extensions), and the tree cases against `cst`.
 
 ## TypeScript
 
@@ -375,7 +385,7 @@ i18n.t('common.welcome', { aplicationName: 'My app' })
 // → type error: typo caught
 ```
 
-`Config<Payload, Props>` types the payload and the props `i18n.t` accepts; left bare, `Config` accepts any payload key and the built-in modifiers' props. A custom modifier types its own props through `Modifier.T<OwnProps>`. The factory's type arguments check the parser options the same way: with `Props` spelled as the second, `parser<Payload, Props>({ ... })`, a `modifierDefaults` entry for a custom modifier is checked; a modifier written inline reads typed `props` once the modifier names are spelled as the third argument too, `parser<Payload, Props, 'truncate'>({ ... })`. `Parser` holds the option and parameter types (`Parser.Options`, `Parser.OnReport`, `Parser.Params`, `Parser.Payload`), `Modifier` the modifier and wrapper types (`Modifier.T`, `Modifier.Wrapper`, `Modifier.Props`), and `Report` is the report.
+`Config<Payload, Props>` types the payload and the props `i18n.t` accepts; left bare, `Config` accepts any payload key and the built-in modifiers' props. A custom modifier types its own props through `Modifier.T<OwnProps>`. The factory's type arguments check the parser options the same way: with `Props` spelled as the second, `parser<Payload, Props>({ ... })`, a `modifierDefaults` entry for a custom modifier is checked; a modifier written inline reads typed `props` once the modifier names are spelled as the third argument too, `parser<Payload, Props, 'truncate'>({ ... })`. `Parser` holds the option and parameter types (`Parser.Options`, `Parser.OnReport`, `Parser.Params`, `Parser.Payload`), `Modifier` the modifier and wrapper types (`Modifier.T`, `Modifier.Wrapper`, `Modifier.Props`), `Cst` the [tree](#describing-a-message) node types, and `Report` is the report.
 
 ## Extracting Parameters
 
@@ -407,9 +417,28 @@ A parameter several placeholders name accepts what all of them say together, and
 
 `optional` reports what the message says rather than what resolution tolerates. Every placeholder renders without its value, an absent one taking the fallback chain, so a placeholder declaring an inline `default` is the message saying the value may be missing, and one declaring none is the message saying it is expected.
 
-Build the extractor from the same options `parser()` is built from: a custom modifier registered under a name the format defines changes what a message naming it says about its value. `onReport` is not required here, and neither it nor `modifierDefaults` reaches anything — extraction formats nothing and reports nothing.
+Build the extractor from the same options `parser()` is built from: a custom modifier registered under a name the format defines changes what a message naming it says about its value. `onReport` is not required here, and neither it nor `modifierDefaults`, `recognizeWrappers` or `onSuspectValue` reaches anything — extraction formats nothing, reports nothing and reads no payload.
 
-Only the text of a message is scanned. A translation leaf that is not text names no parameters rather than throwing, and a placeholder a payload value carries into a later interpolation pass is not one the message itself names.
+Only the text of a message is scanned. A translation leaf that is not text names no parameters rather than throwing, and a placeholder a payload value carries is not one the message itself names — a value is data, so nothing reads it as source. A placeholder the message writes inside another is named beside the one holding it, in the order the message writes them.
+
+## Describing a Message
+
+`cst` describes a message as the parts it is written from: where its placeholders are, what each is made of, and where every escape sequence falls. It is the format's own describer, a named export for the same reason `extractParamsFactory` is one — resolution never calls it, so a bundle that never reaches it drops it.
+
+```typescript
+import { cst } from '@sveltekit-i18n/parser-curly';
+
+cst('Hello, {{name; default:Guest;}}!');
+// → { type: 'message', start: 0, end: 32, nodes: [
+//     { type: 'text', start: 0, end: 7 },
+//     { type: 'placeholder', start: 7, end: 31, nodes: [/* ... */] },
+//     { type: 'text', start: 31, end: 32 },
+//   ] }
+```
+
+The tree is concrete: every node carries its `[start, end)` span in UTF-16 code units, the leaves come in the order the message writes them, and concatenating them spells the message back — which is what an editor, a linter or a syntax highlighter needs. The placeholders are the ones resolution finds, because the same scan finds them: one written in an option value is described there, and a construct the grammar derives nothing from is text. A name — a key, a modifier name, an option key — carries `name`, the span unescaped, beside `nodes`, how the message spells it; an escape carries `cancels`, which of its two readings the backslash takes.
+
+It reads no options: a name is a name whether or not a modifier answers to it, so nothing a host registers changes the text. The node types are the `Cst` namespace (`Cst.Message`, `Cst.Placeholder`, `Cst.Node`, ...).
 
 ## Comparison with Other Parsers
 

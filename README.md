@@ -19,6 +19,7 @@ npm install @sveltekit-i18n/parser-curly
 - Comparison operators: `eq`, `ne`, `lt`, `gt`, `lte`, `gte`
 - Custom modifiers support
 - Build-time parameter extraction: `extractParamsFactory`
+- Message description for editors and linters: `cst`
 - One dependency: the format's reference implementation
 
 **Example:**

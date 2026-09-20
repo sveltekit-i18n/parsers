@@ -1,17 +1,21 @@
 import type { Adapter, ModifierInput } from '@curly-message/conformance';
-import parser, { Modifier, Parser, Report } from '../../src';
+import parser, { cst, Modifier, Parser, Report } from '../../src';
 
 /**
  * The adapter of SPEC.md section 14.3, driving this package's public API:
  * `parser(options)` and the `parse(value, [payload, props], locale, id)`
- * that the base library calls. The levels and the limits are the two
- * statements the specification asks an implementation to make about itself;
- * both are `@curly-message/parser`'s, which resolves every message here, and
- * the README repeats them.
+ * that the base library calls, with `cst` beside them for the tree cases of
+ * CST.md. The levels and the limits are the two statements the specification
+ * asks an implementation to make about itself; both are
+ * `@curly-message/parser`'s, which resolves every message here, and the
+ * README repeats them.
  */
 export const adapter: Adapter = {
   levels: ['core', 'intl', 'extensions'],
-  limits: { passes: 10, output: 100000, conversion: 100000 },
+  limits: { output: 100000, read: 100000, conversion: 100000, nesting: 8 },
+  // The spans the tree carries are UTF-16 code units, which is what section 4
+  // of CST.md asks an implementation to name.
+  cst: { unit: 'utf-16', parse: cst },
   resolve: ({ message, payload, props, locale, id, modifiers, defaults }) => {
     const reports: Report[] = [];
 

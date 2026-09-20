@@ -1,18 +1,29 @@
 import type { Config as BaseConfig, Parser as BaseParser } from '@sveltekit-i18n/base';
-import type { Modifier, Parser as CurlyParser, Report } from '@curly-message/parser';
+import type { Cst, Modifier, Parser as CurlyParser, Report } from '@curly-message/parser';
 
-export type { Modifier, Report };
+export type { Cst, Modifier, Report };
 
 export namespace Parser {
   /**
    * The options `parser()` takes, handed on to `@curly-message/parser`:
-   * `customModifiers`, `modifierDefaults` and `onReport`. `onReport` is
-   * required, `null` included: this package writes to no channel of its own,
-   * so where a report goes is stated by whoever builds the parser.
+   * `customModifiers`, `modifierDefaults`, `onReport`, `recognizeWrappers` and
+   * `onSuspectValue`. `onReport` is required, `null` included: this package
+   * writes to no channel of its own, so where a report goes is stated by
+   * whoever builds the parser.
    */
   export type Options<Key extends string = Modifier.Key, Props = Modifier.DefaultProps> = Omit<CurlyParser.Options<Key, Props>, 'onReport'> & { onReport: OnReport | null | undefined };
 
   export type OnReport = CurlyParser.OnReport;
+
+  /**
+   * A value a placeholder read that version 1 of the format would have read as
+   * syntax. It is not a report — the placeholder resolved to exactly the text
+   * the payload holds — but a migration aid for a catalogue that composed
+   * messages through its payload.
+   */
+  export type Suspect = CurlyParser.Suspect;
+
+  export type OnSuspectValue = CurlyParser.OnSuspectValue;
 
   export type PayloadDefault = CurlyParser.PayloadDefault;
 
@@ -34,8 +45,9 @@ export namespace Parser {
    * so an extractor is built the way the app builds its parser — a custom
    * modifier registered under a name the format defines changes what a message
    * naming it says about its value. `onReport` is not required here, and
-   * neither it nor `modifierDefaults` reaches anything: extraction formats
-   * nothing and reports nothing.
+   * neither it nor `modifierDefaults`, `recognizeWrappers` or `onSuspectValue`
+   * reaches anything: extraction formats nothing, reports nothing and reads no
+   * payload.
    */
   export type ExtractOptions<Key extends string = Modifier.Key, Props = Modifier.DefaultProps> = CurlyParser.Options<Key, Props>;
 
