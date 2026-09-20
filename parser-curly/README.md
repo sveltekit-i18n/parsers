@@ -2,7 +2,7 @@
 
 # @sveltekit-i18n/parser-curly
 
-The [Curly Message Format](https://curlymessage.dev) for [@sveltekit-i18n/base](https://github.com/sveltekit-i18n/base): placeholders, defaults, modifiers and comparisons written in double curly braces. Every message is resolved by [`@curly-message/parser`](https://github.com/curly-message/parsers), the format's reference implementation and this package's only dependency; the package itself unpacks the base library's calling convention and supplies a default diagnostics channel. This README is a practical guide to the syntax — the full grammar and the resolution rules are in the specification.
+The [Curly Message Format](https://curlymessage.dev) for [@sveltekit-i18n/base](https://github.com/sveltekit-i18n/base): placeholders, defaults, modifiers and comparisons written in double curly braces. Every message is resolved by [`@curly-message/parser`](https://github.com/curly-message/parsers), the format's reference implementation and this package's only dependency; the package itself unpacks the base library's calling convention and requires the diagnostics channel to be stated. This README is a practical guide to the syntax — the full grammar and the resolution rules are in the specification.
 
 ## Installation
 

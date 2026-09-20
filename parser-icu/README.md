@@ -443,7 +443,7 @@ export const i18n = new I18n(config);
 - ✅ You're comfortable with ICU syntax
 
 ### Use parser-curly if:
-- ✅ You want zero external dependencies
+- ✅ You want one small dependency: the format's reference implementation
 - ✅ You prefer simpler, more readable syntax
 - ✅ You need a lightweight solution
 - ✅ Your pluralization needs are basic

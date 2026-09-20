@@ -53,11 +53,12 @@ Official message parsers for the
   unless a critical v1 fix is explicitly requested. `parser-curly` carries none
   of that history: it starts at 3.0.0, and `@sveltekit-i18n/parser-default` on
   `1.x` is a different package.
-- **Every parser is published at 3.0.0**, alongside `base`,
-  `extension-stores` and `sveltekit-i18n`. The family released aligned, as
-  [lib#214](https://github.com/sveltekit-i18n/lib/issues/214) set out; a
-  parser's peer range on the core is `^3.0.0`, so a prerelease core cannot be
-  paired underneath one.
+- **The family released aligned at 3.0.0** — the parsers alongside `base`,
+  `extension-stores` and `sveltekit-i18n` — as
+  [lib#214](https://github.com/sveltekit-i18n/lib/issues/214) set out. Each
+  package moves on its own from there, so read a version off npm rather than
+  off this file; a parser's peer range on the core is `^3.0.0`, so a
+  prerelease core cannot be paired underneath one.
 - Issues for this repo live in the `lib` tracker.
 
 ## Comments
