@@ -54,4 +54,11 @@ describe('extractParamsFactory', () => {
   it('reads a modifier the message names but nobody registered as narrowing nothing', () => {
     expect(extractParamsFactory()(message(initLocale, 'common.unknown_modifier'))).toEqual([{ name: 'value', kind: 'unknown', optional: true }]);
   });
+
+  it('names the placeholder holding a nested one beside it', () => {
+    expect(extractParamsFactory()('{{a:eq; x:{{b}}; default:-;}}')).toEqual([
+      { name: 'a', kind: 'unknown', values: ['x'], optional: true },
+      { name: 'b', kind: 'unknown', optional: false },
+    ]);
+  });
 });

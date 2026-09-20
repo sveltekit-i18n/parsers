@@ -87,6 +87,16 @@ describe('parser', () => {
     expect($t('common.number', { value: { value: 1234.56, props: { number: { maximumFractionDigits: 1 } } } })).toBe(new Intl.NumberFormat(initLocale, { maximumFractionDigits: 1 }).format(1234.56));
     expect($t('common.placeholder', { value: { default: 'WRAPPED' } })).toBe('WRAPPED');
   });
+  it('hands `recognizeWrappers` and `onSuspectValue` on', () => {
+    const suspects: Parser.Suspect[] = [];
+    const $tData = localize<{ value?: unknown }>(initLocale, parser({ onReport: null, recognizeWrappers: false }));
+    const $tMigrating = localize<{ value?: string }>(initLocale, parser({ onReport: null, onSuspectValue: (suspect) => { suspects.push(suspect); } }));
+
+    // Off, a wrapper-shaped entry is a value like any other and converts as one.
+    expect($tData('common.placeholder', { value: { default: 'WRAPPED' } })).toBe('{"default":"WRAPPED"}');
+    expect($tMigrating('common.placeholder', { value: '{{value}}' })).toBe('{{value}}');
+    expect(suspects).toEqual([{ found: ['placeholder'], placeholder: '{{value}}', id: 'common.placeholder', text: '{{value}}' }]);
+  });
   it('writes nowhere under `onReport: null`', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
