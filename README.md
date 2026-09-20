@@ -76,6 +76,18 @@ npm install @sveltekit-i18n/parser-mf2
 - Selection with plural categories and exact matches: `.match $count` / `0 {{None}}` / `one {{One}}` / `* {{{$count}}}`
 - Date, time, currency, percent and unit formatting out of the box
 - Build-time parameter extraction: `extractParamsFactory`
+
+**Example:**
+```json
+{
+  "greeting": "Hello, {$name}!",
+  "items": ".input {$count :integer}\n.match $count\n0 {{You have no items.}}\none {{You have one item.}}\n* {{You have {$count} items.}}",
+  "response": ".input {$gender :string}\n.match $gender\nmale {{He will respond shortly.}}\nfemale {{She will respond shortly.}}\n* {{They will respond shortly.}}"
+}
+```
+
+[📖 Full documentation](./parser-mf2/README.md)
+
 ### [@sveltekit-i18n/parser-i18next](./parser-i18next)
 
 The [i18next](https://www.i18next.com) interpolation and formatting syntax, for translation files that already exist in it — an adapter over `i18next` itself, so a message renders as it did there.
@@ -95,13 +107,6 @@ npm install @sveltekit-i18n/parser-i18next
 **Example:**
 ```json
 {
-  "greeting": "Hello, {$name}!",
-  "items": ".input {$count :integer}\n.match $count\n0 {{You have no items.}}\none {{You have one item.}}\n* {{You have {$count} items.}}",
-  "response": ".input {$gender :string}\n.match $gender\nmale {{He will respond shortly.}}\nfemale {{She will respond shortly.}}\n* {{They will respond shortly.}}"
-}
-```
-
-[📖 Full documentation](./parser-mf2/README.md)
   "greeting": "Hi {{name}}!",
   "price": "{{amount, currency(USD)}}",
   "updated": "{{days, relativetime}}",
@@ -132,6 +137,7 @@ npm install @sveltekit-i18n/parser-i18next
 - You need selection on several values at once, or a value declared once and formatted in one place
 - You want number, date, time, currency, percent and unit formatting stated inside the message
 - You want a message format that other tooling, in other languages, reads too
+
 ### Use `parser-i18next` if:
 - Your translation files are already written for i18next
 - You want i18next's own engine rendering them, so nothing changes on the way
