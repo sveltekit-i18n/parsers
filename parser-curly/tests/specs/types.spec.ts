@@ -106,6 +106,22 @@ describe('payload typing', () => {
   });
 });
 
+// A catalogue migrating off version 1 reads a suspect's `found` to decide what
+// to rewrite, so the kinds it may hold have to be nameable.
+describe('migration typing', () => {
+  it('names the kinds a suspect value holds', () => {
+    const seen: Parser.SuspectKind[] = [];
+    const onSuspectValue: Parser.OnSuspectValue = ({ found }) => { seen.push(...found); };
+
+    // @ts-expect-error a value holds a placeholder or an escape, nothing else
+    const beyond: Parser.SuspectKind = 'modifier';
+
+    expect(parser({ onReport: null, onSuspectValue })).toHaveProperty('parse');
+    expect(seen).toEqual([]);
+    expect(beyond).toBe('modifier');
+  });
+});
+
 // The extractor needs no base instance, so unlike the suite above these run
 // for real: the contract it satisfies is a type, and a value that satisfies it
 // is the assertion.

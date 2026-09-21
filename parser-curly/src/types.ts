@@ -16,6 +16,12 @@ export namespace Parser {
   export type OnReport = CurlyParser.OnReport;
 
   /**
+   * What a value holds that version 1 of the format would have read as syntax:
+   * `placeholder` where it holds `{{`, `escape` where it holds a backslash.
+   */
+  export type SuspectKind = CurlyParser.SuspectKind;
+
+  /**
    * A value a placeholder read that version 1 of the format would have read as
    * syntax. It is not a report — the placeholder resolved to exactly the text
    * the payload holds — but a migration aid for a catalogue that composed
