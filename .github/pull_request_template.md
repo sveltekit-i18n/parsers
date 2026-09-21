@@ -32,15 +32,14 @@ Relates to #
 
 Before submitting this PR, please ensure:
 
-- [ ] **Tests pass locally** (`npm test`)
-- [ ] **Linter passes** (`npm run lint`)
-- [ ] **Build succeeds** (`npm run build`)
+- [ ] **Tests pass locally** (`npm test`, in the parser directory)
+- [ ] **Linter passes** (`npm run lint`, in the parser directory)
+- [ ] **Build succeeds** (`npm run build`, in the parser directory)
 - [ ] **All commits are atomic** (each commit works independently)
 - [ ] **Commits have clear messages** (imperative mood, descriptive)
 - [ ] **Branch rebased on latest master** (`git rebase origin/master`)
 - [ ] **CHANGELOG.md updated** (in relevant parser directory)
 - [ ] **Documentation updated** (if parser syntax or API changed)
-- [ ] **Examples updated** (if adding new parser features)
 
 ## Additional Notes
 
