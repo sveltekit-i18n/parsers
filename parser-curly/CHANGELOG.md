@@ -1,3 +1,6 @@
+# 3.1.1
+The peer range on `@sveltekit-i18n/base` also takes the `3.1.0-next` prereleases, so the core's `next` line installs underneath this package without a peer conflict. Every stable 3.x core the range took before it still takes.
+
 # 3.1.0
 The Curly Message Format's version 3, through `@curly-message/parser` v3. Mostly a fix: version 1 of the format read a payload value back as message source, so a value could reconfigure a placeholder or reach a branch the message did not select for it. No version since reads any of it. **A catalogue that composed messages through its payload, or that doubled backslashes in values, renders differently** — read the first entry below before upgrading.
 * **A payload value is data and is never read as syntax.** Version 1 of the format resolved a message by repeated substitution, so a value holding `{{` or a backslash was read back as message source; no version since reads any of it. A value holding the nine characters `{{count}}` now renders those nine characters, one holding `\d+` renders `\d+`, and no payload reaches a branch the message did not select for it. Set `onSuspectValue` while migrating: it announces every value that version 1 would have read as syntax, on a channel of its own because nothing went wrong — the placeholder resolved to exactly the text the payload holds. Unset it once the catalogue is migrated.

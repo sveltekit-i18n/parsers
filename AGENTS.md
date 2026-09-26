@@ -57,8 +57,12 @@ Official message parsers for the
   `extension-stores` and `sveltekit-i18n` — as
   [lib#214](https://github.com/sveltekit-i18n/lib/issues/214) set out. Each
   package moves on its own from there, so read a version off npm rather than
-  off this file; a parser's peer range on the core is `^3.0.0`, so a
-  prerelease core cannot be paired underneath one.
+  off this file. A parser's peer range on the core is `^3.0.0` widened by the
+  core's `3.1.0-next` line (`^3.0.0 || ^3.1.0-next.0`), so that line installs
+  underneath one; a prerelease of another version does not, and each later
+  prerelease line needs a widening of its own. The widening stays once its
+  version is stable: narrowing it would fail an app still on one of its
+  prereleases.
 - Issues for this repo live in the `lib` tracker.
 
 ## Comments

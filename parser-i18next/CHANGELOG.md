@@ -1,3 +1,6 @@
+# 3.0.1
+The peer range on `@sveltekit-i18n/base` also takes the `3.1.0-next` prereleases, so the core's `next` line installs underneath this package without a peer conflict. Every stable 3.x core the range took before it still takes.
+
 # 3.0.0
 Initial release. `@sveltekit-i18n/parser-i18next` brings the [i18next](https://www.i18next.com) interpolation and formatting syntax to [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3, for catalogues that already exist in it:
 * Every message is interpolated by i18next itself - `{{name}}`, `{{- html}}`, dotted paths, the built-in `number`, `currency`, `datetime`, `relativetime` and `list` formats with their argument syntax, per-call `formatParams` and custom formats - so a message renders here as it rendered there. `i18next` is the package's only runtime dependency; a resource-less instance carries the engine, and base owns the tables. `escapeValue` is off unless stated, because Svelte escapes text itself. Base's parser contract checks (the repository's `contract/` set) run in this package's tests, beside a differential suite that renders every fixture through `parse()` and through a plain i18next instance's `t()` and asserts they agree.
