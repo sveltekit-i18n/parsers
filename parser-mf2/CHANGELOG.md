@@ -1,3 +1,6 @@
+# 3.0.2
+The peer range on `@sveltekit-i18n/base` also takes the `3.1.0-next` prereleases, so the core's `next` line installs underneath this package without a peer conflict. Every stable 3.x core the range took before it still takes.
+
 # 3.0.1
 A catalogue leaf that is not text and cannot become any - a null-prototype object, or one whose `toString` throws - no longer throws out of `t()` when the engine rejects it: the failure is reported as `failed-message` and the call renders as the empty string, as it already did in `parser-i18next`. The repository's `contract/` set now checks every parser for it.
 
