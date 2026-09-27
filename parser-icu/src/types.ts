@@ -1,5 +1,9 @@
 import type { Parser as P, Config as C } from '@sveltekit-i18n/base';
-import { Options as IntlOptions, Formats } from 'intl-messageformat';
+import type { Formats } from 'intl-messageformat';
+
+// Referenced inline: the declaration bundler folds an import alias back to
+// `Options`, which `Parser.Options` then shadows.
+type IntlMessageFormatOptions = import('intl-messageformat').Options;
 
 export module Parser {
   export type PayloadDefault = Record<string, any>;
@@ -34,7 +38,7 @@ export module Parser {
    * writes to no channel of its own, so where a report goes is stated by
    * whoever builds the parser.
    */
-  export type Options = IntlOptions & { onReport: OnReport | null | undefined };
+  export type Options = IntlMessageFormatOptions & { onReport: OnReport | null | undefined };
 
   export type T = P.T<Params, string>;
 
@@ -47,7 +51,7 @@ export module Parser {
    * carried for it is gone. Extraction formats nothing and reports nothing, so
    * neither `formatters` nor `onReport` belongs here.
    */
-  export type ExtractOptions = IntlOptions;
+  export type ExtractOptions = IntlMessageFormatOptions;
 
   /**
    * Reports the parameters a message names. The build-time half of the parser

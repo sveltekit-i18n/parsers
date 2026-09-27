@@ -1,3 +1,6 @@
+# 3.0.3
+The shipped declarations type `parser()`'s options again. The bundled `.d.ts` declared `type Options = Options & { ... }`, which TypeScript resolves to itself: with `skipLibCheck` the options were `any`, so `onReport` was not required and a misspelled option passed, and without it every consumer's `tsc` failed on `TS2456`.
+
 # 3.0.2
 The peer range on `@sveltekit-i18n/base` also takes the `3.1.0-next` prereleases, so the core's `next` line installs underneath this package without a peer conflict. Every stable 3.x core the range took before it still takes.
 
