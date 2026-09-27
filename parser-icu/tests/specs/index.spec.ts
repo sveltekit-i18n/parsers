@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import parser, { Parser } from '../../src';
+import type { Parser as Shipped } from '../../dist';
 import { TRANSLATIONS } from '../data';
 
 const initLocale = 'en';
@@ -115,5 +116,14 @@ describe('parser', () => {
     const $t = localize<{ name?: string }>(initLocale, parser({ onReport: () => { throw new Error('channel down'); } }));
 
     expect($t('common.malformed', { name: 'Alice' })).toBe('Hello {name');
+  });
+
+  it('ships declarations that keep the options typed', () => {
+    // @ts-expect-error `onReport` is required.
+    const missing: Shipped.Options = {};
+    // @ts-expect-error an option `intl-messageformat` does not take is rejected.
+    const unknown: Shipped.Options = { onReport: null, bogus: true };
+
+    expect([missing, unknown]).toHaveLength(2);
   });
 });
