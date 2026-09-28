@@ -18,7 +18,7 @@ npm install @sveltekit-i18n/parser-curly
 - Conditional rendering: `{{count; 1:item; default:items;}}`
 - Comparison operators: `eq`, `ne`, `lt`, `gt`, `lte`, `gte`
 - Custom modifiers support
-- Build-time parameter extraction: `extractParamsFactory`
+- Build-time parameter extraction: `extractParamsFactory`, which [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen) reads to fill `config.schema`
 - Message description for editors and linters: `cst`
 - One dependency: the format's reference implementation
 
@@ -48,7 +48,7 @@ npm install @sveltekit-i18n/parser-icu
 - Select format: `{gender, select, male {He} female {She} other {They}}`
 - Number formatting: `{price, number, ::currency/USD}`
 - Date/time formatting: `{date, date, ::yyyyMMdd}`
-- Build-time parameter extraction: `extractParamsFactory`
+- Build-time parameter extraction: `extractParamsFactory`, which [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen) reads to fill `config.schema`
 
 **Example:**
 ```json
@@ -75,7 +75,7 @@ npm install @sveltekit-i18n/parser-mf2
 - Declarations: `.input {$count :integer}`, `.local $total = {$price :number}`
 - Selection with plural categories and exact matches: `.match $count` / `0 {{None}}` / `one {{One}}` / `* {{{$count}}}`
 - Date, time, currency, percent and unit formatting out of the box
-- Build-time parameter extraction: `extractParamsFactory`
+- Build-time parameter extraction: `extractParamsFactory`, which [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen) reads to fill `config.schema`
 
 **Example:**
 ```json
@@ -101,7 +101,7 @@ npm install @sveltekit-i18n/parser-i18next
 - Built-in formats with their argument syntax: `{{n, currency(USD)}}`, `{{d, datetime(dateStyle: long)}}`
 - Per-call `formatParams` and custom formats
 - i18next's own `interpolation` options and `missingInterpolationHandler`
-- Build-time parameter extraction: `extractParamsFactory`
+- Build-time parameter extraction: `extractParamsFactory`, which [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen) reads to fill `config.schema`
 - One dependency: `i18next` itself, about 44 kB minified
 
 **Example:**
@@ -174,6 +174,8 @@ import parser from '@sveltekit-i18n/parser-curly';
 
 const config = {
   parser: parser({
+    // Where diagnostics go; every official parser requires it, `null` included
+    onReport: null,
     // parser-specific options
   }),
   loaders: [/* ... */],
@@ -181,6 +183,8 @@ const config = {
 
 export const i18n = new I18n(config);
 ```
+
+In a SvelteKit app, hand the config to `defineI18n(config, { preferredLocale })` from `@sveltekit-i18n/base/kit` (base 3.1 and newer) instead: it returns `handle`, `load`, `use` and `get`, and the server builds an instance per request. See the core's [SvelteKit guide](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#sveltekit); `sveltekit-i18n` users import the same from `sveltekit-i18n/kit`.
 
 ## Creating Custom Parsers
 
@@ -255,6 +259,10 @@ const advancedParser = (config = {}) => ({
 // { "greeting": "Hello, {name:upper}!", "count": "{value:number}" }
 ```
 
+### The Build-time Half
+
+A parser may also export `extractParamsFactory` (typed `Parser.ExtractParamsFactory` in `@sveltekit-i18n/base`): given the options the parser is built from, it returns a function reporting the parameters a message names. It is a separate named export rather than a member of the parser object, so a bundle that never reaches it drops it, and the core never calls it; a schema generator such as [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen) does. See [the build-time half](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#the-build-time-half) of the parser contract.
+
 ### Using Your Custom Parser
 
 ```javascript
@@ -274,7 +282,7 @@ export const i18n = new I18n(config);
 Each parser accepts its own configuration options. Check the specific parser documentation:
 
 - [parser-curly options](./parser-curly/README.md#options)
-- [parser-icu options](./parser-icu/README.md#usage)
+- [parser-icu options](./parser-icu/README.md#parser-options)
 - [parser-mf2 options](./parser-mf2/README.md#parser-options)
 - [parser-i18next options](./parser-i18next/README.md#options)
 
@@ -295,17 +303,20 @@ import type { Config } from '@sveltekit-i18n/parser-curly';
 
 const config: Config = {
   parser: parser({
+    onReport: null,
     // typed options
   }),
   loaders: [/* ... */],
 };
 ```
 
+Translation keys and their payloads are typed by [`config.schema`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#schema): each key mapped to the payload its message expects. [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen), a Vite plugin, fills it from the app's own catalogue, reading every message through the parser's `extractParamsFactory` — each parser's README says which package and options to name.
+
 ## Contributing
 
 For general contribution guidelines, see the [Contributing Guide](https://github.com/sveltekit-i18n/lib/blob/master/CONTRIBUTING.md).
 
-For parser-specific contributions and issues, use this repository's [issues](https://github.com/sveltekit-i18n/parsers/issues).
+Issues for these parsers live in the shared tracker, [sveltekit-i18n/lib](https://github.com/sveltekit-i18n/lib/issues).
 
 ## Sponsor
 
