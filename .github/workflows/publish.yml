@@ -114,8 +114,10 @@ jobs:
           VERSION: ${{ steps.bump.outputs.version }}
         run: |
           # Notes span this package's own tags; the tag preceding this release
-          # in the monorepo may belong to another package.
-          PREVIOUS="$(git tag --list "$PACKAGE@*" --sort=-creatordate | sed -n 2p)"
+          # in the monorepo may belong to another package. A release starts at
+          # the previous release, skipping the prereleases that led to it.
+          PREVIOUS="$(git tag --list "$PACKAGE@*" --sort=-creatordate \
+            | awk -v tag="$TAG" '!found && $0 != tag && ($0 !~ /@[^-]*-/ || tag ~ /@[^-]*-/) { print; found = 1 }')"
           case "$VERSION" in
             *-*) PRERELEASE=--prerelease ;;
             *)   PRERELEASE= ;;
@@ -124,8 +126,9 @@ jobs:
             gh release create "$TAG" --title "$TAG" --generate-notes \
               --notes-start-tag "$PREVIOUS" $PRERELEASE
           else
-            # A package's first release has no range to generate from, and the
-            # range gh picks instead starts at another package's tag.
+            # A package's first release, prerelease or stable, has no range to
+            # generate from, and the range gh picks instead starts at another
+            # package's tag.
             gh release create "$TAG" --title "$TAG" $PRERELEASE \
               --notes "**Full Changelog**: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commits/$TAG"
           fi
