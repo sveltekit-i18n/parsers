@@ -453,16 +453,11 @@ Build the extractor from the same options `parser()` is built from, for symmetry
 
 Only the text of a message is scanned. A translation leaf that is not text names no parameters rather than throwing, and neither does a message this parser cannot compile.
 
-This is what fills [`config.schema`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#schema), the slot that types `t` and `l` by key and payload: [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen), a Vite plugin, runs the config the module it is pointed at exports as `config`, reads every message through the extractor and writes the `TranslationSchema` type the slot takes. It is told which package the extractor comes from:
+This is what types `t` and `l` by key and payload: [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen), a Vite plugin, runs the config the module it is pointed at exports as `config`, reads every message through the extractor and writes the schema, which it registers for every config that states no [`schema`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#schema) of its own, so on base 3.1 there is nothing to wire ([an older core](https://github.com/sveltekit-i18n/typegen#3-nothing-to-wire-from-310-next2-on) takes a cast). It is told which package the extractor comes from:
 
 ```javascript
 // vite.config.js
 typegen({ config: 'src/lib/translations/index.ts', extractParams: { from: '@sveltekit-i18n/parser-mf2' } })
-```
-
-```typescript
-// src/lib/translations/index.ts
-export const { handle, load, use, get } = defineI18n({ ...config, schema: {} as TranslationSchema });
 ```
 
 No option is needed, since none changes what a message names. The plugin hands any it is given to the factory as JSON, so `functions` could not reach the extractor either.
