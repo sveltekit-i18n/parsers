@@ -25,7 +25,7 @@ npm install @sveltekit-i18n/parser-icu
 
 **Note:** This parser has external dependencies (`intl-messageformat` and `@formatjs/icu-messageformat-parser`) which are installed automatically.
 
-**Requirements:** Node.js 22, Bun 1.2 or Deno 2, or newer. Version 3 is ESM-only, expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, and builds on `intl-messageformat` v11.
+**Requirements:** Node.js 22, Bun 1.2 or Deno 2, or newer. Version 3 is ESM-only, expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, and builds on `intl-messageformat` v11. The examples use base 3.1: its loader spelling - `namespace`, and one descriptor listing several locales - and its `@sveltekit-i18n/base/kit` subpath. On base 3.0 write `key` and one descriptor per locale, whose loader names its own file, since 3.0 passes it no `namespace`: `{ locale: 'en', key: 'common', loader: async () => (await import('./en/common.json')).default }`.
 
 ## Usage
 
@@ -33,11 +33,11 @@ npm install @sveltekit-i18n/parser-icu
 
 ```typescript
 // src/lib/translations/index.ts
-import { I18n } from '@sveltekit-i18n/base';
+import { defineI18n } from '@sveltekit-i18n/base/kit';
 import parser from '@sveltekit-i18n/parser-icu';
 import type { Config } from '@sveltekit-i18n/parser-icu';
 
-const config: Config = {
+export const config: Config = {
   parser: parser({
     // Where a diagnostic goes; required, `null` included
     onReport: (report) => console.warn(report.message, report.error),
@@ -46,44 +46,56 @@ const config: Config = {
   }),
   loaders: [
     {
-      locale: 'en',
-      key: 'home',
+      locale: ['en', 'cs'],
+      namespace: 'home',
       routes: ['/'],
-      loader: async () => (await import('./en/home.json')).default,
-    },
-    {
-      locale: 'cs',
-      key: 'home',
-      routes: ['/'],
-      loader: async () => (await import('./cs/home.json')).default,
+      loader: async ({ locale, namespace }) => (await import(`./${locale}/${namespace}.json`)).default,
     },
   ],
 };
 
-export const i18n = new I18n(config);
+export const { handle, load, use, get } = defineI18n(config, {
+  // The visitor's choice, where there is one; `Accept-Language` is tried next
+  preferredLocale: (event) => event.cookies?.get('lang'),
+});
 ```
 
-### Load Translations
+Outside SvelteKit, `new I18n(config)` from `@sveltekit-i18n/base` builds the instance directly.
+
+### Wire SvelteKit
 
 ```typescript
-// src/routes/+layout.ts
-import { i18n } from '$lib/translations';
-
-export const load = async ({ url }) => {
-  const { pathname } = url;
-  const initLocale = 'en';
-
-  await i18n.loadTranslations(initLocale, pathname);
-
-  return {};
-};
+// src/hooks.server.ts
+export { handle } from '$lib/translations';
 ```
+
+```typescript
+// src/routes/+layout.server.ts and src/routes/+layout.ts - the same line in both
+export { load } from '$lib/translations';
+```
+
+```svelte
+<!-- src/routes/+layout.svelte -->
+<script>
+  import { use } from '$lib/translations';
+
+  let { data, children } = $props();
+
+  use(() => data);
+</script>
+
+{@render children()}
+```
+
+The server negotiates the locale and loads it for the route into an instance of its own for every request, and the browser picks that up without fetching it again and follows every navigation. The core's [SvelteKit guide](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#sveltekit) covers the rest: which locale wins, `%lang%` and `%dir%` in `app.html`, and combining the hook and the loads with your own.
 
 ### Use in Components
 
 ```svelte
 <script>
-  import { i18n } from '$lib/translations';
+  import { get } from '$lib/translations';
+
+  const i18n = get();
 
   let itemCount = 5;
   let gender = 'female';
@@ -281,30 +293,40 @@ A report carries `code`, the `key` and `locale` the call was made for, a one-sen
 
 ## Format Options
 
-Pass formatting options as the third parameter to `i18n.t()`:
+The third parameter of `i18n.t()` defines named formats for the call, as `intl-messageformat`'s `formats` (`Partial<Formats>`): `Intl` options under a style name, per `number`, `date` and `time`. A message names the style in its placeholder:
+
+```json
+{
+  "price": "The price is: {value, number, twoDecimals}",
+  "published": "Published: {value, date, verbose}"
+}
+```
 
 ```svelte
 <script>
-  import { i18n } from '$lib/translations';
+  import { get } from '$lib/translations';
+
+  const i18n = get();
 </script>
 
 <!-- Number formatting -->
-<p>{i18n.t('price', { value: 1234.56 }, {
+<p>{i18n.t('price', { value: 1234.5 }, {
   number: {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }
+    twoDecimals: { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+  },
 })}</p>
+<!-- → "The price is: 1,234.50" -->
 
 <!-- Date formatting -->
-<p>{i18n.t('date', { value: new Date() }, {
+<p>{i18n.t('published', { value: new Date(2024, 0, 15) }, {
   date: {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }
+    verbose: { year: 'numeric', month: 'long', day: 'numeric' },
+  },
 })}</p>
+<!-- → "Published: January 15, 2024" -->
 ```
+
+A style the call does not define falls back to the ones `intl-messageformat` ships (`short`, `medium`, `long` and `full` for dates and times, `integer`, `currency` and `percent` for numbers).
 
 ## Caching and Error Handling
 
@@ -333,7 +355,7 @@ const config: Config = {
 const i18n = new I18n(config);
 ```
 
-All ICU message format options and configurations are fully typed. The library provides type definitions for the parser and configuration, but does not automatically infer translation keys from your JSON files.
+All ICU message format options and configurations are fully typed. Translation keys and their payloads are typed by [`config.schema`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#schema), which [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen) fills from your catalogue through this parser's extractor - see [Extracting Parameters](#extracting-parameters).
 
 ## Extracting Parameters
 
@@ -369,46 +391,54 @@ Build the extractor from the same options `parser()` is built from: an option th
 
 Only the text of a message is scanned. A translation leaf that is not text names no parameters rather than throwing, and neither does a message this parser cannot compile.
 
+This is what fills [`config.schema`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#schema), the slot that types `t` and `l` by key and payload: [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen), a Vite plugin, runs the config the module it is pointed at exports as `config`, reads every message through the extractor and writes the `TranslationSchema` type the slot takes. It is told which package the extractor comes from and the options the parser is built with:
+
+```javascript
+// vite.config.js
+typegen({
+  config: 'src/lib/translations/index.ts',
+  extractParams: { from: '@sveltekit-i18n/parser-icu', options: { ignoreTag: true } },
+})
+```
+
+```typescript
+// src/lib/translations/index.ts
+export const { handle, load, use, get } = defineI18n({ ...config, schema: {} as TranslationSchema });
+```
+
+The plugin hands `options` to the factory as JSON, so only data reaches the extractor: `formatters` cannot be passed, and it changes nothing extraction reports.
+
 ## Examples
 
 ### Complete Multi-page App
 
 ```typescript
 // src/lib/translations/index.ts
-import { I18n } from '@sveltekit-i18n/base';
+import { defineI18n } from '@sveltekit-i18n/base/kit';
 import parser from '@sveltekit-i18n/parser-icu';
 import type { Config } from '@sveltekit-i18n/parser-icu';
 
-const config: Config = {
+export const config: Config = {
   parser: parser({ onReport: null }),
   loaders: [
     {
-      locale: 'en',
-      key: 'common',
-      loader: async () => (await import('./en/common.json')).default,
+      locale: ['en', 'cs'],
+      namespace: 'common',
+      loader: async ({ locale, namespace }) => (await import(`./${locale}/${namespace}.json`)).default,
     },
     {
-      locale: 'en',
-      key: 'home',
+      locale: ['en', 'cs'],
+      namespace: 'home',
       routes: ['/'],
-      loader: async () => (await import('./en/home.json')).default,
-    },
-    {
-      locale: 'cs',
-      key: 'common',
-      loader: async () => (await import('./cs/common.json')).default,
-    },
-    {
-      locale: 'cs',
-      key: 'home',
-      routes: ['/'],
-      loader: async () => (await import('./cs/home.json')).default,
+      loader: async ({ locale, namespace }) => (await import(`./${locale}/${namespace}.json`)).default,
     },
   ],
 };
 
-export const i18n = new I18n(config);
+export const { handle, load, use, get } = defineI18n(config);
 ```
+
+`hooks.server.ts`, both root layout files and the root `+layout.svelte` are wired as in [Wire SvelteKit](#wire-sveltekit).
 
 ```json
 // src/lib/translations/en/common.json
@@ -423,7 +453,9 @@ export const i18n = new I18n(config);
 ```svelte
 <!-- src/routes/+page.svelte -->
 <script>
-  import { i18n } from '$lib/translations';
+  import { get } from '$lib/translations';
+
+  const i18n = get();
 
   let cartItems = 3;
 </script>

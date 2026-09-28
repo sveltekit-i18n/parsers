@@ -1,5 +1,6 @@
 # 3.1.1
 The peer range on `@sveltekit-i18n/base` also takes the `3.1.0-next` prereleases, so the core's `next` line installs underneath this package without a peer conflict. Every stable 3.x core the range took before it still takes.
+* `Parser.SuspectKind` joins the exported types: the union the entries of the `found` array `onSuspectValue` hands come from, so a catalogue migrating off version 1 can annotate what it reads.
 
 # 3.1.0
 The Curly Message Format's version 3, through `@curly-message/parser` v3. Mostly a fix: version 1 of the format read a payload value back as message source, so a value could reconfigure a placeholder or reach a branch the message did not select for it. No version since reads any of it. **A catalogue that composed messages through its payload, or that doubled backslashes in values, renders differently** — read the first entry below before upgrading.

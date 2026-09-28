@@ -25,7 +25,7 @@ npm install @sveltekit-i18n/parser-mf2
 
 **Note:** This parser has one external dependency (`messageformat`), which is installed automatically.
 
-**Requirements:** Node.js 22.12, Bun 1.2 or Deno 2, or newer. Version 3 is ESM-only, expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, and builds on `messageformat` v4.
+**Requirements:** Node.js 22.12, Bun 1.2 or Deno 2, or newer. Version 3 is ESM-only, expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, and builds on `messageformat` v4. The examples use base 3.1: its loader spelling - `namespace`, and one descriptor listing several locales - and its `@sveltekit-i18n/base/kit` subpath. On base 3.0 write `key` and one descriptor per locale, whose loader names its own file, since 3.0 passes it no `namespace`: `{ locale: 'en', key: 'common', loader: async () => (await import('./en/common.json')).default }`.
 
 ## Usage
 
@@ -33,11 +33,11 @@ npm install @sveltekit-i18n/parser-mf2
 
 ```typescript
 // src/lib/translations/index.ts
-import { I18n } from '@sveltekit-i18n/base';
+import { defineI18n } from '@sveltekit-i18n/base/kit';
 import parser from '@sveltekit-i18n/parser-mf2';
 import type { Config } from '@sveltekit-i18n/parser-mf2';
 
-const config: Config = {
+export const config: Config = {
   parser: parser({
     // Where a diagnostic goes; required, `null` included
     onReport: (report) => console.warn(report.message, report.error),
@@ -46,44 +46,56 @@ const config: Config = {
   }),
   loaders: [
     {
-      locale: 'en',
-      key: 'home',
+      locale: ['en', 'cs'],
+      namespace: 'home',
       routes: ['/'],
-      loader: async () => (await import('./en/home.json')).default,
-    },
-    {
-      locale: 'cs',
-      key: 'home',
-      routes: ['/'],
-      loader: async () => (await import('./cs/home.json')).default,
+      loader: async ({ locale, namespace }) => (await import(`./${locale}/${namespace}.json`)).default,
     },
   ],
 };
 
-export const i18n = new I18n(config);
+export const { handle, load, use, get } = defineI18n(config, {
+  // The visitor's choice, where there is one; `Accept-Language` is tried next
+  preferredLocale: (event) => event.cookies?.get('lang'),
+});
 ```
 
-### Load Translations
+Outside SvelteKit, `new I18n(config)` from `@sveltekit-i18n/base` builds the instance directly.
+
+### Wire SvelteKit
 
 ```typescript
-// src/routes/+layout.ts
-import { i18n } from '$lib/translations';
-
-export const load = async ({ url }) => {
-  const { pathname } = url;
-  const initLocale = 'en';
-
-  await i18n.loadTranslations(initLocale, pathname);
-
-  return {};
-};
+// src/hooks.server.ts
+export { handle } from '$lib/translations';
 ```
+
+```typescript
+// src/routes/+layout.server.ts and src/routes/+layout.ts - the same line in both
+export { load } from '$lib/translations';
+```
+
+```svelte
+<!-- src/routes/+layout.svelte -->
+<script>
+  import { use } from '$lib/translations';
+
+  let { data, children } = $props();
+
+  use(() => data);
+</script>
+
+{@render children()}
+```
+
+The server negotiates the locale and loads it for the route into an instance of its own for every request, and the browser picks that up without fetching it again and follows every navigation. The core's [SvelteKit guide](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#sveltekit) covers the rest: which locale wins, `%lang%` and `%dir%` in `app.html`, and combining the hook and the loads with your own.
 
 ### Use in Components
 
 ```svelte
 <script>
-  import { i18n } from '$lib/translations';
+  import { get } from '$lib/translations';
+
+  const i18n = get();
 
   let itemCount = 5;
   let gender = 'female';
@@ -405,7 +417,7 @@ i18n.t('common.welcome', { aplicationName: 'My app' })
 // → type error: typo caught
 ```
 
-`Config<Payload>` types the payload `i18n.t` accepts; left bare, `Config` accepts any payload key. `Parser` holds the option, report and parameter types (`Parser.Options`, `Parser.Report`, `Parser.OnReport`, `Parser.Params`, `Parser.Payload`). The library provides type definitions for the parser and configuration, but does not automatically infer translation keys from your JSON files.
+`Config<Payload>` types the payload `i18n.t` accepts; left bare, `Config` accepts any payload key. `Parser` holds the option, report and parameter types (`Parser.Options`, `Parser.Report`, `Parser.OnReport`, `Parser.Params`, `Parser.Payload`). Translation keys and their payloads are typed by [`config.schema`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#schema), which [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen) fills from your catalogue through this parser's extractor - see [Extracting Parameters](#extracting-parameters).
 
 ## Extracting Parameters
 
@@ -441,46 +453,51 @@ Build the extractor from the same options `parser()` is built from, for symmetry
 
 Only the text of a message is scanned. A translation leaf that is not text names no parameters rather than throwing, and neither does a message this parser cannot compile.
 
+This is what fills [`config.schema`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#schema), the slot that types `t` and `l` by key and payload: [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen), a Vite plugin, runs the config the module it is pointed at exports as `config`, reads every message through the extractor and writes the `TranslationSchema` type the slot takes. It is told which package the extractor comes from:
+
+```javascript
+// vite.config.js
+typegen({ config: 'src/lib/translations/index.ts', extractParams: { from: '@sveltekit-i18n/parser-mf2' } })
+```
+
+```typescript
+// src/lib/translations/index.ts
+export const { handle, load, use, get } = defineI18n({ ...config, schema: {} as TranslationSchema });
+```
+
+No option is needed, since none changes what a message names. The plugin hands any it is given to the factory as JSON, so `functions` could not reach the extractor either.
+
 ## Examples
 
 ### Complete Multi-page App
 
 ```typescript
 // src/lib/translations/index.ts
-import { I18n } from '@sveltekit-i18n/base';
+import { defineI18n } from '@sveltekit-i18n/base/kit';
 import parser from '@sveltekit-i18n/parser-mf2';
 import type { Config } from '@sveltekit-i18n/parser-mf2';
 
-const config: Config = {
+export const config: Config = {
   parser: parser({ onReport: null }),
   loaders: [
     {
-      locale: 'en',
-      key: 'common',
-      loader: async () => (await import('./en/common.json')).default,
+      locale: ['en', 'cs'],
+      namespace: 'common',
+      loader: async ({ locale, namespace }) => (await import(`./${locale}/${namespace}.json`)).default,
     },
     {
-      locale: 'en',
-      key: 'home',
+      locale: ['en', 'cs'],
+      namespace: 'home',
       routes: ['/'],
-      loader: async () => (await import('./en/home.json')).default,
-    },
-    {
-      locale: 'cs',
-      key: 'common',
-      loader: async () => (await import('./cs/common.json')).default,
-    },
-    {
-      locale: 'cs',
-      key: 'home',
-      routes: ['/'],
-      loader: async () => (await import('./cs/home.json')).default,
+      loader: async ({ locale, namespace }) => (await import(`./${locale}/${namespace}.json`)).default,
     },
   ],
 };
 
-export const i18n = new I18n(config);
+export const { handle, load, use, get } = defineI18n(config);
 ```
+
+`hooks.server.ts`, both root layout files and the root `+layout.svelte` are wired as in [Wire SvelteKit](#wire-sveltekit).
 
 ```json
 // src/lib/translations/en/common.json
@@ -495,7 +512,9 @@ export const i18n = new I18n(config);
 ```svelte
 <!-- src/routes/+page.svelte -->
 <script>
-  import { i18n } from '$lib/translations';
+  import { get } from '$lib/translations';
+
+  const i18n = get();
 
   let cartItems = 3;
 </script>

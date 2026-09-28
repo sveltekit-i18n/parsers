@@ -12,7 +12,7 @@ npm install @sveltekit-i18n/parser-i18next
 # deno add npm:@sveltekit-i18n/parser-i18next
 ```
 
-**Requirements:** Node.js 22, Bun 1.2 or Deno 2, or newer. Version 3 is ESM-only, expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, and builds on `i18next` v26.
+**Requirements:** Node.js 22, Bun 1.2 or Deno 2, or newer. Version 3 is ESM-only, expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, and builds on `i18next` v26. The examples use base 3.1's loader spelling — `namespace`, and one descriptor listing several locales; on base 3.0 write `key` and one descriptor per locale, whose loader names its own file, since 3.0 passes it no `namespace`: `{ locale: 'en', key: 'common', loader: async () => (await import('./en/common.json')).default }`.
 
 ## Usage
 
@@ -22,21 +22,16 @@ import { I18n } from '@sveltekit-i18n/base';
 import parser from '@sveltekit-i18n/parser-i18next';
 import type { Config } from '@sveltekit-i18n/parser-i18next';
 
-const config: Config = {
+export const config: Config = {
   parser: parser({
     // Where a diagnostic goes; required, `null` included
     onReport: (report) => console.warn(report.message, report.error),
   }),
   loaders: [
     {
-      locale: 'en',
-      key: 'common',
-      loader: async () => (await import('./en/common.json')).default,
-    },
-    {
-      locale: 'cs',
-      key: 'common',
-      loader: async () => (await import('./cs/common.json')).default,
+      locale: ['en', 'cs'],
+      namespace: 'common',
+      loader: async ({ locale, namespace }) => (await import(`./${locale}/${namespace}.json`)).default,
     },
   ],
 };
@@ -47,6 +42,8 @@ export const i18n = new I18n(config);
 `i18n.t(key, payload?, options?)` takes the values the placeholders name and the per-call formatting options; the examples below use it.
 
 Values are not HTML-escaped. Svelte escapes text itself when it renders `{i18n.t(...)}`, and i18next's escaping on top of that would double it, so `<b>` would reach the page as `&lt;b&gt;`. That is the one default this parser sets differently from i18next; `interpolation: { escapeValue: true }` restores it for output that is rendered as markup.
+
+In a SvelteKit app, hand the config to `defineI18n(config, { preferredLocale })` from `@sveltekit-i18n/base/kit`, new in base 3.1, rather than building an instance of your own: it returns `handle` for `hooks.server.js`, one `load` for both root layout files, `use()` for the root layout and `get()` for every component below it, and the server builds an instance per request, so no visitor sees another visitor's locale. The core's [SvelteKit guide](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#sveltekit) walks through the setup.
 
 ## Syntax
 
@@ -300,6 +297,21 @@ A parameter several placeholders name accepts what all of them say together, and
 Build the extractor from the `interpolation` options `parser()` is built from: the prefix, suffix, unescape marker and format separator decide what a placeholder looks like, so `extractParamsFactory({ interpolation: { prefix: '${', suffix: '}' } })` reads `${name}`. Only `prefix`, `suffix`, `unescapePrefix`, `unescapeSuffix` and `formatSeparator` are read: the pre-escaped `prefixEscaped` and `suffixEscaped`, which the engine falls back to when `prefix` or `suffix` is emptied, and the nesting markers are not. `formats` and `onReport` reach nothing here — extraction formats nothing and reports nothing.
 
 Only the text of a message is scanned. A translation leaf that is not text names no parameters rather than throwing, an unclosed `{{name` names nothing, and the text inside a `$t(...)` nesting is scanned like any other text.
+
+This is what fills [`config.schema`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#schema), the slot that types `t` and `l` by key and payload: [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen), a Vite plugin, runs the config the module it is pointed at exports as `config`, reads every message through the extractor and writes the `TranslationSchema` type the slot takes. It is told which package the extractor comes from and the `interpolation` options the parser is built with:
+
+```javascript
+// vite.config.js
+typegen({
+  config: 'src/lib/translations/index.ts',
+  extractParams: {
+    from: '@sveltekit-i18n/parser-i18next',
+    options: { interpolation: { prefix: '${', suffix: '}' } },
+  },
+})
+```
+
+The plugin hands `options` to the factory as JSON, so they have to be data — which the markers extraction reads are.
 
 ## TypeScript
 

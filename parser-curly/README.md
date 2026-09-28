@@ -14,7 +14,7 @@ npm install @sveltekit-i18n/parser-curly
 
 This parser is included by default in [sveltekit-i18n](https://github.com/sveltekit-i18n/lib).
 
-**Requirements:** Node.js 22, Bun 1.2 or Deno 2, or newer. Version 3 is ESM-only and expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency.
+**Requirements:** Node.js 22, Bun 1.2 or Deno 2, or newer. Version 3 is ESM-only and expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency. The examples use base 3.1's loader spelling — `namespace`, and one descriptor listing several locales; on base 3.0 write `key` and one descriptor per locale, whose loader names its own file, since 3.0 passes it no `namespace`: `{ locale: 'en', key: 'common', loader: async () => (await import('./en/common.json')).default }`.
 
 ## Usage
 
@@ -24,16 +24,16 @@ This parser is included by default in [sveltekit-i18n](https://github.com/svelte
 import { I18n } from '@sveltekit-i18n/base';
 import parser from '@sveltekit-i18n/parser-curly';
 
-const config = {
+export const config = {
   parser: parser({
     // Where diagnostics go; `null` states that they go nowhere.
     onReport: null,
   }),
   loaders: [
     {
-      locale: 'en',
-      key: 'common',
-      loader: async () => (await import('./en/common.json')).default,
+      locale: ['en', 'cs'],
+      namespace: 'common',
+      loader: async ({ locale, namespace }) => (await import(`./${locale}/${namespace}.json`)).default,
     },
   ],
 };
@@ -46,7 +46,7 @@ export const i18n = new I18n(config);
 ```javascript
 import { I18n } from 'sveltekit-i18n';
 
-const config = {
+export const config = {
   // parser-curly is already included
   loaders: [/* ... */],
 };
@@ -54,7 +54,11 @@ const config = {
 export const i18n = new I18n(config);
 ```
 
-Either way, `i18n.t(key, payload?, props?)` takes the values the placeholders name and the per-call formatting options; the examples below use it.
+### In a SvelteKit app
+
+A SvelteKit app wires its config through the `/kit` subpath, new in 3.1, rather than through an instance of its own: `defineI18n(config, { preferredLocale })` returns `handle` for `hooks.server.js`, one `load` for both root layout files, `use()` for the root layout and `get()` for every component below it. The server builds an instance per request, so no visitor sees another visitor's locale. `sveltekit-i18n` users import it from `sveltekit-i18n/kit`, which fills the parser in; a base app imports it from `@sveltekit-i18n/base/kit` and hands it the config above. The core's [SvelteKit guide](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#sveltekit) walks through the setup.
+
+However the instance is built, `i18n.t(key, payload?, props?)` takes the values the placeholders name and the per-call formatting options; the examples below use it.
 
 ## Syntax
 
@@ -385,7 +389,9 @@ i18n.t('common.welcome', { aplicationName: 'My app' })
 // → type error: typo caught
 ```
 
-`Config<Payload, Props>` types the payload and the props `i18n.t` accepts; left bare, `Config` accepts any payload key and the built-in modifiers' props. A custom modifier types its own props through `Modifier.T<OwnProps>`. The factory's type arguments check the parser options the same way: with `Props` spelled as the second, `parser<Payload, Props>({ ... })`, a `modifierDefaults` entry for a custom modifier is checked; a modifier written inline reads typed `props` once the modifier names are spelled as the third argument too, `parser<Payload, Props, 'truncate'>({ ... })`. `Parser` holds the option and parameter types (`Parser.Options`, `Parser.OnReport`, `Parser.Params`, `Parser.Payload`), `Modifier` the modifier and wrapper types (`Modifier.T`, `Modifier.Wrapper`, `Modifier.Props`), `Cst` the [tree](#describing-a-message) node types, and `Report` is the report.
+`Config<Payload, Props>` types the payload and the props `i18n.t` accepts; left bare, `Config` accepts any payload key and the built-in modifiers' props. A custom modifier types its own props through `Modifier.T<OwnProps>`. The factory's type arguments check the parser options the same way: with `Props` spelled as the second, `parser<Payload, Props>({ ... })`, a `modifierDefaults` entry for a custom modifier is checked; a modifier written inline reads typed `props` once the modifier names are spelled as the third argument too, `parser<Payload, Props, 'truncate'>({ ... })`. `Parser` holds the option and parameter types (`Parser.Options`, `Parser.OnReport`, `Parser.Params`, `Parser.Payload`) and the migration aid's (`Parser.OnSuspectValue`, `Parser.Suspect`, `Parser.SuspectKind`), `Modifier` the modifier and wrapper types (`Modifier.T`, `Modifier.Wrapper`, `Modifier.Props`), `Cst` the [tree](#describing-a-message) node types, and `Report` is the report.
+
+`onSuspectValue` receives a `Parser.Suspect` for every value a placeholder read that version 1 of the format would have read as syntax: `found`, the `Parser.SuspectKind`s the value holds (`placeholder` where it holds `{{`, `escape` where it holds a backslash); `placeholder`, the placeholder that read it, as the message spells it; `id`, the message's id, where the call passed one; and `text`, the value truncated with its line terminators escaped. Unlike a report's `text`, that is payload text, so a host writing it somewhere writes what its payload holds.
 
 ## Extracting Parameters
 
@@ -420,6 +426,18 @@ A parameter several placeholders name accepts what all of them say together, and
 Build the extractor from the same options `parser()` is built from: a custom modifier registered under a name the format defines changes what a message naming it says about its value. `onReport` is not required here, and neither it nor `modifierDefaults`, `recognizeWrappers` or `onSuspectValue` reaches anything — extraction formats nothing, reports nothing and reads no payload.
 
 Only the text of a message is scanned. A translation leaf that is not text names no parameters rather than throwing, and a placeholder a payload value carries is not one the message itself names — a value is data, so nothing reads it as source. A placeholder the message writes inside another is named beside the one holding it, in the order the message writes them.
+
+This is what fills [`config.schema`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#schema), the slot that types `t` and `l` by key and payload: [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen), a Vite plugin, runs the config the module it is pointed at exports as `config`, reads every message through the extractor and writes the `TranslationSchema` type the slot takes. `sveltekit-i18n` re-exports this extractor, so its users name that package; a base app names this one:
+
+```javascript
+// vite.config.js, with sveltekit-i18n
+typegen({ config: 'src/lib/i18n.js', extractParams: { from: 'sveltekit-i18n' } })
+
+// vite.config.js, with @sveltekit-i18n/base
+typegen({ config: 'src/lib/i18n.js', extractParams: { from: '@sveltekit-i18n/parser-curly' } })
+```
+
+The plugin hands `extractParams.options` to the factory as JSON, so no function reaches the extractor. `customModifiers` — the one option extraction reads — cannot be passed that way, and a custom modifier registered under a built-in name that changes the `kind` a parameter is reported with is not reflected: the schema types the parameter by the built-in modifier.
 
 ## Describing a Message
 
