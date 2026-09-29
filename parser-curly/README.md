@@ -489,7 +489,7 @@ Choose `parser-curly` for simplicity, ICU for standards compliance.
 - [All Parsers](https://github.com/sveltekit-i18n/parsers) – Parser overview
 - [Curly Message Format](https://curlymessage.dev) – The specification
 - [Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples) – Working examples
-- [Changelog](./CHANGELOG.md) – Version history
+- [Changelog](https://github.com/sveltekit-i18n/parsers/blob/master/parser-curly/CHANGELOG.md) – Version history
 
 ## Issues
 
