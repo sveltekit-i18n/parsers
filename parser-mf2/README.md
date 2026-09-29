@@ -538,11 +538,11 @@ export const { handle, load, use, get } = defineI18n(config);
 **Curly (parser-curly):**
 ```json
 {
-  "items": "{{count; 0:no items; 1:one item; default:{{count}} items;}}"
+  "items": "{{count:plural; 0:no items; one:one item; other:{{count:number}} items;}}"
 }
 ```
 
-All three achieve the same result. MessageFormat 2 is the Unicode standard's current format, ICU the one it succeeds, and Curly the smallest of the three; choose based on your preference and requirements.
+All three select by the locale's plural categories. ICU's `other` and MessageFormat 2's `*` catch every category a message leaves out, while a Curly message writes each category its locale uses. MessageFormat 2 is the Unicode standard's current format, ICU the one it succeeds, and Curly the smallest of the three; choose based on your preference and requirements.
 
 ## More Resources
 

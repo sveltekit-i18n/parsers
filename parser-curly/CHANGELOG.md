@@ -1,3 +1,9 @@
+# 3.2.0
+Plural selection, through `@curly-message/parser` 3.1.
+* **`plural` and `ordinal` join the built-in modifiers.** They select an option by the category the locale's plural rules put a number in (`Intl.PluralRules`, cardinal and ordinal): `{{count:plural; one:item; other:items;}}`. A numeric key matches the value exactly and wins over a category, and a category the placeholder writes no option for takes the fallback, `default` included, as ICU's `other` would not. `plural` takes its category from the digits `number` would show. Both take `Intl.PluralRules` options but `type` from the props under their names, which `Modifier.DefaultProps` now types. A custom modifier registered as `plural` or `ordinal` still replaces the built-in one.
+* `extractParamsFactory` reports a parameter a plural selection reads as `'number'`, and lists a selection's numeric keys in `values`, never its categories. A schema generated from a catalogue that uses them types the count as a number.
+* The format's conformance set runs at version 4.1, which covers both modifiers.
+
 # 3.1.2
 Documentation only. The README follows base 3.1: it wires SvelteKit through the core's `/kit` subpath and writes the loaders in 3.1's spelling (`namespace`, one descriptor for several locales), with the 3.0 spelling beside them, and on base 3.1 the schema `@sveltekit-i18n/typegen` generates needs no cast. The package itself is unchanged.
 
