@@ -206,7 +206,7 @@ Format numbers according to locale:
 
 ```javascript
 i18n.t('price', { value: 1234.56 })
-// → "The price is: 1,234.56" (en) or "1.234,56" (cs)
+// → "The price is: 1,234.56" (en) or "The price is: 1 234,56" (cs, grouped by a no-break space)
 
 i18n.t('currency', { amount: 99.99 })
 // → "Total: $99.99"
@@ -233,13 +233,14 @@ Format dates according to locale:
 
 ```javascript
 i18n.t('today', { date: new Date() })
-// → "Today is: 1/15/2024" (en) or "15. 1. 2024" (cs)
+// → "Today is: 1/15/2024" (en) or "Today is: 15. 1. 2024" (cs)
 
-i18n.t('full', { date: new Date('2024-01-15') })
-// → "Date: 20240115"
+i18n.t('full', { date: new Date(2024, 0, 15) })
+// → "Date: 01/15/2024" (en) or "Date: 15. 01. 2024" (cs)
+// A skeleton picks the fields; the locale orders and separates them.
 
-i18n.t('time', { timestamp: new Date() })
-// → "Time: 1430" (2:30 PM)
+i18n.t('time', { timestamp: new Date(2024, 0, 15, 14, 30) })
+// → "Time: 14:30" (HH asks for a 24-hour clock)
 ```
 
 ### Nested Messages

@@ -197,22 +197,26 @@ A parser is a function that returns an object with a `parse` method. What base g
 ```javascript
 const customParser = (config = {}) => ({
   parse: (value, params, locale, key) => {
-    // value: translation string from your JSON file
+    // value: the translation from your JSON file; usually a string, but any
+    //   value can arrive (a number, null, an array, an object)
     // params: array of parameters passed to t()
     // locale: current locale (e.g., 'en', 'cs')
     // key: translation key (e.g., 'common.greeting')
-    
-    // Return interpolated string
+
+    // Return the interpolated string, and never throw
     return value;
   },
 });
 ```
+
+`parse` runs during render and base does not catch what it throws, so a parser hands back anything it cannot handle as it is and keeps every error inside. Each example below starts by handing a non-string value back untouched.
 
 ### Example: Simple Template Literals
 
 ```javascript
 const templateParser = () => ({
   parse: (value, params) => {
+    if (typeof value !== 'string') return value;
     const vars = params[0] || {};
     return value.replace(/\${(\w+)}/g, (_, key) => vars[key] ?? key);
   },
@@ -227,6 +231,7 @@ const templateParser = () => ({
 ```javascript
 const mustacheParser = () => ({
   parse: (value, params) => {
+    if (typeof value !== 'string') return value;
     const vars = params[0] || {};
     return value.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? '');
   },
@@ -241,6 +246,7 @@ const mustacheParser = () => ({
 ```javascript
 const advancedParser = (config = {}) => ({
   parse: (value, params, locale) => {
+    if (typeof value !== 'string') return value;
     const vars = params[0] || {};
     
     return value.replace(/\{(\w+)(?::(\w+))?\}/g, (match, key, modifier) => {
@@ -248,7 +254,10 @@ const advancedParser = (config = {}) => ({
       
       if (modifier === 'upper') return String(val).toUpperCase();
       if (modifier === 'lower') return String(val).toLowerCase();
-      if (modifier === 'number') return new Intl.NumberFormat(locale).format(val);
+      if (modifier === 'number') {
+        // Intl throws on a locale tag that is not well-formed.
+        try { return new Intl.NumberFormat(locale).format(val); } catch { return String(val); }
+      }
       
       return val ?? key;
     });
