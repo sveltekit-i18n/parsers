@@ -345,7 +345,7 @@ i18n.t('common.welcome', { aplicationName: 'My app' })
 - [i18next interpolation](https://www.i18next.com/translation-function/interpolation) and [formatting](https://www.i18next.com/translation-function/formatting) – The syntax this parser renders
 - [sveltekit-i18n.github.io](https://sveltekit-i18n.github.io) – The documentation site, with a live playground
 - [All Parsers](https://github.com/sveltekit-i18n/parsers) – Parser overview
-- [Changelog](./CHANGELOG.md) – Version history
+- [Changelog](https://github.com/sveltekit-i18n/parsers/blob/master/parser-i18next/CHANGELOG.md) – Version history
 
 ## Issues
 
