@@ -1,3 +1,6 @@
+# 3.0.4
+Documentation only. The comparison with `parser-curly` writes its plural with the format's `plural` selection, which it has had since `@curly-message/parser` 3.1, and the typegen section is linked by its stable heading. The README's links into the package now name the release's tag, so the npm page of this version keeps showing this version's files. The package is tested against `@sveltekit-i18n/base` 3.1.2; the peer range is unchanged. The package itself is unchanged.
+
 # 3.0.3
 Documentation only. The README follows base 3.1: it wires SvelteKit through the core's `/kit` subpath and writes the loaders in 3.1's spelling (`namespace`, one descriptor for several locales), with the 3.0 spelling beside them, and on base 3.1 the schema `@sveltekit-i18n/typegen` generates needs no cast. The package itself is unchanged.
 
