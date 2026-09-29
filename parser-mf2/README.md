@@ -453,7 +453,7 @@ Build the extractor from the same options `parser()` is built from, for symmetry
 
 Only the text of a message is scanned. A translation leaf that is not text names no parameters rather than throwing, and neither does a message this parser cannot compile.
 
-This is what types `t` and `l` by key and payload: [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen), a Vite plugin, runs the config the module it is pointed at exports as `config`, reads every message through the extractor and writes the schema, which it registers for every config that states no [`schema`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#schema) of its own, so on base 3.1 there is nothing to wire ([an older core](https://github.com/sveltekit-i18n/typegen#3-nothing-to-wire-from-310-next2-on) takes a cast). It is told which package the extractor comes from:
+This is what types `t` and `l` by key and payload: [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen), a Vite plugin, runs the config the module it is pointed at exports as `config`, reads every message through the extractor and writes the schema, which it registers for every config that states no [`schema`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#schema) of its own, so on base 3.1 there is nothing to wire ([an older core](https://github.com/sveltekit-i18n/typegen#3-nothing-to-wire-on-a-31-core) takes a cast). It is told which package the extractor comes from:
 
 ```javascript
 // vite.config.js
