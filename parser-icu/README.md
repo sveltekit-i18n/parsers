@@ -466,7 +466,6 @@ export const { handle, load, use, get } = defineI18n(config);
 ### Use parser-icu if:
 - ✅ You need industry-standard ICU message format
 - ✅ You're migrating from other i18n libraries (react-intl, vue-i18n, etc.)
-- ✅ You need advanced plural rules for complex languages
 - ✅ You want comprehensive number/date/time formatting
 - ✅ You're comfortable with ICU syntax
 
@@ -474,7 +473,7 @@ export const { handle, load, use, get } = defineI18n(config);
 - ✅ You want one small dependency: the format's reference implementation
 - ✅ You prefer simpler, more readable syntax
 - ✅ You need a lightweight solution
-- ✅ Your pluralization needs are basic
+- ✅ Plural and ordinal selection by CLDR category is all the selection you need
 
 ## Comparison
 
@@ -488,11 +487,11 @@ export const { handle, load, use, get } = defineI18n(config);
 **Curly (parser-curly):**
 ```json
 {
-  "items": "You have {{count}} {{count; 1:item; default:items;}}."
+  "items": "You have {{count:plural; 0:no items; one:{{count:number}} item; other:{{count:number}} items;}}."
 }
 ```
 
-Both achieve the same result, choose based on your preference and requirements.
+Both select by the locale's plural categories. ICU's `other` catches every category a message leaves out, while a Curly message writes each category its locale uses. Choose based on your preference and requirements.
 
 ## More Resources
 

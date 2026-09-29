@@ -2,7 +2,7 @@
 
 # @sveltekit-i18n/parser-curly
 
-The [Curly Message Format](https://curlymessage.dev) for [@sveltekit-i18n/base](https://github.com/sveltekit-i18n/base): placeholders, defaults, modifiers and comparisons written in double curly braces. Every message is resolved by [`@curly-message/parser`](https://github.com/curly-message/parsers), the format's reference implementation and this package's only dependency; the package itself unpacks the base library's calling convention and requires the diagnostics channel to be stated. This README is a practical guide to the syntax — the full grammar and the resolution rules are in the specification.
+The [Curly Message Format](https://curlymessage.dev) for [@sveltekit-i18n/base](https://github.com/sveltekit-i18n/base): placeholders, defaults, modifiers, comparisons and plural selection written in double curly braces. Every message is resolved by [`@curly-message/parser`](https://github.com/curly-message/parsers), the format's reference implementation and this package's only dependency; the package itself unpacks the base library's calling convention and requires the diagnostics channel to be stated. This README is a practical guide to the syntax — the full grammar and the resolution rules are in the specification.
 
 ## Installation
 
@@ -163,7 +163,7 @@ i18n.t('cost', { amount: 1999 }, { currency: { currency: 'USD', ratio: 0.01 } })
 // → "Cost: $19.99"
 ```
 
-A value the modifier cannot read — text that is not a number, an empty string, a `Date` object under `number` — takes the fallback and is reported as `failed-modifier`; so does a `currency` placeholder with no currency code or an `ago` whose `format` names no unit. Nothing raises. A `Date` object does work under `date`, to the second, because it reaches the modifier as its `toString` text; pass a timestamp or an ISO string where a placeholder wants one. With no locale — none passed, or the empty string — a formatting modifier resolves to the empty string rather than to the fallback and reports `missing-locale`.
+A value the modifier cannot read — text that is not a number, an empty string, a `Date` object under `number` — takes the fallback and is reported as `failed-modifier`; so does a `currency` placeholder with no currency code or an `ago` whose `format` names no unit. Nothing raises. A `Date` object does work under `date`, to the second, because it reaches the modifier as its `toString` text; pass a timestamp or an ISO string where a placeholder wants one. With no locale — none passed, or the empty string — a formatting modifier or a [plural selection](#plural-selection) resolves to the empty string rather than to the fallback and reports `missing-locale`.
 
 ### Comparisons
 
@@ -172,7 +172,6 @@ A value the modifier cannot read — text that is not a number, an empty string,
 ```json
 {
   "status": "{{state; active:Online; inactive:Offline; default:Unknown;}}",
-  "items": "You have {{count}} {{count; 1:item; default:items;}}.",
   "stock": "{{count:gt; 0:In stock ({{count}}); default:Out of stock;}}",
   "age": "{{age:gte; 18:Adult; default:Minor;}}",
   "temp": "{{degrees:lt; 0:Freezing; default:Above freezing;}}",
@@ -183,8 +182,6 @@ A value the modifier cannot read — text that is not a number, an empty string,
 ```javascript
 i18n.t('status', { state: 'active' })   // → "Online"
 i18n.t('status', { state: 'pending' })  // → "Unknown"
-i18n.t('items', { count: 1 })           // → "You have 1 item."
-i18n.t('items', { count: 5 })           // → "You have 5 items."
 i18n.t('stock', { count: 5 })           // → "In stock (5)"
 i18n.t('stock', { count: 0 })           // → "Out of stock"
 i18n.t('age', { age: 25 })              // → "Adult"
@@ -193,7 +190,32 @@ i18n.t('health', { state: 'error' })    // → "Problem"
 i18n.t('health', {})                    // → "Fine"
 ```
 
-An absent value never reaches a comparison — it takes the fallback under every modifier, `ne` included. An option written as `key` alone stands for its own key; `key:` declares the empty string. An option value runs to the next unescaped semicolon, so `link:http://example.com` keeps its colons. A comparison with no options (`{{v:eq; default:D}}`) takes the fallback and reports `missing-options`; a placeholder naming a modifier nobody registered takes the fallback and reports `unknown-modifier` — it is never run as `eq`.
+An absent value never reaches a comparison — it takes the fallback under every modifier, `ne` included. An option written as `key` alone stands for its own key; `key:` declares the empty string. An option value runs to the next unescaped semicolon, so `link:http://example.com` keeps its colons. A comparison or a plural selection with no options (`{{v:eq; default:D}}`) takes the fallback and reports `missing-options`; a placeholder naming a modifier nobody registered takes the fallback and reports `unknown-modifier` — it is never run as `eq`.
+
+### Plural Selection
+
+`plural` and `ordinal` select an option by the category the locale's plural rules put a number in — `Intl.PluralRules`, cardinal and ordinal. The categories are CLDR's `zero`, `one`, `two`, `few`, `many` and `other`, and each locale uses its own subset: in Russian 1, 21 and 101 are `one`, which a comparison cannot express.
+
+```json
+{
+  "items": "You have {{count}} {{count:plural; one:item; other:items;}}.",
+  "inbox": "{{count:plural; 0:No messages; one:{{count}} message; other:{{count}} messages;}}",
+  "files": "{{count}} {{count:plural; one:файл; few:файла; many:файлов; other:файла;}}",
+  "place": "{{n}}{{n:ordinal; one:st; two:nd; few:rd; other:th;}}"
+}
+```
+
+```javascript
+i18n.t('items', { count: 1 })   // → "You have 1 item."
+i18n.t('items', { count: 5 })   // → "You have 5 items."
+i18n.t('inbox', { count: 0 })   // → "No messages"
+i18n.t('inbox', { count: 21 })  // → "21 messages"
+i18n.t('files', { count: 21 })  // → "21 файл" (in ru)
+i18n.t('files', { count: 5 })   // → "5 файлов" (in ru)
+i18n.t('place', { n: 22 })      // → "22nd"
+```
+
+A numeric key matches the value exactly and wins over a category, as `0:` does above. A category the placeholder writes no option for takes the fallback — no option catches it as ICU's `other` does — so a message writes every category its locale uses. How `default` and the rest of the fallback chain answer, which props each modifier reads, and why `plural` follows the digits `number` shows are set out in [the reference implementation's README](https://github.com/curly-message/parsers/tree/js-v3.1.0/js#plural-selection).
 
 ### Nested Placeholders
 
@@ -416,10 +438,11 @@ Each parameter is reported once, in the order the message first names it, and sa
 | `number`, `currency` | `'number'` |
 | `ago` | `'number'` — a signed millisecond delta relative to now, not a point in time |
 | `date` | `['date', 'string']` — milliseconds since the epoch, and failing that text the host reads as a date |
+| `plural`, `ordinal` | `'number'` — `ordinal` takes an integer, which the kinds have no word for |
 
 A parameter several placeholders name accepts what all of them say together, and `unknown` is the top of that lattice rather than a member of it: it is what a parameter accepts while nothing has narrowed it, and it drops out the moment something does. So `{{count}}` alone reports `unknown`, and the example above — where a second placeholder formats the same key with `number` — reports `'number'` rather than `['unknown', 'number']`.
 
-`values` lists the option keys of an `eq` selection, which is the one comparison whose keys are values of the parameter: `ne`'s are what the value must differ from, and an inequality's are thresholds it is ordered against. It is a hint and never a closed set — a value none of them matches takes the fallback chain rather than failing.
+`values` lists the option keys of an `eq` selection, which is the one comparison whose keys are values of the parameter: `ne`'s are what the value must differ from, and an inequality's are thresholds it is ordered against. A plural selection lists its keys that are numbers — of `ordinal`'s, the integers — which are values the parameter takes; its categories (`one`, `few`, …) are not. It is a hint and never a closed set — a value none of them matches takes the fallback chain rather than failing.
 
 `optional` reports what the message says rather than what resolution tolerates. Every placeholder renders without its value, an absent one taking the fallback chain, so a placeholder declaring an inline `default` is the message saying the value may be missing, and one declaring none is the message saying it is expected.
 
@@ -465,7 +488,7 @@ It reads no options: a name is a name whether or not a modifier answers to it, s
 **parser-curly:**
 ```json
 {
-  "items": "You have {{count}} {{count; 1:item; default:items;}}."
+  "items": "You have {{count}} {{count:plural; one:item; other:items;}}."
 }
 ```
 
@@ -477,7 +500,8 @@ It reads no options: a name is a name whether or not a modifier answers to it, s
 ```
 
 - `parser-curly` has simpler syntax
-- ICU has more advanced plural rules for complex languages
+- both select plural forms by the locale's CLDR categories; ICU's `other` catches every category a message does not write, while in `parser-curly` such a category takes the fallback, so a message for a locale writes the categories it uses
+- ICU also has `offset` and the `#` shorthand
 - `parser-curly` has one dependency, the format's reference implementation, and no others
 - ICU is an industry standard
 

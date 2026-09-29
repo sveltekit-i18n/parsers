@@ -6,7 +6,7 @@ Message parsers for [sveltekit-i18n](https://github.com/sveltekit-i18n/lib). The
 
 ### [@sveltekit-i18n/parser-curly](./parser-curly)
 
-The [Curly Message Format](https://curlymessage.dev) — placeholders, defaults, modifiers and comparisons in double curly braces — resolved by [`@curly-message/parser`](https://github.com/curly-message/parsers), the format's reference implementation.
+The [Curly Message Format](https://curlymessage.dev) — placeholders, defaults, modifiers, comparisons and plural selection in double curly braces — resolved by [`@curly-message/parser`](https://github.com/curly-message/parsers), the format's reference implementation.
 
 ```bash
 npm install @sveltekit-i18n/parser-curly
@@ -15,7 +15,8 @@ npm install @sveltekit-i18n/parser-curly
 **Features:**
 - Simple placeholder syntax: `{{name}}`
 - Built-in modifiers: `number`, `date`, `currency`, `ago`
-- Conditional rendering: `{{count; 1:item; default:items;}}`
+- Plural selection by the locale's CLDR categories: `{{count:plural; one:item; other:items;}}`, and `ordinal`
+- Conditional rendering: `{{state; active:Online; default:Offline;}}`
 - Comparison operators: `eq`, `ne`, `lt`, `gt`, `lte`, `gte`
 - Custom modifiers support
 - Build-time parameter extraction: `extractParamsFactory`, which [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen) reads to fill `config.schema`
@@ -26,7 +27,7 @@ npm install @sveltekit-i18n/parser-curly
 ```json
 {
   "greeting": "Hello, {{name}}!",
-  "items": "You have {{count:number;}} {{count; 1:item; default:items;}}.",
+  "items": "You have {{count:number;}} {{count:plural; one:item; other:items;}}.",
   "price": "Price: {{value:currency;}}",
   "updated": "Updated {{date:ago;}}"
 }
@@ -128,7 +129,6 @@ npm install @sveltekit-i18n/parser-i18next
 ### Use `parser-icu` if:
 - You need industry-standard ICU message format
 - You're migrating from other i18n libraries that use ICU
-- You need advanced plural rules for complex languages
 - You want built-in number/date/time formatting options
 - You're comfortable with ICU syntax
 
