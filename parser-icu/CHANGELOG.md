@@ -1,3 +1,6 @@
+# 3.0.4
+Documentation only. The README follows base 3.1: it wires SvelteKit through the core's `/kit` subpath and writes the loaders in 3.1's spelling (`namespace`, one descriptor for several locales), with the 3.0 spelling beside them, and on base 3.1 the schema `@sveltekit-i18n/typegen` generates needs no cast. The package itself is unchanged.
+
 # 3.0.3
 The shipped declarations type `parser()`'s options again. The bundled `.d.ts` declared `type Options = Options & { ... }`, which TypeScript resolves to itself: with `skipLibCheck` the options were `any`, so `onReport` was not required and a misspelled option passed, and without it every consumer's `tsc` failed on `TS2456`.
 

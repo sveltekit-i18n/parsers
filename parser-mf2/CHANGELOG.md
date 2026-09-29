@@ -1,3 +1,6 @@
+# 3.0.3
+Documentation only. The README follows base 3.1: it wires SvelteKit through the core's `/kit` subpath and writes the loaders in 3.1's spelling (`namespace`, one descriptor for several locales), with the 3.0 spelling beside them, and on base 3.1 the schema `@sveltekit-i18n/typegen` generates needs no cast. The package itself is unchanged.
+
 # 3.0.2
 The peer range on `@sveltekit-i18n/base` also takes the `3.1.0-next` prereleases, so the core's `next` line installs underneath this package without a peer conflict. Every stable 3.x core the range took before it still takes.
 
