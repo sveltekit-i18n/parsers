@@ -21,13 +21,91 @@ const raw = (message: unknown): string | undefined => {
   }
 };
 
+// A node of the recency list, which runs from the least recently used message
+// of a cache to the most recently used one.
+type Entry = {
+  compiled: MessageFormat<string>;
+  locale: string;
+  message: string;
+  older: Entry | undefined;
+  newer: Entry | undefined;
+};
+
+type Cache = {
+  get: (locale: string, message: string) => MessageFormat<string> | undefined;
+  set: (locale: string, message: string, compiled: MessageFormat<string>) => void;
+};
+
+// Compiled messages by locale, then by message, so a hit hashes the message
+// string a catalogue holds, evicted least recently used first. A locale reaches
+// `parse` from the caller, so the limit bounds the locales held as well: a
+// locale is held while a message of it is, and never for a compile that threw.
+const lru = (limit: number): Cache => {
+  const locales = new Map<string, Map<string, Entry>>();
+  let oldest: Entry | undefined;
+  let newest: Entry | undefined;
+  let size = 0;
+
+  const unlink = (entry: Entry) => {
+    if (entry.older) entry.older.newer = entry.newer;
+    else oldest = entry.newer;
+    if (entry.newer) entry.newer.older = entry.older;
+    else newest = entry.older;
+  };
+
+  const append = (entry: Entry) => {
+    entry.older = newest;
+    entry.newer = undefined;
+    if (newest) newest.newer = entry;
+    else oldest = entry;
+    newest = entry;
+  };
+
+  const evict = (entry: Entry) => {
+    const messages = locales.get(entry.locale)!;
+
+    unlink(entry);
+    messages.delete(entry.message);
+    if (messages.size === 0) locales.delete(entry.locale);
+    size -= 1;
+  };
+
+  return {
+    get: (locale, message) => {
+      const held = locales.get(locale)?.get(message);
+
+      if (held !== undefined && held !== newest) {
+        unlink(held);
+        append(held);
+      }
+
+      return held?.compiled;
+    },
+    set: (locale, message, compiled) => {
+      if (size >= limit) evict(oldest!);
+
+      let messages = locales.get(locale);
+
+      if (messages === undefined) {
+        messages = new Map();
+        locales.set(locale, messages);
+      }
+
+      const entry: Entry = { compiled, locale, message, older: undefined, newer: undefined };
+
+      messages.set(message, entry);
+      append(entry);
+      size += 1;
+    },
+  };
+};
+
 const parser: Parser.Factory = ({ onReport, functions, ...parserOptions }) => {
   // The other official parsers format dates and money out of the box; the
   // draft functions are what gives this format the same reach.
   const options = { ...parserOptions, functions: { ...DraftFunctions, ...functions } };
 
-  // Compiled messages keyed by locale and message, evicted least-recently-used.
-  const cache = new Map<string, MessageFormat<string>>();
+  const cache = lru(CACHE_LIMIT);
 
   // A report channel is consumer code: a throwing one must not take a render
   // down with it.
@@ -48,24 +126,13 @@ const parser: Parser.Factory = ({ onReport, functions, ...parserOptions }) => {
       return new MessageFormat(locale, message as string, options);
     }
 
-    const cacheKey = `${locale}\u0000${message}`;
-    let compiled = cache.get(cacheKey);
+    const held = cache.get(locale, message);
 
-    if (compiled === undefined) {
-      compiled = new MessageFormat(locale, message, options);
+    if (held !== undefined) return held;
 
-      if (cache.size >= CACHE_LIMIT) {
-        const oldest = cache.keys().next().value;
+    const compiled = new MessageFormat(locale, message, options);
 
-        if (oldest !== undefined) {
-          cache.delete(oldest);
-        }
-      }
-    } else {
-      cache.delete(cacheKey);
-    }
-
-    cache.set(cacheKey, compiled);
+    cache.set(locale, message, compiled);
 
     return compiled;
   };
