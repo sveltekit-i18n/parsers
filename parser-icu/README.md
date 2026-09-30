@@ -308,6 +308,17 @@ The third parameter of `i18n.t()` defines named formats for the call, as `intl-m
 ```
 
 ```svelte
+<script module>
+  const formats = {
+    number: {
+      twoDecimals: { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+    },
+    date: {
+      verbose: { year: 'numeric', month: 'long', day: 'numeric' },
+    },
+  };
+</script>
+
 <script>
   import { get } from '$lib/translations';
 
@@ -315,27 +326,21 @@ The third parameter of `i18n.t()` defines named formats for the call, as `intl-m
 </script>
 
 <!-- Number formatting -->
-<p>{i18n.t('price', { value: 1234.5 }, {
-  number: {
-    twoDecimals: { minimumFractionDigits: 2, maximumFractionDigits: 2 },
-  },
-})}</p>
+<p>{i18n.t('price', { value: 1234.5 }, formats)}</p>
 <!-- → "The price is: 1,234.50" -->
 
 <!-- Date formatting -->
-<p>{i18n.t('published', { value: new Date(2024, 0, 15) }, {
-  date: {
-    verbose: { year: 'numeric', month: 'long', day: 'numeric' },
-  },
-})}</p>
+<p>{i18n.t('published', { value: new Date(2024, 0, 15) }, formats)}</p>
 <!-- → "Published: January 15, 2024" -->
 ```
 
 A style the call does not define falls back to the ones `intl-messageformat` ships (`short`, `medium`, `long` and `full` for dates and times, `integer`, `currency` and `percent` for numbers).
 
+A message compiled with a `formats` object is cached under that object, so keep it where it outlives a render: in `<script module>`, as above, or in a module of its own. A `formats` object in a component's instance `<script>` is made again for every instance of the component, and on the server for every render, so what it caches serves that instance only; an object literal written in the call caches nothing past the call. The object is read when a message is first compiled with it, so to change the formats, pass a new object rather than changing the one you passed: a Svelte deep `$state` object keeps its identity when changed, so reassign it, or hold it in `$state.raw` or `$derived`.
+
 ## Caching and Error Handling
 
-Compiled messages are cached per parser instance, keyed by locale and message, so repeated reads of the same message skip recompilation. The cache holds up to [`cacheLimit`](#parser-options) entries, 10,000 by default, as one count across every locale: the least recently used message makes room. Calls that pass per-call [format options](#format-options) bypass the cache, because those options change the compilation.
+Compiled messages are cached per parser instance, keyed by locale and message, so repeated reads of the same message skip recompilation. The cache holds up to [`cacheLimit`](#parser-options) entries, 10,000 by default, as one count across every locale: the least recently used message makes room. Per-call [format options](#format-options) change the compilation, so each `formats` object keeps a cache of its own, bounded by the same `cacheLimit` and gone once the object is: a parser holds at most `cacheLimit` × (1 + the `formats` objects still alive) messages, and an object made for one render takes nothing from the messages every render reads.
 
 An entry takes about 2 to 4 KB, so the default holds some 20 to 40 MB at most. Raise the limit when the messages your app reads over and over do not fit: a server shares one parser across every request, so what it reads is the locales it serves times the keys the busy pages display - 20 locales of 1,000 keys each is 20,000 entries. Past the limit, the messages of one locale push out those of the next and every request compiles them again; at 50 locales of 1,000 keys a request takes about five times as long as with a limit that holds them all. `cacheLimit: 0` compiles on every call, and `Infinity` never evicts, so memory grows with every message and locale the parser meets.
 

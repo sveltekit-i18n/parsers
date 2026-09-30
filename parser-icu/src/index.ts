@@ -172,12 +172,25 @@ const parser: Parser.Factory = ({ onReport, cacheLimit, ...rest }) => {
   const parserOptions = rest.formatters ? rest : { ...rest, formatters: sharedFormatters() };
   const limit = capacity(cacheLimit);
   const plain = lru(limit);
+  // Per-call `formats` change the compilation, so each formats object keeps a
+  // cache of its own, which goes when the object does: one built for a render
+  // takes nothing from the messages every render reads.
+  const formatted = new WeakMap<object, Cache>();
 
   const cacheOf = (formats: Partial<Formats> | undefined): Cache | undefined => {
     if (limit === 0) return undefined;
+    if (formats === undefined) return plain;
+    // Anything else `intl-messageformat` reads as no formats, and it is no key.
+    if (typeof formats !== 'object' || formats === null) return undefined;
 
-    // Per-call `formats` change the compilation, so those calls bypass the cache.
-    return formats === undefined ? plain : undefined;
+    let cache = formatted.get(formats);
+
+    if (cache === undefined) {
+      cache = lru(limit);
+      formatted.set(formats, cache);
+    }
+
+    return cache;
   };
 
   const compile = (message: Message, locale: string, formats: Partial<Formats> | undefined) => new IntlMessageFormat(message, locale, formats, parserOptions);
