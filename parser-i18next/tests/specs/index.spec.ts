@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import parser, { Parser } from '../../src';
 import { TRANSLATIONS } from '../data';
 
@@ -22,7 +22,26 @@ const unprintable = { toString: () => { throw new Error('unprintable'); } };
 // suite runs in.
 const date = new Date(2024, 2, 5);
 
+type IntlKind = 'NumberFormat' | 'DateTimeFormat' | 'RelativeTimeFormat' | 'ListFormat';
+
+// Counts the formatters of a kind built from here on. Each is returned rather
+// than constructed in place: the spy constructs with itself as `new.target`,
+// which leaves the instance without the real prototype.
+const spyOnIntl = (kind: IntlKind) => {
+  const Built = Intl[kind] as new (...args: unknown[]) => object;
+
+  return vi.spyOn(Intl, kind as 'NumberFormat').mockImplementation(function (...args: unknown[]) {
+    return new Built(...args) as Intl.NumberFormat;
+  });
+};
+
 describe('parser', () => {
+  // A spy left in place by a failed expectation would count for every later
+  // test.
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('formats a message that does not exist as the empty string', () => {
     const $t = localize(initLocale);
 
@@ -115,23 +134,150 @@ describe('parser', () => {
     expect($t('common.number', { n: 1234.5 }, { formatParams: { n: { maximumFractionDigits: 0 } } })).toBe('1,235');
     expect($t('common.date', { d: date })).toBe('3/5/2024');
   });
-  it('builds an `Intl` formatter per render rather than keeping one per payload', () => {
-    // i18next's cache of its built-in formatters is keyed by the whole payload,
-    // so a payload that differs per request would grow it for the life of the
-    // process.
-    const $t = localize(initLocale, parser({ onReport: null }));
-    const { NumberFormat } = Intl;
-    // Returned rather than constructed in place: the spy constructs with itself
-    // as `new.target`, which leaves the instance without the real prototype.
-    const built = vi.spyOn(Intl, 'NumberFormat').mockImplementation(function (locales, options) {
-      return new NumberFormat(locales, options);
+  it('keeps one `Intl` formatter per locale and the options it reads, whatever the payload', () => {
+    // The options a format receives hold the payload, which differs per
+    // render: a formatter keyed by them would be built on every render.
+    const own = parser({ onReport: null });
+    const $en = localize(initLocale, own);
+    const $cs = localize('cs', own);
+    const number = { en: new Intl.NumberFormat('en'), cs: new Intl.NumberFormat('cs') };
+    const dateTime = { en: new Intl.DateTimeFormat('en'), cs: new Intl.DateTimeFormat('cs') };
+    const numbers = spyOnIntl('NumberFormat');
+    const dates = spyOnIntl('DateTimeFormat');
+    const extra = { at: new Date(0), user: { name: 'Bob' }, tags: ['a'] };
+
+    for (let n = 1; n <= 50; n += 1) {
+      const d = new Date(2024, 2, n);
+
+      expect($en('common.number', { ...extra, n: n + 0.5 })).toBe(number.en.format(n + 0.5));
+      expect($cs('common.number', { ...extra, n: n + 0.5 })).toBe(number.cs.format(n + 0.5));
+      expect($en('common.date', { ...extra, d })).toBe(dateTime.en.format(d));
+      expect($cs('common.date', { ...extra, d })).toBe(dateTime.cs.format(d));
+    }
+
+    expect(numbers).toHaveBeenCalledTimes(2);
+    expect(dates).toHaveBeenCalledTimes(2);
+  });
+  it.each([
+    { kind: 'NumberFormat', key: 'common.number', payload: { n: 1234.5 }, text: '1,234.5' },
+    { kind: 'DateTimeFormat', key: 'common.date', payload: { d: date }, text: '3/5/2024' },
+    { kind: 'RelativeTimeFormat', key: 'common.ago', payload: { d: -3 }, text: '3 days ago' },
+    { kind: 'ListFormat', key: 'common.list', payload: { l: ['a', 'b', 'c'] }, text: 'a, b, and c' },
+  ] as const)('keeps no more than its limit of $kind, the oldest making room', ({ kind, key, payload, text }) => {
+    const { parse } = parser({ onReport: null });
+    // Locales the catalogue lacks, which `Intl` reads as English.
+    const locales = Array.from({ length: 10001 }, (_, i) => `en-x-${i.toString(36).padStart(4, '0')}`);
+    const render = (locale: string) => parse(message(initLocale, key), [payload], locale, key);
+
+    locales.forEach((locale) => expect(render(locale)).toBe(text));
+
+    const built = spyOnIntl(kind);
+
+    expect(render(locales[10000])).toBe(text);
+    expect(built).toHaveBeenCalledTimes(0);
+    expect(render(locales[0])).toBe(text);
+    expect(built).toHaveBeenCalledTimes(1);
+  }, 30_000);
+  it('makes room at its limit in about the time it takes to keep a formatter below it', () => {
+    // A formatter that costs next to nothing to build, so what is timed is
+    // the keeping.
+    vi.spyOn(Intl, 'ListFormat').mockImplementation(function () {
+      return { format: () => 'x' } as unknown as Intl.ListFormat;
     });
 
+    const misses = (render: (locale: string) => string, from: number, to: number) => {
+      const start = performance.now();
+
+      for (let i = from; i < to; i += 1) render(`en-x-${i}`);
+
+      return performance.now() - start;
+    };
+    const best = { below: Infinity, at: Infinity };
+
+    // The best of five parsers, each timed for 4,000 locales below its limit
+    // of 10,000 and for 4,000 once it has made room 16,000 times.
+    for (let round = 0; round < 5; round += 1) {
+      const { parse } = parser({ onReport: null });
+      const render = (locale: string) => parse('{{l, list}}', [{ l: ['a'] }], locale, 'k');
+
+      misses(render, 0, 4000);
+      best.below = Math.min(best.below, misses(render, 4000, 8000));
+      misses(render, 8000, 26000);
+      best.at = Math.min(best.at, misses(render, 26000, 30000));
+    }
+
+    expect(best.at).toBeLessThan(best.below * 2);
+  }, 30_000);
+  it('keys the options `Intl` reads from the payload and the call', () => {
+    const { parse } = parser({ onReport: null });
+    const $t = localize(initLocale, { parse });
+
+    expect(parse('{{n, currency}}', [{ n: 1234.5, currency: 'EUR' }], initLocale, 'k')).toBe('€1,234.50');
+    expect(parse('{{n, currency}}', [{ n: 1234.5, currency: 'JPY' }], initLocale, 'k')).toBe('¥1,235');
+    expect(parse('{{n, currency}}', [{ n: 1234.5, currency: 'EUR' }], initLocale, 'k')).toBe('€1,234.50');
+    expect($t('common.number', { n: 1234.5 }, { formatParams: { n: { maximumFractionDigits: 0 } } })).toBe('1,235');
     expect($t('common.number', { n: 1234.5 })).toBe('1,234.5');
-    expect($t('common.number', { n: 1234.5 })).toBe('1,234.5');
+  });
+  it('reads the unit of `relativetime` per call', () => {
+    const $t = localize(initLocale, parser({ onReport: null }));
+
+    expect($t('common.ago', { d: 3 })).toBe('in 3 days');
+    expect($t('common.ago', { d: 3 }, { formatParams: { d: { range: 'hour' } } })).toBe('in 3 hours');
+    expect($t('common.ago', { d: 3 })).toBe('in 3 days');
+  });
+  it('builds for the call what it cannot key', () => {
+    const $t = localize(initLocale, parser({ onReport: null }));
+    const style = { toString: () => 'percent' };
+    const built = spyOnIntl('NumberFormat');
+
+    expect($t('common.number', { n: 0.5 }, { formatParams: { n: { style } } })).toBe('50%');
+    expect($t('common.number', { n: 0.5 }, { formatParams: { n: { style } } })).toBe('50%');
     expect(built).toHaveBeenCalledTimes(2);
 
-    built.mockRestore();
+    expect($t('common.number', { n: 1234.5 }, { formatParams: { n: { lng: 42 } } })).toBe('1234.5');
+  });
+  it('reads an option inherited from `Object.prototype` as `Intl` does', () => {
+    const $t = localize(initLocale, parser({ onReport: null }));
+    const prototype = Object.prototype as Record<string, unknown>;
+
+    expect($t('common.number', { n: 1.23456 })).toBe('1.235');
+
+    try {
+      prototype['maximumFractionDigits'] = 0;
+
+      expect($t('common.number', { n: 1.23456 })).toBe('1');
+      expect(localize(initLocale, parser({ onReport: null }))('common.number', { n: 1.23456 })).toBe('1');
+    } finally {
+      delete prototype['maximumFractionDigits'];
+    }
+
+    expect($t('common.number', { n: 1.23456 })).toBe('1.235');
+    expect(localize(initLocale, parser({ onReport: null }))('common.number', { n: 1.23456 })).toBe('1.235');
+    expect(({} as Record<string, unknown>)['maximumFractionDigits']).toBeUndefined();
+  });
+  it('keys no option `Intl` rejects', () => {
+    const $t = localize(initLocale, parser({ onReport: null }));
+
+    // `null` reads as 0, `NaN` is out of range: the engine contains the throw
+    // and hands the value on.
+    expect($t('common.number', { n: 1234.5 }, { formatParams: { n: { minimumFractionDigits: null } } })).toBe('1,234.5');
+    expect($t('common.number', { n: 1234.5 }, { formatParams: { n: { minimumFractionDigits: NaN } } })).toBe('1234.5');
+  });
+  it('lets a custom format replace a built-in', () => {
+    const $t = localize(initLocale, parser({ onReport: null, formats: { number: () => 'N' } }));
+
+    expect($t('common.number', { n: 1234.5 })).toBe('N');
+    expect(localize(initLocale, parser({ onReport: null }))('common.number', { n: 1234.5 })).toBe('1,234.5');
+  });
+  it('formats in a prototype-named locale the same every time', () => {
+    const own = parser({ onReport: null });
+
+    ['__proto__', 'constructor', 'toString'].forEach((locale) => {
+      const first = localize(locale, own)('common.number', { n: 1234.5 });
+
+      expect(localize(locale, own)('common.number', { n: 1234.5 })).toBe(first);
+      expect(localize(locale, parser({ onReport: null }))('common.number', { n: 1234.5 })).toBe(first);
+    });
   });
   it('registers custom `formats`, per parser instance', () => {
     const $t = localize(initLocale, parser({ onReport: null, formats: { upper: (value) => String(value).toUpperCase() } }));

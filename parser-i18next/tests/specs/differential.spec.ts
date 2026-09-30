@@ -48,6 +48,8 @@ const FIXTURES: readonly Fixture[] = [
   { locale: 'de', key: 'date', message: '{{d, datetime}}', payload: { d: date } },
   { locale: 'de', key: 'hours', message: '{{d, relativetime(range: hour)}}', payload: { d: 3 } },
   { locale: 'de', key: 'list', message: '{{l, list}}', payload: { l: ['a', 'b', 'c'] } },
+  { locale: 'pt_BR', key: 'price', message: '{{n, currency(BRL)}}', payload: { n: 1234.5 } },
+  { locale: 'pt_BR', key: 'percent', message: '{{n, number}}', payload: { n: 0.5 }, options: { formatParams: { n: { style: { toString: () => 'percent' } } } } },
 ];
 
 const interpolation: InterpolationOptions = { escapeValue: false };
@@ -79,5 +81,12 @@ describe('differential', () => {
       expect(typeof expected).toBe('string');
       expect(parse(message, [payload, options], locale, key)).toBe(expected);
     });
+  });
+  it('agrees again once the formatters are kept', () => {
+    const own = parser({ onReport: null, interpolation });
+
+    [1, 2].forEach(() => FIXTURES.forEach(({ locale, key, message, payload, options }) => {
+      expect(own.parse(message, [payload, options], locale, key)).toBe(reference.t(key, { ...payload, lng: locale, ...options }));
+    }));
   });
 });
