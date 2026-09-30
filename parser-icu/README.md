@@ -267,7 +267,7 @@ i18n.t('cart', { items: 3, total: 149.97 })
 
 ## Parser Options
 
-Configure the parser with Intl.MessageFormat options, plus `onReport`:
+Configure the parser with Intl.MessageFormat options, plus `onReport` and `cacheLimit`:
 
 ```typescript
 import parser from '@sveltekit-i18n/parser-icu';
@@ -275,6 +275,8 @@ import parser from '@sveltekit-i18n/parser-icu';
 const config = {
   parser: parser({
     onReport: (report) => console.warn(report.message, report.error),
+    // Optional: how many compiled messages are kept (default 10,000)
+    cacheLimit: 20000,
     // Optional MessageFormat options
     ignoreTag: false,
     captureLocation: false,
@@ -284,6 +286,8 @@ const config = {
 ```
 
 `onReport` is required, `null` included: this package writes to no channel of its own, so where a diagnostic goes is stated by whoever builds the parser. Pass `null` to discard reports.
+
+`cacheLimit` is how many compiled messages the parser keeps - see [Caching and Error Handling](#caching-and-error-handling) for when to raise it.
 
 A report carries `code`, the `key` and `locale` the call was made for, a one-sentence `message`, and the `error` the formatter threw where there was one:
 
@@ -331,7 +335,9 @@ A style the call does not define falls back to the ones `intl-messageformat` shi
 
 ## Caching and Error Handling
 
-Compiled messages are cached per parser instance (least-recently-used, up to 10,000 entries keyed by locale and message), so repeated reads of the same message skip recompilation. Calls that pass per-call [format options](#format-options) bypass the cache, because those options change the compilation.
+Compiled messages are cached per parser instance, keyed by locale and message, so repeated reads of the same message skip recompilation. The cache holds up to [`cacheLimit`](#parser-options) entries, 10,000 by default, as one count across every locale: the least recently used message makes room. Calls that pass per-call [format options](#format-options) bypass the cache, because those options change the compilation.
+
+An entry takes about 2 to 4 KB, so the default holds some 20 to 40 MB at most. Raise the limit when the messages your app reads over and over do not fit: a server shares one parser across every request, so what it reads is the locales it serves times the keys the busy pages display - 20 locales of 1,000 keys each is 20,000 entries. Past the limit, the messages of one locale push out those of the next and every request compiles them again; at 50 locales of 1,000 keys a request takes about five times as long as with a limit that holds them all. `cacheLimit: 0` compiles on every call, and `Infinity` never evicts, so memory grows with every message and locale the parser meets.
 
 Every message the parser formats, per-call `formats` included, draws on one set of `Intl` formatters kept per parser instance: one per locale and options, up to 10,000 of each kind, the oldest making room. A per-call style whose options are not plain data (an option inherited from a prototype, or read through a getter) is built for the call instead, so it always shows what it reads. A `formatters` set in the parser options replaces the kept set and is used as it is. A kept formatter goes on showing what the host's `Intl` had when it was built, its locale data and its default time zone: on a host whose default zone changes while it runs (Node with `process.env.TZ` set at runtime), a date or time that names no `timeZone` keeps the zone it was first formatted in.
 
@@ -390,7 +396,7 @@ A parameter several placeholders name accepts what all of them say together, and
 
 `optional` reports a parameter every placeholder naming it puts inside a selector branch, since only some branches of the message use it, and `when` names those branches outermost first so a generator can emit a discriminated payload instead of the flat approximation. Named outside every branch once, the parameter is expected outright.
 
-Build the extractor from the same options `parser()` is built from: an option that changes what a message means changes what it names. `ignoreTag: true` turns `<b>text</b>` into literal text, and the callback the payload carried for it is gone. `formatters` reaches nothing here - extraction formats nothing.
+Build the extractor from the same options `parser()` is built from: an option that changes what a message means changes what it names. `ignoreTag: true` turns `<b>text</b>` into literal text, and the callback the payload carried for it is gone. `formatters` and `cacheLimit` reach nothing here - extraction formats and caches nothing.
 
 Only the text of a message is scanned. A translation leaf that is not text names no parameters rather than throwing, and neither does a message this parser cannot compile.
 

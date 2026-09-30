@@ -240,14 +240,18 @@ describe('formatters', () => {
 });
 
 describe('cache', () => {
-  // What `intl-messageformat` compiles, read through the parse hook it declares.
+  // What `intl-messageformat` compiles, and the options it compiles with, read
+  // through the parse hook it declares.
   const compiled: string[] = [];
+  const compiledWith: unknown[] = [];
   const original = IntlMessageFormat.__parse!;
 
   beforeEach(() => {
     compiled.length = 0;
+    compiledWith.length = 0;
     IntlMessageFormat.__parse = (message, options) => {
       compiled.push(message);
+      compiledWith.push(options);
 
       return original(message, options);
     };
@@ -327,5 +331,54 @@ describe('cache', () => {
     }, (key) => typeof key === 'string' && key.startsWith('en-x-'));
 
     expect(held).toBeLessThanOrEqual(10000);
+  });
+  it('evicts the least recently used message across every locale once `cacheLimit` is reached', () => {
+    const { parse } = parser({ onReport: null, cacheLimit: 2 });
+
+    parse('a', [], 'en', 'k');
+    parse('a', [], 'cs', 'k');
+    parse('a', [], 'en', 'k');
+    parse('a', [], 'de', 'k');
+    expect(compiled).toEqual(['a', 'a', 'a']);
+
+    parse('a', [], 'en', 'k');
+    parse('a', [], 'cs', 'k');
+    expect(compiled).toEqual(['a', 'a', 'a', 'a']);
+    expect(compiledWith.every((options) => !Object.hasOwn(options as object, 'cacheLimit'))).toBe(true);
+  });
+  it('compiles on every call with a `cacheLimit` of 0', () => {
+    const { parse } = parser({ onReport: null, cacheLimit: 0 });
+    const money = { number: { money: { style: 'currency', currency: 'USD' } as const } };
+
+    parse('a', [], 'en', 'k');
+    parse('a', [], 'en', 'k');
+    parse('a', [{}, money], 'en', 'k');
+    parse('a', [{}, money], 'en', 'k');
+    expect(compiled).toEqual(['a', 'a', 'a', 'a']);
+  });
+
+  // How many compiles 10,001 messages and then the first one again take.
+  const fill = (cacheLimit?: unknown) => {
+    const { parse } = parser({ onReport: null, cacheLimit: cacheLimit as number });
+
+    compiled.length = 0;
+    for (let index = 0; index <= 10000; index += 1) parse(`m${index}`, [], 'en', 'k');
+    parse('m0', [], 'en', 'k');
+
+    return compiled.length;
+  };
+
+  it('holds 10,000 messages by default, and every one with an infinite `cacheLimit`', () => {
+    expect(fill()).toBe(10002);
+    expect(fill(Infinity)).toBe(10001);
+  });
+  it.each([-1, 1.5, NaN, '2', null])('holds 10,000 messages for a `cacheLimit` of %s, which is no count', (cacheLimit) => {
+    expect(fill(cacheLimit)).toBe(10002);
+  });
+  it('types `cacheLimit` as a count', () => {
+    // @ts-expect-error `cacheLimit` is a number.
+    const text: Shipped.Options = { onReport: null, cacheLimit: '5' };
+
+    expect(text).toBeDefined();
   });
 });
