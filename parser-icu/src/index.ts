@@ -1,4 +1,4 @@
-import { IntlMessageFormat, type Formatters } from 'intl-messageformat';
+import { IntlMessageFormat, type Formats, type Formatters } from 'intl-messageformat';
 import type { Parser, Config } from './types';
 
 export type { Parser, Config };
@@ -7,6 +7,8 @@ export type { Parser, Config };
 // than a subpath of its own: the package is ESM and declares
 // `sideEffects: false`, so a bundle that never reaches it drops it.
 export { extractParamsFactory } from './extract';
+
+type Message = ConstructorParameters<typeof IntlMessageFormat>[0];
 
 const CACHE_LIMIT = 10000;
 const FORMATTER_LIMIT = 10000;
@@ -74,6 +76,85 @@ const keep = <O, R>(build: (locales?: string | string[], options?: O) => R) => {
   };
 };
 
+// A node of the recency list, which runs from the least recently used message
+// of a cache to the most recently used one.
+type Entry = {
+  compiled: IntlMessageFormat;
+  locale: string;
+  message: string;
+  older: Entry | undefined;
+  newer: Entry | undefined;
+};
+
+type Cache = {
+  get: (locale: string, message: string) => IntlMessageFormat | undefined;
+  set: (locale: string, message: string, compiled: IntlMessageFormat) => void;
+};
+
+// Compiled messages by locale, then by message, so a hit hashes the message
+// string a catalogue holds, evicted least recently used first. A locale reaches
+// `parse` from the caller, so the limit bounds the locales held as well: a
+// locale is held while a message of it is, and never for a compile that threw.
+const lru = (limit: number): Cache => {
+  const locales = new Map<string, Map<string, Entry>>();
+  let oldest: Entry | undefined;
+  let newest: Entry | undefined;
+  let size = 0;
+
+  const unlink = (entry: Entry) => {
+    if (entry.older) entry.older.newer = entry.newer;
+    else oldest = entry.newer;
+    if (entry.newer) entry.newer.older = entry.older;
+    else newest = entry.older;
+  };
+
+  const append = (entry: Entry) => {
+    entry.older = newest;
+    entry.newer = undefined;
+    if (newest) newest.newer = entry;
+    else oldest = entry;
+    newest = entry;
+  };
+
+  const evict = (entry: Entry) => {
+    const messages = locales.get(entry.locale)!;
+
+    unlink(entry);
+    messages.delete(entry.message);
+    if (messages.size === 0) locales.delete(entry.locale);
+    size -= 1;
+  };
+
+  return {
+    get: (locale, message) => {
+      const held = locales.get(locale)?.get(message);
+
+      if (held !== undefined && held !== newest) {
+        unlink(held);
+        append(held);
+      }
+
+      return held?.compiled;
+    },
+    set: (locale, message, compiled) => {
+      if (size >= limit) evict(oldest!);
+
+      let messages = locales.get(locale);
+
+      if (messages === undefined) {
+        messages = new Map();
+        locales.set(locale, messages);
+      }
+
+      const entry: Entry = { compiled, locale, message, older: undefined, newer: undefined };
+
+      messages.set(message, entry);
+      append(entry);
+      size += 1;
+    },
+  };
+};
+
 const sharedFormatters = (): Formatters => ({
   getNumberFormat: keep((locales, options?: Intl.NumberFormatOptions) => new Intl.NumberFormat(locales, options)),
   getDateTimeFormat: keep((locales, options?: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(locales, options)),
@@ -84,9 +165,25 @@ const parser: Parser.Factory = ({ onReport, ...rest }) => {
   // One set of formatters serves every message this parser formats, unless
   // the consumer brought their own.
   const parserOptions = rest.formatters ? rest : { ...rest, formatters: sharedFormatters() };
-  // Compiled messages keyed by locale and message, evicted least-recently-used.
+  const plain = lru(CACHE_LIMIT);
+
   // Per-call `formats` change the compilation, so those calls bypass the cache.
-  const cache = new Map<string, IntlMessageFormat>();
+  const cacheOf = (formats: Partial<Formats> | undefined): Cache | undefined => (formats === undefined ? plain : undefined);
+
+  const compile = (message: Message, locale: string, formats: Partial<Formats> | undefined) => new IntlMessageFormat(message, locale, formats, parserOptions);
+
+  const cached = (message: string, locale: string, formats: Partial<Formats> | undefined): IntlMessageFormat => {
+    const cache = cacheOf(formats);
+    const held = cache?.get(locale, message);
+
+    if (held !== undefined) return held;
+
+    const compiled = compile(message, locale, formats);
+
+    cache?.set(locale, message, compiled);
+
+    return compiled;
+  };
 
   // A report channel is consumer code: a throwing one must not take a render
   // down with it.
@@ -128,28 +225,7 @@ const parser: Parser.Factory = ({ onReport, ...rest }) => {
       }
 
       try {
-        if (formats !== undefined || typeof message !== 'string') {
-          return render(new IntlMessageFormat(message, locale, formats, parserOptions), payload, locale, key);
-        }
-
-        const cacheKey = `${locale}\u0000${message}`;
-        let compiled = cache.get(cacheKey);
-
-        if (compiled === undefined) {
-          compiled = new IntlMessageFormat(message, locale, undefined, parserOptions);
-
-          if (cache.size >= CACHE_LIMIT) {
-            const oldest = cache.keys().next().value;
-
-            if (oldest !== undefined) {
-              cache.delete(oldest);
-            }
-          }
-        } else {
-          cache.delete(cacheKey);
-        }
-
-        cache.set(cacheKey, compiled);
+        const compiled = typeof message === 'string' ? cached(message, locale, formats) : compile(message, locale, formats);
 
         return render(compiled, payload, locale, key);
       } catch (error) {

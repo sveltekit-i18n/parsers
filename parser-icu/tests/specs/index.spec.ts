@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { IntlMessageFormat } from 'intl-messageformat';
 import parser, { Parser } from '../../src';
 import type { Parser as Shipped } from '../../dist';
 import { TRANSLATIONS } from '../data';
@@ -235,5 +236,96 @@ describe('formatters', () => {
     expect(parse('{n, plural, one {# cat} other {# cats}}', [{ n: 2 }], 'en', 'a')).toBe('2 cats');
     expect(parse('{n, plural, one {# dog} other {# dogs}}', [{ n: 2 }], 'en', 'b')).toBe('2 dogs');
     expect(getPluralRules).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('cache', () => {
+  // What `intl-messageformat` compiles, read through the parse hook it declares.
+  const compiled: string[] = [];
+  const original = IntlMessageFormat.__parse!;
+
+  beforeEach(() => {
+    compiled.length = 0;
+    IntlMessageFormat.__parse = (message, options) => {
+      compiled.push(message);
+
+      return original(message, options);
+    };
+  });
+
+  afterEach(() => {
+    IntlMessageFormat.__parse = original;
+    vi.unstubAllGlobals();
+  });
+
+  // Every key the maps a parser builds hold, counted once it has run.
+  const heldKeys = (run: () => void, of: (key: unknown) => boolean) => {
+    const maps: Map<unknown, unknown>[] = [];
+
+    vi.stubGlobal('Map', class extends Map<unknown, unknown> {
+      constructor(entries?: Iterable<readonly [unknown, unknown]> | null) {
+        super(entries);
+        maps.push(this);
+      }
+    });
+    run();
+    vi.unstubAllGlobals();
+
+    return maps.reduce((count, map) => count + [...map.keys()].filter(of).length, 0);
+  };
+
+  it('keeps a locale and a message apart, whatever characters they hold', () => {
+    const reports: Parser.Report[] = [];
+    const { parse } = parser({ onReport: (report) => reports.push(report) });
+
+    expect(parse('a\u0000b', [], 'en', 'k')).toBe('a\u0000b');
+    expect(parse('b', [], 'en\u0000a', 'k')).toBe('b');
+    expect(reports).toMatchObject([{ code: 'failed-message', locale: 'en\u0000a' }]);
+  });
+  it('reads a cached message in about the time a short one takes, however long it is', () => {
+    const { parse } = parser({ onReport: null });
+    const long = `Hello {name}! ${'x'.repeat(8000)}`;
+    const short = 'Hello {name}!';
+    const hits = (message: string) => {
+      const start = performance.now();
+
+      for (let hit = 0; hit < 2000; hit += 1) parse(message, [{ name: 'A' }], 'en', 'k');
+
+      return performance.now() - start;
+    };
+    const best = { long: Infinity, short: Infinity };
+
+    // The best of ten rounds, the first warming up.
+    for (let round = 0; round < 11; round += 1) {
+      const timeLong = hits(long);
+      const timeShort = hits(short);
+
+      if (round > 0) {
+        best.long = Math.min(best.long, timeLong);
+        best.short = Math.min(best.short, timeShort);
+      }
+    }
+
+    expect(best.long).toBeLessThan(best.short * 4);
+  });
+  it('keeps messages named after prototype members as keys of their own', () => {
+    const { parse } = parser({ onReport: null });
+
+    ['__proto__', 'constructor', '__proto__', 'constructor'].forEach((message) => {
+      expect(parse(message, [], message === '__proto__' ? 'en' : 'cs', 'k')).toBe(message);
+    });
+    expect(compiled).toEqual(['__proto__', 'constructor']);
+  });
+  it('holds no more locales than messages, and none a compile threw for', () => {
+    const held = heldKeys(() => {
+      const { parse } = parser({ onReport: null });
+
+      for (let index = 0; index < 10100; index += 1) {
+        parse('Hello', [], `en-x-a${index}`, 'k');
+        parse('{broken', [], `en-x-b${index}`, 'k');
+      }
+    }, (key) => typeof key === 'string' && key.startsWith('en-x-'));
+
+    expect(held).toBeLessThanOrEqual(10000);
   });
 });
