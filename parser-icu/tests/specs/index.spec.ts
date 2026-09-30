@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import parser, { Parser } from '../../src';
 import type { Parser as Shipped } from '../../dist';
 import { TRANSLATIONS } from '../data';
@@ -125,5 +125,115 @@ describe('parser', () => {
     const unknown: Shipped.Options = { onReport: null, bogus: true };
 
     expect([missing, unknown]).toHaveLength(2);
+  });
+});
+
+describe('formatters', () => {
+  // Counts what the parser builds; each call still returns the host's own object.
+  const count = (name: 'NumberFormat' | 'DateTimeFormat' | 'PluralRules') => {
+    const Native = Intl[name] as new (...args: unknown[]) => object;
+
+    return vi.spyOn(Intl, name).mockImplementation(function (...args: unknown[]) {
+      return new Native(...args);
+    });
+  };
+
+  const collect = () => {
+    const reports: Parser.Report[] = [];
+
+    return { reports, onReport: (report: Parser.Report) => { reports.push(report); } };
+  };
+
+  const d = new Date(Date.UTC(2024, 0, 15, 23, 30));
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('builds one Intl object for a locale and options, whichever message asks', () => {
+    const built = count('PluralRules');
+    const { parse } = parser({ onReport: null });
+
+    expect(parse('{n, plural, one {# cat} other {# cats}}', [{ n: 2 }], 'en', 'a')).toBe('2 cats');
+    expect(parse('{n, plural, one {# dog} other {# dogs}}', [{ n: 1 }], 'en', 'b')).toBe('1 dog');
+    expect(parse('{n, plural, one {# owl} other {# owls}}', [{ n: 3 }, {}], 'en', 'c')).toBe('3 owls');
+    expect(parse('{n, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}', [{ n: 3 }], 'en', 'd')).toBe('3rd');
+    expect(parse('{n, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} again', [{ n: 2 }], 'en', 'e')).toBe('2nd again');
+    // One for the cardinal rules, one for the ordinal.
+    expect(built).toHaveBeenCalledTimes(2);
+  });
+  it('keeps them per parser', () => {
+    const built = count('PluralRules');
+
+    [parser({ onReport: null }), parser({ onReport: null })].forEach(({ parse }) => {
+      expect(parse('{n, plural, one {# cat} other {# cats}}', [{ n: 2 }], 'en', 'a')).toBe('2 cats');
+    });
+    expect(built).toHaveBeenCalledTimes(2);
+  });
+  it('keeps no more than its limit', () => {
+    const { reports, onReport } = collect();
+    const { parse } = parser({ onReport });
+    const locales = Array.from({ length: 10001 }, (_, i) => `en-x-${i.toString(36).padStart(4, '0')}`);
+
+    locales.forEach((locale) => parse('{n, number}', [{ n: 1 }], locale, 'a'));
+    const built = count('NumberFormat');
+
+    expect(parse('{n, number} again', [{ n: 1 }], locales[0], 'b')).toBe('1 again');
+    expect(parse('{n, number} again', [{ n: 1 }], locales[10000], 'b')).toBe('1 again');
+    expect(reports).toEqual([]);
+    // The first locale made room for the last; the last is still kept.
+    expect(built).toHaveBeenCalledTimes(1);
+  }, 30_000);
+  it('reads per-call options the way Intl does', () => {
+    class Prefs {
+      #timeZone = 'UTC';
+      hour = 'numeric' as const;
+      minute = '2-digit' as const;
+      get timeZone() { return this.#timeZone; }
+      set timeZone(timeZone: string) { this.#timeZone = timeZone; }
+    }
+
+    const { parse } = parser({ onReport: null });
+    const inherited = (options: Intl.DateTimeFormatOptions) => [{ d }, { date: { v: Object.create(options) as Intl.DateTimeFormatOptions } }] satisfies Parser.Params;
+
+    expect(parse('{d, date, v}', inherited({ year: 'numeric' }), 'en', 'a')).toBe('2024');
+    expect(parse('{d, date, v}', inherited({ month: 'long' }), 'en', 'a')).toBe('January');
+
+    const prefs = new Prefs();
+    const at = (timeZone: string) => `At ${new Intl.DateTimeFormat('en', { hour: 'numeric', minute: '2-digit', timeZone }).format(d)}`;
+
+    expect(parse('At {d, time, user}', [{ d }, { time: { user: prefs } }], 'en', 'b')).toBe(at('UTC'));
+    prefs.timeZone = 'Asia/Tokyo';
+    expect(parse('At {d, time, user}', [{ d }, { time: { user: prefs } }], 'en', 'b')).toBe(at('Asia/Tokyo'));
+    expect(at('UTC')).not.toBe(at('Asia/Tokyo'));
+  });
+  it('reports an option Intl rejects, whatever was built before', () => {
+    const { reports, onReport } = collect();
+    const { parse } = parser({ onReport });
+
+    expect(parse('{n, number, s}', [{ n: 1.2345 }, { number: { s: { maximumFractionDigits: null as never } } }], 'en', 'a')).toBe('1');
+    expect(parse('{n, number, s}', [{ n: 1.2345 }, { number: { s: { maximumFractionDigits: NaN } } }], 'en', 'a')).toBe('{n, number, s}');
+    expect(reports.map(({ code }) => code)).toEqual(['failed-message']);
+  });
+  it('shares a plain per-call style by content', () => {
+    const built = count('DateTimeFormat');
+    const { parse } = parser({ onReport: null });
+
+    expect(parse('{d, date, y}', [{ d }, { date: { y: { year: 'numeric' } } }], 'en', 'a')).toBe('2024');
+    expect(parse('{d, date, y}', [{ d }, { date: { y: { year: 'numeric' } } }], 'en', 'a')).toBe('2024');
+    expect(built).toHaveBeenCalledTimes(1);
+  });
+  it('uses the formatters the options carry, as they are', () => {
+    const getPluralRules = vi.fn((...args: ConstructorParameters<typeof Intl.PluralRules>) => new Intl.PluralRules(...args));
+    const formatters = {
+      getNumberFormat: (...args: ConstructorParameters<typeof Intl.NumberFormat>) => new Intl.NumberFormat(...args),
+      getDateTimeFormat: (...args: ConstructorParameters<typeof Intl.DateTimeFormat>) => new Intl.DateTimeFormat(...args),
+      getPluralRules,
+    };
+    const { parse } = parser({ onReport: null, formatters });
+
+    expect(parse('{n, plural, one {# cat} other {# cats}}', [{ n: 2 }], 'en', 'a')).toBe('2 cats');
+    expect(parse('{n, plural, one {# dog} other {# dogs}}', [{ n: 2 }], 'en', 'b')).toBe('2 dogs');
+    expect(getPluralRules).toHaveBeenCalledTimes(2);
   });
 });

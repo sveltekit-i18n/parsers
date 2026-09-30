@@ -333,6 +333,8 @@ A style the call does not define falls back to the ones `intl-messageformat` shi
 
 Compiled messages are cached per parser instance (least-recently-used, up to 10,000 entries keyed by locale and message), so repeated reads of the same message skip recompilation. Calls that pass per-call [format options](#format-options) bypass the cache, because those options change the compilation.
 
+Every message the parser formats, per-call `formats` included, draws on one set of `Intl` formatters kept per parser instance: one per locale and options, up to 10,000 of each kind, the oldest making room. A per-call style whose options are not plain data (an option inherited from a prototype, or read through a getter) is built for the call instead, so it always shows what it reads. A `formatters` set in the parser options replaces the kept set and is used as it is. A kept formatter goes on showing what the host's `Intl` had when it was built, its locale data and its default time zone: on a host whose default zone changes while it runs (Node with `process.env.TZ` set at runtime), a date or time that names no `timeZone` keeps the zone it was first formatted in.
+
 A key naming no message is nothing to format and yields the empty string; what a missing translation renders as is [`fallbackValue`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#fallbackvalue), which base answers before this parser is called.
 
 If a message cannot be compiled (malformed ICU syntax) or formatted (for example, a payload variable is missing), the parser does not throw. It reports the failure through [`onReport`](#parser-options) and returns the raw message, so one broken translation cannot crash your page. A report channel that throws is contained too.
