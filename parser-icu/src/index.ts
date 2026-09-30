@@ -1,4 +1,4 @@
-import { IntlMessageFormat } from 'intl-messageformat';
+import { IntlMessageFormat, type Formatters } from 'intl-messageformat';
 import type { Parser, Config } from './types';
 
 export type { Parser, Config };
@@ -9,6 +9,7 @@ export type { Parser, Config };
 export { extractParamsFactory } from './extract';
 
 const CACHE_LIMIT = 10000;
+const FORMATTER_LIMIT = 10000;
 
 // A leaf that is no message is returned as its text; a null-prototype object,
 // or a `toString` that throws, has none.
@@ -20,7 +21,69 @@ const raw = (message: unknown): string | undefined => {
   }
 };
 
-const parser: Parser.Factory = ({ onReport, ...parserOptions }) => {
+// The key is what `JSON.stringify` sees, while `Intl` reads an option through
+// the prototype chain and through getters: only options the two read alike -
+// own, enumerable data of finite numbers, strings and booleans - are keyed.
+const keyable = (options: unknown): boolean => {
+  if (options === undefined) return true;
+  if (typeof options !== 'object' || options === null) return false;
+
+  const prototype: unknown = Object.getPrototypeOf(options);
+
+  if (prototype !== Object.prototype && prototype !== null) return false;
+
+  return Object.getOwnPropertyNames(options).every((name) => {
+    const descriptor = Object.getOwnPropertyDescriptor(options, name);
+
+    if (!descriptor?.enumerable || !('value' in descriptor)) return false;
+
+    const value: unknown = descriptor.value;
+
+    return value === undefined || value === null || typeof value === 'string' || typeof value === 'boolean'
+      || (typeof value === 'number' && Number.isFinite(value));
+  });
+};
+
+// Each constructor keeps what it built for a locale and options, the oldest
+// making room: a locale reaches `parse` from the caller, so what it builds for
+// must not grow without limit.
+const keep = <O, R>(build: (locales?: string | string[], options?: O) => R) => {
+  const built = new Map<string, R>();
+
+  return (locales?: string | string[], options?: O): R => {
+    if (typeof locales !== 'string' || !keyable(options)) return build(locales, options);
+
+    const key = JSON.stringify([locales, options]);
+    let kept = built.get(key);
+
+    if (kept === undefined) {
+      kept = build(locales, options);
+
+      if (built.size >= FORMATTER_LIMIT) {
+        const oldest = built.keys().next();
+
+        if (!oldest.done) {
+          built.delete(oldest.value);
+        }
+      }
+
+      built.set(key, kept);
+    }
+
+    return kept;
+  };
+};
+
+const sharedFormatters = (): Formatters => ({
+  getNumberFormat: keep((locales, options?: Intl.NumberFormatOptions) => new Intl.NumberFormat(locales, options)),
+  getDateTimeFormat: keep((locales, options?: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(locales, options)),
+  getPluralRules: keep((locales, options?: Intl.PluralRulesOptions) => new Intl.PluralRules(locales, options)),
+});
+
+const parser: Parser.Factory = ({ onReport, ...rest }) => {
+  // One set of formatters serves every message this parser formats, unless
+  // the consumer brought their own.
+  const parserOptions = rest.formatters ? rest : { ...rest, formatters: sharedFormatters() };
   // Compiled messages keyed by locale and message, evicted least-recently-used.
   // Per-call `formats` change the compilation, so those calls bypass the cache.
   const cache = new Map<string, IntlMessageFormat>();
