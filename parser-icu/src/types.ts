@@ -34,11 +34,20 @@ export module Parser {
 
   /**
    * The options `parser()` takes: `intl-messageformat`'s own, plus where a
-   * diagnostic goes. `onReport` is required, `null` included: this package
-   * writes to no channel of its own, so where a report goes is stated by
-   * whoever builds the parser.
+   * diagnostic goes and how many compiled messages are kept. `onReport` is
+   * required, `null` included: this package writes to no channel of its own,
+   * so where a report goes is stated by whoever builds the parser.
    */
-  export type Options = IntlMessageFormatOptions & { onReport: OnReport | null | undefined };
+  export type Options = IntlMessageFormatOptions & {
+    onReport: OnReport | null | undefined;
+    /**
+     * How many compiled messages the parser keeps, one count across every
+     * locale, the least recently used making room. `10000` by default; `0`
+     * compiles on every call, `Infinity` never evicts. A value that is no
+     * count keeps the default.
+     */
+    cacheLimit?: number;
+  };
 
   export type T = P.T<Params, string>;
 
@@ -48,8 +57,8 @@ export module Parser {
    * The options `extractParamsFactory()` takes: the parse options `parser()`
    * takes, so an extractor is built the way the app builds its parser -
    * `ignoreTag` turns `<b>x</b>` into literal text and the callback the payload
-   * carried for it is gone. Extraction formats nothing and reports nothing, so
-   * neither `formatters` nor `onReport` belongs here.
+   * carried for it is gone. Extraction formats, caches and reports nothing, so
+   * none of `formatters`, `cacheLimit` and `onReport` belongs here.
    */
   export type ExtractOptions = IntlMessageFormatOptions;
 

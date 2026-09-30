@@ -13,6 +13,11 @@ type Message = ConstructorParameters<typeof IntlMessageFormat>[0];
 const CACHE_LIMIT = 10000;
 const FORMATTER_LIMIT = 10000;
 
+// A count of entries, or no limit at all; anything else keeps the default.
+const capacity = (limit: unknown): number => ((Number.isInteger(limit) && (limit as number) >= 0) || limit === Infinity
+  ? limit as number
+  : CACHE_LIMIT);
+
 // A leaf that is no message is returned as its text; a null-prototype object,
 // or a `toString` that throws, has none.
 const raw = (message: unknown): string | undefined => {
@@ -161,14 +166,19 @@ const sharedFormatters = (): Formatters => ({
   getPluralRules: keep((locales, options?: Intl.PluralRulesOptions) => new Intl.PluralRules(locales, options)),
 });
 
-const parser: Parser.Factory = ({ onReport, ...rest }) => {
+const parser: Parser.Factory = ({ onReport, cacheLimit, ...rest }) => {
   // One set of formatters serves every message this parser formats, unless
   // the consumer brought their own.
   const parserOptions = rest.formatters ? rest : { ...rest, formatters: sharedFormatters() };
-  const plain = lru(CACHE_LIMIT);
+  const limit = capacity(cacheLimit);
+  const plain = lru(limit);
 
-  // Per-call `formats` change the compilation, so those calls bypass the cache.
-  const cacheOf = (formats: Partial<Formats> | undefined): Cache | undefined => (formats === undefined ? plain : undefined);
+  const cacheOf = (formats: Partial<Formats> | undefined): Cache | undefined => {
+    if (limit === 0) return undefined;
+
+    // Per-call `formats` change the compilation, so those calls bypass the cache.
+    return formats === undefined ? plain : undefined;
+  };
 
   const compile = (message: Message, locale: string, formats: Partial<Formats> | undefined) => new IntlMessageFormat(message, locale, formats, parserOptions);
 
