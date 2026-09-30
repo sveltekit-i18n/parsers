@@ -306,7 +306,7 @@ expect(i18n.t('greeting', { name: 'Alice' })).toBe('Hello, Alice!');
 
 ## Parser Options
 
-Configure the parser with the engine's options, plus `onReport`:
+Configure the parser with the engine's options, plus `onReport` and `cacheLimit`:
 
 ```typescript
 import parser from '@sveltekit-i18n/parser-mf2';
@@ -314,6 +314,8 @@ import parser from '@sveltekit-i18n/parser-mf2';
 const config = {
   parser: parser({
     onReport: (report) => console.warn(report.message, report.error),
+    // Optional: how many compiled messages are kept (default 10,000)
+    cacheLimit: 20000,
     // Optional engine options
     bidiIsolation: 'default',
     dir: 'auto',
@@ -326,6 +328,7 @@ const config = {
 | Option | Meaning |
 | --- | --- |
 | `onReport` | Where a diagnostic goes: a function, or `null` to discard reports. Required. |
+| `cacheLimit` | How many compiled messages the parser keeps, 10,000 by default - see [Caching and Error Handling](#caching-and-error-handling) for when to raise it. |
 | `bidiIsolation` | `'default'` isolates placeholders as [described above](#bidi-isolation); `'none'` applies no isolation. |
 | `dir` | The message's base direction, `'ltr'`, `'rtl'` or `'auto'`; detected from the locale when not set. |
 | `localeMatcher` | `'best fit'` or `'lookup'`, the `Intl` locale negotiation each function uses. |
@@ -386,7 +389,9 @@ A report never raises, and neither does a report channel that throws: the failur
 
 ## Caching and Error Handling
 
-Compiled messages are cached per parser instance (least-recently-used, up to 10,000 entries keyed by locale and message), so repeated reads of the same message skip recompilation.
+Compiled messages are cached per parser instance, keyed by locale and message, so repeated reads of the same message skip recompilation. The cache holds up to [`cacheLimit`](#parser-options) entries, 10,000 by default, as one count across every locale: the least recently used message makes room.
+
+A short message takes about 1.5 to 3 KB, counting what the engine keeps outside the JavaScript heap, so the default holds some 15 to 30 MB of them. An entry grows with the length of its message and its variants: an 8,000-character text takes some 9 KB, and a match over three selectors and 36 variants over 30 KB. Raise the limit when the messages your app reads over and over do not fit: a server shares one parser across every request, so what it reads is the locales it serves times the keys the busy pages display - 20 locales of 1,000 keys each is 20,000 entries. Past the limit, the messages of one locale push out those of the next and every request compiles them again. At 50 locales of 1,000 keys, a request of text and placeholders takes some fifteen times as long as with a limit that holds them all. One whose messages format numbers takes some 25 to 40% longer, since formatting a number costs more than compiling its message. `cacheLimit: 0` compiles on every call, and `Infinity` never evicts, so memory grows with every message and locale the parser meets.
 
 A key naming no message is nothing to format and yields the empty string; what a missing translation renders as is [`fallbackValue`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#fallbackvalue), which base answers before this parser is called.
 
@@ -449,7 +454,7 @@ A declaration names a parameter too. `.input {$count :integer}` annotates `count
 
 `optional` reports a parameter every expression naming it puts inside a variant, since only some variants of the message use it, and `when` names those variants - one `{ param, branch }` per selector, `branch` being the key or `*` - so a generator can emit a discriminated payload instead of the flat approximation. Named outside every variant once, in a declaration, as a selector or in a pattern message, the parameter is expected outright.
 
-Build the extractor from the same options `parser()` is built from, for symmetry: the syntax is the specification's and a custom function narrows nothing, so no option changes what a message names. `onReport` is not among them - extraction reports nothing.
+Build the extractor from the same options `parser()` is built from, for symmetry: the syntax is the specification's and a custom function narrows nothing, so no option changes what a message names. `onReport` and `cacheLimit` are not among them - extraction reports and caches nothing.
 
 Only the text of a message is scanned. A translation leaf that is not text names no parameters rather than throwing, and neither does a message this parser cannot compile.
 

@@ -37,12 +37,21 @@ export namespace Parser {
 
   /**
    * The options `parser()` takes: `messageformat`'s own (`bidiIsolation`,
-   * `dir`, `localeMatcher`, `functions`), plus where a diagnostic goes.
-   * `onReport` is required, `null` included: this package writes to no
-   * channel of its own, so where a report goes is stated by whoever builds
-   * the parser.
+   * `dir`, `localeMatcher`, `functions`), plus where a diagnostic goes and
+   * how many compiled messages are kept. `onReport` is required, `null`
+   * included: this package writes to no channel of its own, so where a report
+   * goes is stated by whoever builds the parser.
    */
-  export type Options = MessageFormatOptions<string> & { onReport: OnReport | null | undefined };
+  export type Options = MessageFormatOptions<string> & {
+    onReport: OnReport | null | undefined;
+    /**
+     * How many compiled messages the parser keeps, one count across every
+     * locale, the least recently used making room. `10000` by default; `0`
+     * compiles on every call, `Infinity` never evicts. A value that is no
+     * count keeps the default.
+     */
+    cacheLimit?: number;
+  };
 
   export type T = BaseParser.T<Params, string>;
 
@@ -53,9 +62,10 @@ export namespace Parser {
    * an extractor is built from the same bag the app builds its parser from.
    * None of them changes what a message names - the syntax is fixed by the
    * specification, and a custom function narrows nothing - and extraction
-   * reports nothing, so `onReport` is not among them.
+   * caches and reports nothing, so neither `cacheLimit` nor `onReport` is
+   * among them.
    */
-  export type ExtractOptions = Omit<Options, 'onReport'>;
+  export type ExtractOptions = Omit<Options, 'onReport' | 'cacheLimit'>;
 
   /**
    * Reports the parameters a message names. The build-time half of the parser

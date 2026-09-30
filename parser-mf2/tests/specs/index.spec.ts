@@ -4,8 +4,8 @@ import type { MessageFunction } from 'messageformat/functions';
 import parser, { Parser } from '../../src';
 import { TRANSLATIONS } from '../data';
 
-// What the engine compiles.
-const { compiled } = vi.hoisted(() => ({ compiled: [] as unknown[] }));
+// What the engine compiles, and the options it compiles with.
+const { compiled, compiledWith } = vi.hoisted(() => ({ compiled: [] as unknown[], compiledWith: [] as unknown[] }));
 
 vi.mock('messageformat', async (importOriginal) => {
   const original = await importOriginal<typeof import('messageformat')>();
@@ -13,6 +13,7 @@ vi.mock('messageformat', async (importOriginal) => {
   class MessageFormat<T extends string = never, P extends string = T> extends original.MessageFormat<T, P> {
     constructor(...args: ConstructorParameters<typeof original.MessageFormat<T, P>>) {
       compiled.push(args[1]);
+      compiledWith.push(args[2]);
       super(...args);
     }
   }
@@ -218,6 +219,7 @@ describe('parser', () => {
 describe('cache', () => {
   beforeEach(() => {
     compiled.length = 0;
+    compiledWith.length = 0;
   });
 
   afterEach(() => {
@@ -301,5 +303,54 @@ describe('cache', () => {
     }, (key) => typeof key === 'string' && key.startsWith('en-x-'));
 
     expect(held).toBeLessThanOrEqual(10000);
+  });
+  it('evicts the least recently used message across every locale once `cacheLimit` is reached', () => {
+    const { parse } = parser({ onReport: null, cacheLimit: 2 });
+
+    parse('a', [], 'en', 'k');
+    parse('a', [], 'cs', 'k');
+    parse('a', [], 'en', 'k');
+    parse('a', [], 'de', 'k');
+    expect(compiled).toEqual(['a', 'a', 'a']);
+
+    parse('a', [], 'en', 'k');
+    parse('a', [], 'cs', 'k');
+    expect(compiled).toEqual(['a', 'a', 'a', 'a']);
+    expect(compiledWith.every((options) => !Object.hasOwn(options as object, 'cacheLimit'))).toBe(true);
+  });
+  it.each([
+    ['bdadacba', 'bdacb'],
+    ['badacba', 'badcb'],
+  ])('keeps the recency order through reads from its middle (%s)', (reads, compiles) => {
+    const { parse } = parser({ onReport: null, cacheLimit: 3 });
+
+    for (const message of reads) parse(message, [], 'en', 'k');
+    expect(compiled.join('')).toBe(compiles);
+  });
+  it('compiles on every call with a `cacheLimit` of 0', () => {
+    const { parse } = parser({ onReport: null, cacheLimit: 0 });
+
+    parse('a', [], 'en', 'k');
+    parse('a', [], 'en', 'k');
+    expect(compiled).toEqual(['a', 'a']);
+  });
+
+  // How many compiles 10,001 messages and then the first one again take.
+  const fill = (cacheLimit?: unknown) => {
+    const { parse } = parser({ onReport: null, cacheLimit: cacheLimit as number });
+
+    compiled.length = 0;
+    for (let index = 0; index <= 10000; index += 1) parse(`m${index}`, [], 'en', 'k');
+    parse('m0', [], 'en', 'k');
+
+    return compiled.length;
+  };
+
+  it('holds 10,000 messages by default, and every one with an infinite `cacheLimit`', () => {
+    expect(fill()).toBe(10002);
+    expect(fill(Infinity)).toBe(10001);
+  });
+  it.each([-1, 1.5, NaN, '2', null])('holds 10,000 messages for a `cacheLimit` of %s, which is no count', (cacheLimit) => {
+    expect(fill(cacheLimit)).toBe(10002);
   });
 });
