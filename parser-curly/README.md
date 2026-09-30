@@ -165,6 +165,8 @@ i18n.t('cost', { amount: 1999 }, { currency: { currency: 'USD', ratio: 0.01 } })
 
 A value the modifier cannot read — text that is not a number, an empty string, a `Date` object under `number` — takes the fallback and is reported as `failed-modifier`; so does a `currency` placeholder with no currency code or an `ago` whose `format` names no unit. Nothing raises. A `Date` object does work under `date`, to the second, because it reaches the modifier as its `toString` text; pass a timestamp or an ISO string where a placeholder wants one. With no locale — none passed, or the empty string — a formatting modifier or a [plural selection](#plural-selection) resolves to the empty string rather than to the fallback and reports `missing-locale`.
 
+The formatting modifiers keep an `Intl` object the host's own constructor built, and a later request that spells the same locale and options the same way reuses it. A kept object shows what the host showed when it was built: wherever no layer — `modifierDefaults`, the call's props, a wrapper's props — names a `timeZone`, a host that changes its zone while running goes on showing a kept request's dates in the old zone, while a request first built after the change shows the new one. Naming a `timeZone` in any layer, `modifierDefaults` included, avoids that. Which requests are kept, and for how long, is set out in [the reference implementation's README](https://github.com/curly-message/parsers/blob/js-v3.1.1/js/README.md?plain=1#L78-L92).
+
 ### Comparisons
 
 `eq`, `ne`, `lt`, `lte`, `gt` and `gte` select among the options: the first option whose key satisfies the comparison against the value is the result, and none selected takes the fallback. `eq` and `ne` compare as text, case-insensitively; `lt` and `gt` compare numerically, considering the options in ascending or descending key order; `lte` and `gte` try equality first. A placeholder with options and no modifier compares with `eq`.
@@ -215,7 +217,7 @@ i18n.t('files', { count: 5 })   // → "5 файлов" (in ru)
 i18n.t('place', { n: 22 })      // → "22nd"
 ```
 
-A numeric key matches the value exactly and wins over a category, as `0:` does above. A category the placeholder writes no option for takes the fallback — no option catches it as ICU's `other` does — so a message writes every category its locale uses. How `default` and the rest of the fallback chain answer, which props each modifier reads, and why `plural` follows the digits `number` shows are set out in [the reference implementation's README](https://github.com/curly-message/parsers/tree/js-v3.1.0/js#plural-selection).
+A numeric key matches the value exactly and wins over a category, as `0:` does above. A category the placeholder writes no option for takes the fallback — no option catches it as ICU's `other` does — so a message writes every category its locale uses. How `default` and the rest of the fallback chain answer, which props each modifier reads, and why `plural` follows the digits `number` shows are set out in [the reference implementation's README](https://github.com/curly-message/parsers/tree/js-v3.1.1/js#plural-selection).
 
 ### Nested Placeholders
 
