@@ -42,7 +42,8 @@ export module Parser {
     onReport: OnReport | null | undefined;
     /**
      * How many compiled messages the parser keeps, one count across every
-     * locale, the least recently used making room. `10000` by default; `0`
+     * locale, the least recently used making room, and as many again for each
+     * per-call `formats` object while it lives. `10000` by default; `0`
      * compiles on every call, `Infinity` never evicts. A value that is no
      * count keeps the default.
      */

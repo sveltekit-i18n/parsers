@@ -375,6 +375,54 @@ describe('cache', () => {
   it.each([-1, 1.5, NaN, '2', null])('holds 10,000 messages for a `cacheLimit` of %s, which is no count', (cacheLimit) => {
     expect(fill(cacheLimit)).toBe(10002);
   });
+  it('caches a message under the `formats` object a call passes', () => {
+    const { parse } = parser({ onReport: null });
+    const money = { number: { money: { style: 'currency', currency: 'USD' } as const } };
+
+    expect(parse('{value, number, money}', [{ value: 1 }, money], 'en', 'k')).toBe('$1.00');
+    expect(parse('{value, number, money}', [{ value: 2 }, money], 'en', 'k')).toBe('$2.00');
+    expect(parse('{value, number, money}', [{ value: 3 }], 'en', 'k')).toBe('3');
+    expect(compiled).toHaveLength(2);
+  });
+  it('keeps what a `formats` object caches apart from the messages every call reads', () => {
+    const { parse } = parser({ onReport: null, cacheLimit: 1 });
+    const money = { number: { money: { style: 'currency', currency: 'USD' } as const } };
+
+    parse('a', [], 'en', 'k');
+    Array.from({ length: 3 }, () => parse('{value, number, money}', [{ value: 1 }, { ...money }], 'en', 'k'));
+    parse('b', [{}, money], 'en', 'k');
+    parse('b', [{}, money], 'en', 'k');
+    parse('a', [], 'en', 'k');
+    expect(compiled).toEqual(['a', ...Array<string>(3).fill('{value, number, money}'), 'b']);
+  });
+  it('holds `cacheLimit` messages per `formats` object', () => {
+    const { parse } = parser({ onReport: null, cacheLimit: 1 });
+    const money = { number: { money: { style: 'currency', currency: 'USD' } as const } };
+
+    parse('a', [{}, money], 'en', 'k');
+    parse('b', [{}, money], 'en', 'k');
+    parse('a', [{}, money], 'en', 'k');
+    expect(compiled).toEqual(['a', 'b', 'a']);
+  });
+  it('holds no `formats` object it caches under', () => {
+    const held = heldKeys(() => {
+      const { parse } = parser({ onReport: null });
+
+      for (let index = 0; index < 3; index += 1) {
+        parse('{value, number, money}', [{ value: 1 }, { number: { money: { style: 'currency', currency: 'USD' } } }], 'en', 'k');
+      }
+    }, (key) => typeof key === 'object');
+
+    expect(held).toBe(0);
+  });
+  it('formats with `formats` that are no object as without any', () => {
+    const reports: Parser.Report[] = [];
+    const { parse } = parser({ onReport: (report) => reports.push(report) });
+
+    expect(parse('{value, number}', [{ value: 1000 }, null as never], 'en', 'k')).toBe('1,000');
+    expect(parse('{value, number}', [{ value: 1000 }, null as never], 'en', 'k')).toBe('1,000');
+    expect(reports).toEqual([]);
+  });
   it('types `cacheLimit` as a count', () => {
     // @ts-expect-error `cacheLimit` is a number.
     const text: Shipped.Options = { onReport: null, cacheLimit: '5' };
