@@ -11,6 +11,11 @@ export { extractParamsFactory } from './extract';
 
 const CACHE_LIMIT = 10000;
 
+// A count of entries, or no limit at all; anything else keeps the default.
+const capacity = (limit: unknown): number => ((Number.isInteger(limit) && (limit as number) >= 0) || limit === Infinity
+  ? limit as number
+  : CACHE_LIMIT);
+
 // A leaf that is no message is returned as its text; a null-prototype object,
 // or a `toString` that throws, has none.
 const raw = (message: unknown): string | undefined => {
@@ -100,12 +105,13 @@ const lru = (limit: number): Cache => {
   };
 };
 
-const parser: Parser.Factory = ({ onReport, functions, ...parserOptions }) => {
+const parser: Parser.Factory = ({ onReport, functions, cacheLimit, ...parserOptions }) => {
   // The other official parsers format dates and money out of the box; the
   // draft functions are what gives this format the same reach.
   const options = { ...parserOptions, functions: { ...DraftFunctions, ...functions } };
 
-  const cache = lru(CACHE_LIMIT);
+  const limit = capacity(cacheLimit);
+  const cache = limit === 0 ? undefined : lru(limit);
 
   // A report channel is consumer code: a throwing one must not take a render
   // down with it.
@@ -126,13 +132,13 @@ const parser: Parser.Factory = ({ onReport, functions, ...parserOptions }) => {
       return new MessageFormat(locale, message as string, options);
     }
 
-    const held = cache.get(locale, message);
+    const held = cache?.get(locale, message);
 
     if (held !== undefined) return held;
 
     const compiled = new MessageFormat(locale, message, options);
 
-    cache.set(locale, message, compiled);
+    cache?.set(locale, message, compiled);
 
     return compiled;
   };

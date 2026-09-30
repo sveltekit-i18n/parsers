@@ -88,6 +88,16 @@ describe('payload typing', () => {
     expect(check).toBeInstanceOf(Function);
   });
 
+  it('types `cacheLimit` as a count', () => {
+    const check = () => {
+      parser({ onReport: null, cacheLimit: 20000 });
+      // @ts-expect-error `cacheLimit` is a number
+      parser({ onReport: null, cacheLimit: '5' });
+    };
+
+    expect(check).toBeInstanceOf(Function);
+  });
+
   it('rejects arguments beyond the payload', () => {
     const check = () => {
       const instance = new i18n({ initLocale: 'en', parser: parser({ onReport: null }), translations: TRANSLATIONS });
@@ -119,6 +129,8 @@ describe('extractor typing', () => {
     expect(extractParamsFactory()(TRANSLATIONS.en.greeting)).toHaveLength(1);
     // @ts-expect-error extraction reports nothing, so `onReport` is not among its options
     expect(extractParamsFactory({ onReport: null, bidiIsolation: 'none' })(TRANSLATIONS.en.greeting)).toHaveLength(1);
+    // @ts-expect-error extraction caches nothing, so `cacheLimit` is not among its options
+    expect(extractParamsFactory({ cacheLimit: 5 })(TRANSLATIONS.en.greeting)).toHaveLength(1);
   });
 
   it('rejects an option bag the parser does not read', () => {
