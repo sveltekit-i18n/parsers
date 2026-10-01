@@ -334,6 +334,88 @@ describe('cache', () => {
     for (const message of 'abaa') parse(message, [], 'en', 'k');
     expect(compiled.join('')).toBe('aba');
   });
+  it('keeps one entry for a message a call cached while it was compiling it', () => {
+    const reports: Parser.Report[] = [];
+    const { parse } = parser({ onReport: (report) => reports.push(report), cacheLimit: 2 });
+    const prototype = Object.prototype as Record<string, unknown>;
+    let reenter = true;
+
+    // An option the engine reads through the prototype chain, whose getter
+    // parses the same message again while it compiles; what the engine
+    // assigns to it stays the object's own.
+    Object.defineProperty(prototype, 'bidiIsolation', {
+      configurable: true,
+      get: () => {
+        if (reenter) {
+          reenter = false;
+          parse('A {$n}', [{ n: 1 }], 'en', 'a');
+        }
+
+        return undefined;
+      },
+      set(value: unknown) {
+        Object.defineProperty(this, 'bidiIsolation', { value, writable: true, enumerable: true, configurable: true });
+      },
+    });
+
+    try {
+      expect(parse('A {$n}', [{ n: 1 }], 'en', 'a')).toBe('A 1');
+    } finally {
+      delete prototype['bidiIsolation'];
+    }
+
+    expect(reenter).toBe(false);
+    expect(parse('B {$n}', [{ n: 2 }], 'de', 'b')).toBe('B 2');
+    expect(parse('C {$n}', [{ n: 3 }], 'de', 'c')).toBe('C 3');
+    expect(reports).toEqual([]);
+  });
+  it.each([
+    { when: 'below its limit', cacheLimit: 4, fill: 'de', calls: 'bac', left: 'between two others' },
+    { when: 'below its limit', cacheLimit: 4, fill: 'de', calls: 'abc', left: 'the oldest' },
+    { when: 'at its limit', cacheLimit: 3, fill: 'd', calls: 'bac', left: 'between two others' },
+    { when: 'at its limit', cacheLimit: 3, fill: 'd', calls: 'abc', left: 'the oldest' },
+  ])('uses a message a call cached while it was compiling it as it uses a hit, $when, the call having left it $left', ({ cacheLimit, fill, calls }) => {
+    const { parse } = parser({ onReport: null, cacheLimit });
+    const prototype = Object.prototype as Record<string, unknown>;
+    let reenter = true;
+
+    // An option the engine reads through the prototype chain, whose getter
+    // parses three messages, this one among them, while it compiles; what the
+    // engine assigns to it stays the object's own.
+    Object.defineProperty(prototype, 'bidiIsolation', {
+      configurable: true,
+      get: () => {
+        if (reenter) {
+          reenter = false;
+          for (const message of calls) parse(message, [], 'en', 'k');
+        }
+
+        return undefined;
+      },
+      set(value: unknown) {
+        Object.defineProperty(this, 'bidiIsolation', { value, writable: true, enumerable: true, configurable: true });
+      },
+    });
+
+    try {
+      expect(parse('a', [], 'en', 'k')).toBe('a');
+      compiled.length = 0;
+      // Wherever the call left A, the outer call used it last: B, the oldest,
+      // is still held, and the first message past the limit lets C go.
+      for (const message of `b${fill}ac`) parse(message, [], 'en', 'k');
+    } finally {
+      delete prototype['bidiIsolation'];
+    }
+
+    expect(reenter).toBe(false);
+    expect(compiled.join('')).toBe(`${fill}c`);
+  });
+  it('keeps a message apart for each locale it was compiled for', () => {
+    const { parse } = parser({ onReport: null });
+
+    for (const locale of ['en', 'cs', 'cs', 'en']) parse('a', [], locale, 'k');
+    expect(compiled).toEqual(['a', 'a']);
+  });
   it('compiles on every call with a `cacheLimit` of 0', () => {
     const { parse } = parser({ onReport: null, cacheLimit: 0 });
 
