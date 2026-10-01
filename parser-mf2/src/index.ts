@@ -75,18 +75,24 @@ const lru = (limit: number): Cache => {
     size -= 1;
   };
 
+  const get: Cache['get'] = (locale, message) => {
+    const held = locales.get(locale)?.get(message);
+
+    if (held !== undefined && held !== newest) {
+      unlink(held);
+      append(held);
+    }
+
+    return held?.compiled;
+  };
+
   return {
-    get: (locale, message) => {
-      const held = locales.get(locale)?.get(message);
-
-      if (held !== undefined && held !== newest) {
-        unlink(held);
-        append(held);
-      }
-
-      return held?.compiled;
-    },
+    get,
     set: (locale, message, compiled) => {
+      // A call that re-entered `parse` while this message compiled holds it
+      // already: it is used as a hit is, since a second entry would leave the
+      // list out of step with the maps.
+      if (get(locale, message) !== undefined) return;
       if (size >= limit) evict(oldest!);
 
       let messages = locales.get(locale);
