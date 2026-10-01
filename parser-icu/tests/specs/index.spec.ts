@@ -447,6 +447,22 @@ describe('cache', () => {
     expect(compiled).toEqual(['a', 'a', 'a', 'a']);
     expect(compiledWith.every((options) => !Object.hasOwn(options as object, 'cacheLimit'))).toBe(true);
   });
+  it.each([
+    ['bdadacba', 'bdacb'],
+    ['badacba', 'badcb'],
+    ['bdadcba', 'bdacba'],
+  ])('keeps the recency order through reads from its middle (%s)', (reads, compiles) => {
+    const { parse } = parser({ onReport: null, cacheLimit: 3 });
+
+    for (const message of reads) parse(message, [], 'en', 'k');
+    expect(compiled.join('')).toBe(compiles);
+  });
+  it('keeps evicting once its one message is evicted, with a `cacheLimit` of 1', () => {
+    const { parse } = parser({ onReport: null, cacheLimit: 1 });
+
+    for (const message of 'abaa') parse(message, [], 'en', 'k');
+    expect(compiled.join('')).toBe('aba');
+  });
   it('compiles on every call with a `cacheLimit` of 0', () => {
     const { parse } = parser({ onReport: null, cacheLimit: 0 });
     const money = { number: { money: { style: 'currency', currency: 'USD' } as const } };
