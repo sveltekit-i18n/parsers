@@ -193,18 +193,32 @@ describe('parser', () => {
 
       return performance.now() - start;
     };
+    const renderer = () => {
+      const { parse } = parser({ onReport: null });
+
+      return (locale: string) => parse('{{l, list}}', [{ l: ['a'] }], locale, 'k');
+    };
     const best = { below: Infinity, at: Infinity };
 
-    // The best of five parsers, each timed for 4,000 locales below its limit
-    // of 10,000 and for 4,000 once it has made room 16,000 times.
+    // The best of five pairs of parsers, each timed for 8,000 locales: one
+    // below its limit of 10,000, the other once it has made room 16,000 times.
+    // The two take turns, 500 locales at a time, so a slow stretch of the host
+    // weighs on both alike.
     for (let round = 0; round < 5; round += 1) {
-      const { parse } = parser({ onReport: null });
-      const render = (locale: string) => parse('{{l, list}}', [{ l: ['a'] }], locale, 'k');
+      const below = renderer();
+      const at = renderer();
+      const time = { below: 0, at: 0 };
 
-      misses(render, 0, 4000);
-      best.below = Math.min(best.below, misses(render, 4000, 8000));
-      misses(render, 8000, 26000);
-      best.at = Math.min(best.at, misses(render, 26000, 30000));
+      misses(below, 0, 2000);
+      misses(at, 0, 26000);
+
+      for (let chunk = 0; chunk < 16; chunk += 1) {
+        time.below += misses(below, 2000 + chunk * 500, 2500 + chunk * 500);
+        time.at += misses(at, 26000 + chunk * 500, 26500 + chunk * 500);
+      }
+
+      best.below = Math.min(best.below, time.below);
+      best.at = Math.min(best.at, time.at);
     }
 
     expect(best.at).toBeLessThan(best.below * 2);
