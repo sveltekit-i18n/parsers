@@ -179,24 +179,33 @@ describe('parser', () => {
     expect(render(locales[0])).toBe(text);
     expect(built).toHaveBeenCalledTimes(1);
   }, 30_000);
-  it('makes room at its limit in about the time it takes to keep a formatter below it', () => {
-    // A formatter that costs next to nothing to build, so what is timed is
-    // the keeping.
-    vi.spyOn(Intl, 'ListFormat').mockImplementation(function () {
+  // A list formatter that costs next to nothing to build, one to a locale, so
+  // what is timed and counted is the keeping.
+  const lists = () => {
+    const built = vi.spyOn(Intl, 'ListFormat').mockImplementation(function () {
       return { format: () => 'x' } as unknown as Intl.ListFormat;
     });
+    const { parse } = parser({ onReport: null });
+    const render = (from: number, to: number) => {
+      for (let i = from; i < to; i += 1) parse('{{l, list}}', [{ l: ['a'] }], `en-x-${i}`, 'k');
+    };
+    const builds = (locale: number) => {
+      built.mockClear();
+      render(locale, locale + 1);
 
-    const misses = (render: (locale: string) => string, from: number, to: number) => {
+      return built.mock.calls.length;
+    };
+
+    return { built, render, builds };
+  };
+
+  it('makes room at its limit in about the time it takes to keep a formatter below it', () => {
+    const misses = (render: (from: number, to: number) => void, from: number, to: number) => {
       const start = performance.now();
 
-      for (let i = from; i < to; i += 1) render(`en-x-${i}`);
+      render(from, to);
 
       return performance.now() - start;
-    };
-    const renderer = () => {
-      const { parse } = parser({ onReport: null });
-
-      return (locale: string) => parse('{{l, list}}', [{ l: ['a'] }], locale, 'k');
     };
     const best = { below: Infinity, at: Infinity };
 
@@ -205,8 +214,8 @@ describe('parser', () => {
     // The two take turns, 500 locales at a time, so a slow stretch of the host
     // weighs on both alike.
     for (let round = 0; round < 5; round += 1) {
-      const below = renderer();
-      const at = renderer();
+      const below = lists().render;
+      const at = lists().render;
       const time = { below: 0, at: 0 };
 
       misses(below, 0, 2000);
@@ -222,6 +231,18 @@ describe('parser', () => {
     }
 
     expect(best.at).toBeLessThan(best.below * 2);
+  }, 30_000);
+  it('keeps the newest of what it built, however many times it made room', () => {
+    const { render, builds } = lists();
+
+    // The first two locales made room for the next two, oldest first.
+    render(0, 10002);
+    expect(builds(9999)).toBe(0);
+    expect(builds(1)).toBe(1);
+    // 34,001 formatters in all: the newest 10,000 are the last 10,000 locales'.
+    render(10002, 34000);
+    expect(builds(24000)).toBe(0);
+    expect(builds(23999)).toBe(1);
   }, 30_000);
   it('keys the options `Intl` reads from the payload and the call', () => {
     const { parse } = parser({ onReport: null });

@@ -224,34 +224,42 @@ describe('formatters', () => {
     const formats = { number: Object.fromEntries(styles.map((style, i) => [style, { style: 'currency' as const, currency: currencies[i] }])) };
     const message = styles.map((style) => `{n, number, ${style}}`).join('');
     const { parse } = parser({ onReport: null });
-    const render = (from: number, to: number) => {
-      let text = '';
+    const render = (from: number, to: number, text = message) => {
+      let rendered = '';
 
-      for (let i = from; i < to; i += 1) text = parse(message, [{ n: 1 }, formats], `en-x-${i}`, 'k');
+      for (let i = from; i < to; i += 1) rendered = parse(text, [{ n: 1 }, formats], `en-x-${i}`, 'k');
 
-      return text;
+      return rendered;
     };
-
-    return { built, render };
-  };
-
-  it('keeps the newest of what it built, however many times it made room', () => {
-    const { built, render } = fifty();
-    const builds = (locale: number) => {
+    // What a locale's fifty formatters, or only the last of them, take to
+    // build.
+    const count = (locale: number, text: string) => {
       built.mockClear();
-      render(locale, locale + 1);
+      render(locale, locale + 1, text);
 
       return built.mock.calls.length;
     };
+
+    return {
+      built,
+      render,
+      builds: (locale: number) => count(locale, message),
+      last: (locale: number) => count(locale, '{n, number, s49}'),
+    };
+  };
+
+  it('keeps the newest of what it built, however many times it made room', () => {
+    const { render, builds, last } = fifty();
 
     // The first locale's fifty made room for the 201st's.
     expect(render(0, 201)).toBe('x'.repeat(50));
     expect(builds(199)).toBe(0);
     expect(builds(0)).toBe(50);
-    // 34,050 formatters in all: the newest 10,000 are the last 200 locales'.
+    // 34,050 formatters in all: the newest 10,000 are the last 200 locales',
+    // and not one more.
     render(201, 680);
     expect(builds(480)).toBe(0);
-    expect(builds(479)).toBe(50);
+    expect(last(479)).toBe(1);
   });
   it('makes room at its limit in about the time it takes to keep a formatter below it', () => {
     const misses = (render: (from: number, to: number) => string, from: number, to: number) => {
