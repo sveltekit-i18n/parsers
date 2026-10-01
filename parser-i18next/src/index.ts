@@ -86,6 +86,10 @@ const keep = <F>(limit: number, build: (locale: string | undefined, options: Opt
       if (key === undefined) return made;
     }
 
+    // An options getter can call `parse` while `build` runs and keep this
+    // key first: a second slot for it would leave the ring out of step.
+    if (built.has(key)) return made;
+
     if (built.size >= limit) {
       built.delete(order[oldest]);
       order[oldest] = key;

@@ -261,6 +261,32 @@ describe('formatters', () => {
     expect(builds(480)).toBe(0);
     expect(last(479)).toBe(1);
   });
+  it.each([
+    { when: 'below its limit', at: 0, next: 199 },
+    { when: 'at its limit', at: 200, next: 201 },
+  ])('keeps one slot for a formatter a call kept while it was building it, $when', ({ at, next }) => {
+    const { built, render, builds } = fifty();
+    let reenter = true;
+
+    render(0, at);
+    // An options getter that calls `parse` again with the same message, as
+    // the first formatter of a locale is built.
+    built.mockImplementation(function () {
+      if (reenter) {
+        reenter = false;
+        render(at, at + 1);
+      }
+
+      return { format: () => 'x' } as unknown as Intl.NumberFormat;
+    });
+
+    // The newest 10,000 are the last 200 locales'. A second slot for the key
+    // kept twice would hold a formatter of `next` past the limit.
+    expect(render(at, 680)).toBe('x'.repeat(50));
+    expect(builds(480)).toBe(0);
+    expect(builds(479)).toBe(50);
+    expect(builds(next)).toBe(50);
+  });
   it('makes room at its limit in about the time it takes to keep a formatter below it', () => {
     const misses = (render: (from: number, to: number) => string, from: number, to: number) => {
       const start = performance.now();
