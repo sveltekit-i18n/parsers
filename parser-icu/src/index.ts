@@ -56,6 +56,10 @@ const keyable = (options: unknown): boolean => {
 // must not grow without limit.
 const keep = <O, R>(build: (locales?: string | string[], options?: O) => R) => {
   const built = new Map<string, R>();
+  // The keys in the order they were kept: a Map's iterator walks past every
+  // entry deleted before its oldest, which at the limit is most of the table.
+  const order: string[] = [];
+  let oldest = 0;
 
   return (locales?: string | string[], options?: O): R => {
     if (typeof locales !== 'string' || !keyable(options)) return build(locales, options);
@@ -67,11 +71,11 @@ const keep = <O, R>(build: (locales?: string | string[], options?: O) => R) => {
       kept = build(locales, options);
 
       if (built.size >= FORMATTER_LIMIT) {
-        const oldest = built.keys().next();
-
-        if (!oldest.done) {
-          built.delete(oldest.value);
-        }
+        built.delete(order[oldest]);
+        order[oldest] = key;
+        oldest = (oldest + 1) % FORMATTER_LIMIT;
+      } else {
+        order.push(key);
       }
 
       built.set(key, kept);

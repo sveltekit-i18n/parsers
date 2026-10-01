@@ -185,6 +185,80 @@ describe('formatters', () => {
     // The first locale made room for the last; the last is still kept.
     expect(built).toHaveBeenCalledTimes(1);
   }, 30_000);
+  // A message asking for fifty number formats, each built next to free: one
+  // compile fills fifty slots of the store, so a test can drive it past its
+  // limit in a few hundred locales.
+  const fifty = () => {
+    const built = vi.spyOn(Intl, 'NumberFormat').mockImplementation(function () {
+      return { format: () => 'x' } as unknown as Intl.NumberFormat;
+    });
+    const styles = Array.from({ length: 50 }, (_, i) => `s${i}`);
+    const currencies = Intl.supportedValuesOf('currency');
+    const formats = { number: Object.fromEntries(styles.map((style, i) => [style, { style: 'currency' as const, currency: currencies[i] }])) };
+    const message = styles.map((style) => `{n, number, ${style}}`).join('');
+    const { parse } = parser({ onReport: null });
+    const render = (from: number, to: number) => {
+      let text = '';
+
+      for (let i = from; i < to; i += 1) text = parse(message, [{ n: 1 }, formats], `en-x-${i}`, 'k');
+
+      return text;
+    };
+
+    return { built, render };
+  };
+
+  it('keeps the newest of what it built, however many times it made room', () => {
+    const { built, render } = fifty();
+    const builds = (locale: number) => {
+      built.mockClear();
+      render(locale, locale + 1);
+
+      return built.mock.calls.length;
+    };
+
+    // The first locale's fifty made room for the 201st's.
+    expect(render(0, 201)).toBe('x'.repeat(50));
+    expect(builds(199)).toBe(0);
+    expect(builds(0)).toBe(50);
+    // 34,050 formatters in all: the newest 10,000 are the last 200 locales'.
+    render(201, 680);
+    expect(builds(480)).toBe(0);
+    expect(builds(479)).toBe(50);
+  });
+  it('makes room at its limit in about the time it takes to keep a formatter below it', () => {
+    const misses = (render: (from: number, to: number) => string, from: number, to: number) => {
+      const start = performance.now();
+
+      render(from, to);
+
+      return performance.now() - start;
+    };
+    const best = { below: Infinity, at: Infinity };
+
+    // The best of five pairs of parsers, each timed for 8,000 formatters: one
+    // below its limit of 10,000, the other once it has made room 16,000 times.
+    // The two take turns, 500 formatters at a time, so a slow stretch of the
+    // host weighs on both alike.
+    for (let round = 0; round < 5; round += 1) {
+      const below = fifty().render;
+      const at = fifty().render;
+      const time = { below: 0, at: 0 };
+
+      misses(below, 0, 20);
+      misses(at, 0, 520);
+
+      for (let chunk = 0; chunk < 16; chunk += 1) {
+        time.below += misses(below, 20 + chunk * 10, 30 + chunk * 10);
+        time.at += misses(at, 520 + chunk * 10, 530 + chunk * 10);
+      }
+
+      best.below = Math.min(best.below, time.below);
+      best.at = Math.min(best.at, time.at);
+    }
+
+    expect(best.at).toBeLessThan(best.below * 2);
+  }, 30_000);
   it('reads per-call options the way Intl does', () => {
     class Prefs {
       #timeZone = 'UTC';
