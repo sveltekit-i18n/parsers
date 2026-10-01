@@ -12,6 +12,9 @@ type Message = ConstructorParameters<typeof IntlMessageFormat>[0];
 
 const CACHE_LIMIT = 10000;
 const FORMATTER_LIMIT = 10000;
+// A date formatter holds some 30 KB of native memory, several times any other
+// kind, so fewer are kept.
+const DATE_FORMATTER_LIMIT = 1000;
 
 // A count of entries, or no limit at all; anything else keeps the default.
 const capacity = (limit: unknown): number => ((Number.isInteger(limit) && (limit as number) >= 0) || limit === Infinity
@@ -51,10 +54,10 @@ const keyable = (options: unknown): boolean => {
   });
 };
 
-// Each constructor keeps what it built for a locale and options, the oldest
-// making room: a locale reaches `parse` from the caller, so what it builds for
-// must not grow without limit.
-const keep = <O, R>(build: (locales?: string | string[], options?: O) => R) => {
+// Each constructor keeps up to `limit` of what it built for a locale and
+// options, the oldest making room: a locale reaches `parse` from the caller,
+// so what it builds for must not grow without limit.
+const keep = <O, R>(limit: number, build: (locales?: string | string[], options?: O) => R) => {
   const built = new Map<string, R>();
   // The keys in the order they were kept: a Map's iterator walks past every
   // entry deleted before its oldest, which at the limit is most of the table.
@@ -70,10 +73,10 @@ const keep = <O, R>(build: (locales?: string | string[], options?: O) => R) => {
     if (kept === undefined) {
       kept = build(locales, options);
 
-      if (built.size >= FORMATTER_LIMIT) {
+      if (built.size >= limit) {
         built.delete(order[oldest]);
         order[oldest] = key;
-        oldest = (oldest + 1) % FORMATTER_LIMIT;
+        oldest = (oldest + 1) % limit;
       } else {
         order.push(key);
       }
@@ -165,9 +168,9 @@ const lru = (limit: number): Cache => {
 };
 
 const sharedFormatters = (): Formatters => ({
-  getNumberFormat: keep((locales, options?: Intl.NumberFormatOptions) => new Intl.NumberFormat(locales, options)),
-  getDateTimeFormat: keep((locales, options?: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(locales, options)),
-  getPluralRules: keep((locales, options?: Intl.PluralRulesOptions) => new Intl.PluralRules(locales, options)),
+  getNumberFormat: keep(FORMATTER_LIMIT, (locales, options?: Intl.NumberFormatOptions) => new Intl.NumberFormat(locales, options)),
+  getDateTimeFormat: keep(DATE_FORMATTER_LIMIT, (locales, options?: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(locales, options)),
+  getPluralRules: keep(FORMATTER_LIMIT, (locales, options?: Intl.PluralRulesOptions) => new Intl.PluralRules(locales, options)),
 });
 
 const parser: Parser.Factory = ({ onReport, cacheLimit, ...rest }) => {
