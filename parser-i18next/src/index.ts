@@ -10,17 +10,20 @@ export type { Parser, Config };
 export { extractParamsFactory } from './extract';
 
 const FORMATTER_LIMIT = 10000;
+// A date formatter holds some 30 KB of native memory, several times any other
+// kind, so fewer are kept.
+const DATE_FORMATTER_LIMIT = 1000;
 
 type Options = Record<string, unknown>;
 
 // i18next's own reading of the locale, which its built-in formats build with.
 const cleaned = (locale: string | undefined) => locale?.replace(/_/g, '-');
 
-// Keeps what a constructor built per locale and the options it read, the
-// oldest making room. The options a format receives hold the payload too,
-// which no constructor reads, so the names it reads are recorded as it builds
-// and only those are keyed.
-const keep = <F>(build: (locale: string | undefined, options: Options) => F) => {
+// Keeps up to `limit` of what a constructor built per locale and the options
+// it read, the oldest making room. The options a format receives hold the
+// payload too, which no constructor reads, so the names it reads are recorded
+// as it builds and only those are keyed.
+const keep = <F>(limit: number, build: (locale: string | undefined, options: Options) => F) => {
   const read = new Set<string>();
   const built = new Map<string, F>();
   // The keys in the order they were kept: a Map's iterator walks past every
@@ -83,10 +86,10 @@ const keep = <F>(build: (locale: string | undefined, options: Options) => F) => 
       if (key === undefined) return made;
     }
 
-    if (built.size >= FORMATTER_LIMIT) {
+    if (built.size >= limit) {
       built.delete(order[oldest]);
       order[oldest] = key;
-      oldest = (oldest + 1) % FORMATTER_LIMIT;
+      oldest = (oldest + 1) % limit;
     } else {
       order.push(key);
     }
@@ -122,10 +125,10 @@ const parser: Parser.Factory = ({ onReport, interpolation, missingInterpolationH
 
   const { interpolator, formatter } = instance.services;
 
-  const numberFormat = keep((locale, options) => new Intl.NumberFormat(locale, options));
-  const dateTimeFormat = keep((locale, options) => new Intl.DateTimeFormat(locale, options));
-  const relativeTimeFormat = keep((locale, options) => new Intl.RelativeTimeFormat(locale, options));
-  const listFormat = keep((locale, options) => new Intl.ListFormat(locale, options));
+  const numberFormat = keep(FORMATTER_LIMIT, (locale, options) => new Intl.NumberFormat(locale, options));
+  const dateTimeFormat = keep(DATE_FORMATTER_LIMIT, (locale, options) => new Intl.DateTimeFormat(locale, options));
+  const relativeTimeFormat = keep(FORMATTER_LIMIT, (locale, options) => new Intl.RelativeTimeFormat(locale, options));
+  const listFormat = keep(FORMATTER_LIMIT, (locale, options) => new Intl.ListFormat(locale, options));
 
   // i18next's built-in formats, registered again over formatters kept per
   // locale and the options `Intl` reads; the options are merged, and the

@@ -159,21 +159,22 @@ describe('parser', () => {
     expect(dates).toHaveBeenCalledTimes(2);
   });
   it.each([
-    { kind: 'NumberFormat', key: 'common.number', payload: { n: 1234.5 }, text: '1,234.5' },
-    { kind: 'DateTimeFormat', key: 'common.date', payload: { d: date }, text: '3/5/2024' },
-    { kind: 'RelativeTimeFormat', key: 'common.ago', payload: { d: -3 }, text: '3 days ago' },
-    { kind: 'ListFormat', key: 'common.list', payload: { l: ['a', 'b', 'c'] }, text: 'a, b, and c' },
-  ] as const)('keeps no more than its limit of $kind, the oldest making room', ({ kind, key, payload, text }) => {
+    { kind: 'NumberFormat', limit: 10000, key: 'common.number', payload: { n: 1234.5 }, text: '1,234.5' },
+    { kind: 'DateTimeFormat', limit: 1000, key: 'common.date', payload: { d: date }, text: '3/5/2024' },
+    { kind: 'RelativeTimeFormat', limit: 10000, key: 'common.ago', payload: { d: -3 }, text: '3 days ago' },
+    { kind: 'ListFormat', limit: 10000, key: 'common.list', payload: { l: ['a', 'b', 'c'] }, text: 'a, b, and c' },
+  ] as const)('keeps no more than $limit of $kind, the oldest making room', ({ kind, limit, key, payload, text }) => {
     const { parse } = parser({ onReport: null });
     // Locales the catalogue lacks, which `Intl` reads as English.
-    const locales = Array.from({ length: 10001 }, (_, i) => `en-x-${i.toString(36).padStart(4, '0')}`);
+    const locales = Array.from({ length: limit + 1 }, (_, i) => `en-x-${i.toString(36).padStart(4, '0')}`);
     const render = (locale: string) => parse(message(initLocale, key), [payload], locale, key);
 
     locales.forEach((locale) => expect(render(locale)).toBe(text));
 
     const built = spyOnIntl(kind);
 
-    expect(render(locales[10000])).toBe(text);
+    expect(render(locales[limit])).toBe(text);
+    expect(render(locales[1])).toBe(text);
     expect(built).toHaveBeenCalledTimes(0);
     expect(render(locales[0])).toBe(text);
     expect(built).toHaveBeenCalledTimes(1);
