@@ -73,6 +73,10 @@ const keep = <O, R>(limit: number, build: (locales?: string | string[], options?
     if (kept === undefined) {
       kept = build(locales, options);
 
+      // An options getter can call `parse` while `build` runs and keep this
+      // key first: a second slot for it would leave the ring out of step.
+      if (built.has(key)) return kept;
+
       if (built.size >= limit) {
         built.delete(order[oldest]);
         order[oldest] = key;
