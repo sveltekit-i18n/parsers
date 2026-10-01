@@ -171,20 +171,47 @@ describe('formatters', () => {
     });
     expect(built).toHaveBeenCalledTimes(2);
   });
-  it('keeps no more than its limit', () => {
+  it('keeps no more than 10,000 number formats and plural rules, the oldest making room', () => {
     const { reports, onReport } = collect();
     const { parse } = parser({ onReport });
     const locales = Array.from({ length: 10001 }, (_, i) => `en-x-${i.toString(36).padStart(4, '0')}`);
+    const render = (locale: string) => parse('{n, plural, other {#}} again', [{ n: 1 }], locale, 'a');
 
-    locales.forEach((locale) => parse('{n, number}', [{ n: 1 }], locale, 'a'));
-    const built = count('NumberFormat');
+    locales.forEach((locale) => expect(render(locale)).toBe('1 again'));
+    const numbers = count('NumberFormat');
+    const plurals = count('PluralRules');
 
-    expect(parse('{n, number} again', [{ n: 1 }], locales[0], 'b')).toBe('1 again');
-    expect(parse('{n, number} again', [{ n: 1 }], locales[10000], 'b')).toBe('1 again');
+    expect(render(locales[10000])).toBe('1 again');
+    expect(render(locales[1])).toBe('1 again');
+    expect(numbers).toHaveBeenCalledTimes(0);
+    expect(plurals).toHaveBeenCalledTimes(0);
+    // The first locale made room for the last; the rest are still kept.
+    expect(render(locales[0])).toBe('1 again');
     expect(reports).toEqual([]);
-    // The first locale made room for the last; the last is still kept.
-    expect(built).toHaveBeenCalledTimes(1);
+    expect(numbers).toHaveBeenCalledTimes(1);
+    expect(plurals).toHaveBeenCalledTimes(1);
   }, 30_000);
+  it('keeps no more than 1,000 date and time formatters, the oldest making room', () => {
+    const { parse } = parser({ onReport: null });
+    // A date and a time formatter to a locale, kept together: 1,002 in all.
+    const locales = Array.from({ length: 501 }, (_, i) => `en-x-${i.toString(36).padStart(4, '0')}`);
+    const render = (locale: string) => parse('{d, date, short} {d, time, short} {n, number}', [{ d, n: 1 }], locale, 'a');
+    const text = render(locales[0]);
+
+    locales.forEach((locale) => expect(render(locale)).toBe(text));
+    const dates = count('DateTimeFormat');
+    const numbers = count('NumberFormat');
+
+    expect(render(locales[500])).toBe(text);
+    expect(render(locales[1])).toBe(text);
+    expect(dates).toHaveBeenCalledTimes(0);
+    // The first locale's two made room for the last's, the time formatter too.
+    expect(text).toContain(parse('{d, time, short}', [{ d }], locales[0], 'b'));
+    expect(dates).toHaveBeenCalledTimes(1);
+    // Number formats keep more.
+    expect(render(locales[0])).toBe(text);
+    expect(numbers).toHaveBeenCalledTimes(0);
+  });
   // A message asking for fifty number formats, each built next to free: one
   // compile fills fifty slots of the store, so a test can drive it past its
   // limit in a few hundred locales.
