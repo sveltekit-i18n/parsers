@@ -11,3 +11,10 @@ how to work in this monorepo, and it defers to
 for the shared working rules. Human contributors should also see
 [CONTRIBUTING.md](https://github.com/sveltekit-i18n/lib/blob/master/CONTRIBUTING.md)
 in the `lib` repository.
+
+An import cannot reach a file in another repository, so base's rules load only
+when read: before any change, read them in full — from `../base/AGENTS.md`
+when `base` is checked out beside this repository on an up-to-date `master`,
+otherwise from
+[the raw file](https://raw.githubusercontent.com/sveltekit-i18n/base/master/AGENTS.md).
+They bind here as fully as this repository's own rules.
