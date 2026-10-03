@@ -1,0 +1,29 @@
+name: i18next parser bench
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - parser-i18next/src/**
+      - parser-i18next/bench/**
+      - parser-i18next/package.json
+      - parser-i18next/package-lock.json
+      - parser-i18next/tsconfig.json
+      - parser-i18next/tsup.config.js
+      - bench/**
+      - .github/workflows/bench-parser-i18next.yml
+      - .github/workflows/bench.yml
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: bench-${{ github.event.pull_request.number }}-parser-i18next
+  cancel-in-progress: true
+
+jobs:
+  bench:
+    uses: ./.github/workflows/bench.yml
+    with:
+      package: parser-i18next

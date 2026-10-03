@@ -33,8 +33,8 @@ Official message parsers for the
   directory is a fully standalone npm package with its own `package.json`,
   lockfile, configs, tests, README, LICENSE, and CHANGELOG.
 - The root holds only `README.md`, this file, `CLAUDE.md`, `.gitignore`,
-  `.github/workflows/`, and `contract/`.
-- **`contract/` is the one shared source file.** It holds base's parser
+  `.github/workflows/`, `contract/` and `bench/`.
+- **`contract/` is shared source.** It holds base's parser
   contract as a set of checks each package runs from its own
   `tests/specs/contract.spec.ts`. It resolves nothing — no types, no test
   runner, no package of its own — because each package carries its own
@@ -43,6 +43,35 @@ Official message parsers for the
   directory, and a root config would mean a root package — so match the
   formatting conventions by hand there. Every test workflow watches
   `contract/**`.
+- **`bench/` is the shared benchmark** (base's §4, step 3), run from a package
+  directory as `npm run bench`, or `npm run bench -- --compare <dir>` against
+  the same package checked out and installed at `<dir>`. It is plain
+  JavaScript that imports nothing but Node's own modules, so Node runs it as
+  it is on every version the packages support, and nothing type-checks or
+  lints it — match the conventions by hand, as in `contract/`. `run.mjs`
+  builds each tree and starts `measure.mjs` once per project and sample;
+  `measure.mjs` takes the bundler from the package it runs from and the
+  parser from the tree it measures. Each tree runs on its own install: most
+  of what a parser costs is its dependency, so a change of the lockfile is a
+  change measured, and the report names the versions on each side. A
+  package's `bench/subject.mjs` holds one message per kind in its own format
+  and what each must render and report as parameters; a label that renders
+  anything else fails the project before it is timed, since a parser that
+  fails soft is fastest on a message it cannot read. The sizes are browser
+  bundles of `dist/`, the dependencies included, and a bundle of `parser()`
+  alone must come out byte for byte as it does with `src/extract.ts` emptied,
+  the source modules kept as side effects since the build flattens them into
+  one, which keeps `extractParamsFactory` out of an app that never imports it.
+  `bench-parser-<package>.yml` runs it on every pull request that changes the
+  package's source, build config, manifest, lockfile or `bench/`, or the
+  shared `bench/`, through the reusable `bench.yml`, and posts the table
+  as a comment per package. A project of the branch that fails fails the
+  job; so does the comparison — a row gone missing, a project of the base
+  that failed — unless the pull request carries that package's
+  `bench-accepted:<package>` label (`bench-label.yml` re-runs the job when
+  the label changes). A size that grew and a time beyond its spread are
+  flagged for review. `publish.yml` writes the package's `BENCH.md` into the
+  release commit.
 
 ## Current state: v3 released from `master`
 

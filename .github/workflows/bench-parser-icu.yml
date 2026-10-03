@@ -1,0 +1,29 @@
+name: ICU parser bench
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - parser-icu/src/**
+      - parser-icu/bench/**
+      - parser-icu/package.json
+      - parser-icu/package-lock.json
+      - parser-icu/tsconfig.json
+      - parser-icu/tsup.config.js
+      - bench/**
+      - .github/workflows/bench-parser-icu.yml
+      - .github/workflows/bench.yml
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: bench-${{ github.event.pull_request.number }}-parser-icu
+  cancel-in-progress: true
+
+jobs:
+  bench:
+    uses: ./.github/workflows/bench.yml
+    with:
+      package: parser-icu
