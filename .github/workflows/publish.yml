@@ -87,6 +87,10 @@ jobs:
           fi
           VERSION="$(node -p 'require("./package.json").version')"
           TAG="${{ inputs.package }}@$VERSION"
+          # The release commit carries the benchmark of the version it
+          # releases; `commit -a` takes no file it does not track yet.
+          npm run bench -- --write
+          git add BENCH.md
           git commit -a -m "chore(${{ inputs.package }}): release @sveltekit-i18n/$TAG"
           git tag "$TAG"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"

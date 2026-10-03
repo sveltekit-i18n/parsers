@@ -1,0 +1,29 @@
+name: MF2 parser bench
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - parser-mf2/src/**
+      - parser-mf2/bench/**
+      - parser-mf2/package.json
+      - parser-mf2/package-lock.json
+      - parser-mf2/tsconfig.json
+      - parser-mf2/tsup.config.js
+      - bench/**
+      - .github/workflows/bench-parser-mf2.yml
+      - .github/workflows/bench.yml
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: bench-${{ github.event.pull_request.number }}-parser-mf2
+  cancel-in-progress: true
+
+jobs:
+  bench:
+    uses: ./.github/workflows/bench.yml
+    with:
+      package: parser-mf2
