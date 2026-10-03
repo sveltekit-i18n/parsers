@@ -1,0 +1,29 @@
+name: Curly parser bench
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - parser-curly/src/**
+      - parser-curly/bench/**
+      - parser-curly/package.json
+      - parser-curly/package-lock.json
+      - parser-curly/tsconfig.json
+      - parser-curly/tsup.config.js
+      - bench/**
+      - .github/workflows/bench-parser-curly.yml
+      - .github/workflows/bench.yml
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: bench-${{ github.event.pull_request.number }}-parser-curly
+  cancel-in-progress: true
+
+jobs:
+  bench:
+    uses: ./.github/workflows/bench.yml
+    with:
+      package: parser-curly
