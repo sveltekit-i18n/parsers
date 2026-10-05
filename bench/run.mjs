@@ -5,7 +5,7 @@
 // imports nothing but Node's own modules: the repository root has no install.
 //
 //   --compare <dir>   the package root to measure against, installed
-//   --samples <n>     processes per side for time and heap rows (default 5)
+//   --samples <n>     processes per side for time and heap rows (default 11)
 //   --report <file>   also writes the table, as Markdown, to <file>
 //   --write           writes BENCH.md from this tree's rows
 //
@@ -50,7 +50,7 @@ const FLAGS = { sizes: [], times: [], heap: ['--expose-gc', '--max-opt=0'] };
 const { values: args } = parseArgs({
   options: {
     compare: { type: 'string' },
-    samples: { type: 'string', default: '5' },
+    samples: { type: 'string', default: '11' },
     report: { type: 'string' },
     write: { type: 'boolean', default: false },
   },
@@ -174,6 +174,20 @@ const median = (values) => {
   return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
 };
 
+/**
+ * The spread of a row's samples: their range once a quarter of them, rounded
+ * down, is dropped at each end. A process that shared the machine with a busy
+ * neighbour lands at an end, so it cannot widen the spread and hide a change.
+ *
+ * @type {(values: number[]) => [number, number]}
+ */
+const spreadOf = (values) => {
+  const sorted = [...values].sort((a, b) => a - b);
+  const dropped = sorted.length >> 2;
+
+  return [sorted[dropped], sorted[sorted.length - 1 - dropped]];
+};
+
 /** @type {(value: number, unit: string) => string} */
 const format = (value, unit) => {
   if (unit === 'ms' || unit === 'µs') return `${value.toLocaleString('en-US', { maximumSignificantDigits: 3 })} ${unit}`;
@@ -187,7 +201,7 @@ const format = (value, unit) => {
 
 /** @type {(entry: Measured) => string} */
 const spread = ({ values, unit }) => {
-  const [low, high] = [Math.min(...values), Math.max(...values)].map((bound) => format(bound, unit));
+  const [low, high] = spreadOf(values).map((bound) => format(bound, unit));
 
   return values.length < 2 ? '' : low === high ? low : `${low} to ${high}`;
 };
@@ -209,16 +223,18 @@ const compare = (id) => {
   // A difference no figure shows, a heap row's tenths of a byte, is none.
   const delta = format(to - from, head.unit) === format(0, head.unit) ? '0' : `${to > from ? '+' : ''}${format(to - from, head.unit)}${Number.isFinite(change) && format(from, head.unit) !== format(0, head.unit) ? ` (${to > from ? '+' : ''}${(100 * change).toFixed(1)}%)` : ''}`;
 
+  const [[masterLow, masterHigh], [headLow, headHigh]] = [spreadOf(master.values), spreadOf(head.values)];
+
   if (kind === 'time') {
-    const slower = Math.min(...head.values) > Math.max(...master.values) && change >= THRESHOLD;
-    const faster = Math.max(...head.values) < Math.min(...master.values) && change <= -THRESHOLD;
+    const slower = headLow > masterHigh && change >= THRESHOLD;
+    const faster = headHigh < masterLow && change <= -THRESHOLD;
 
     return { id, kind, master, head, delta, flag: slower ? 'slower, review' : faster ? 'faster' : '' };
   }
 
   if (kind === 'heap') {
-    const grew = Math.min(...head.values) - Math.max(...master.values) >= HEAP_FLOOR;
-    const shrank = Math.min(...master.values) - Math.max(...head.values) >= HEAP_FLOOR;
+    const grew = headLow - masterHigh >= HEAP_FLOOR;
+    const shrank = masterLow - headHigh >= HEAP_FLOOR;
 
     return { id, kind, master, head, delta, flag: grew ? 'grew, review' : shrank ? 'shrank' : '' };
   }
@@ -281,7 +297,7 @@ const dependencies = (dir) => Object.keys(manifest(dir).dependencies ?? {}).map(
 }).join(', ') || 'none';
 
 const environment = [
-  `Node ${process.version}, ${platform()} ${arch()}; times are medians of ${samples} process${samples === 1 ? '' : 'es'}${trees.master ? ' per side' : ''}, each the median of its rounds, and heap held is the median of as many processes again, each giving one reading per row. Sizes include the parser's dependencies. Heap held is the JavaScript heap: what ICU allocates for an \`Intl\` object is outside it.`,
+  `Node ${process.version}, ${platform()} ${arch()}; times are medians of ${samples} process${samples === 1 ? '' : 'es'}${trees.master ? ' per side' : ''}, each the median of its rounds, and heap held is the median of as many processes again, each giving one reading per row. A spread leaves out a quarter of a row's samples, rounded down, at each end. Sizes include the parser's dependencies. Heap held is the JavaScript heap: what ICU allocates for an \`Intl\` object is outside it.`,
   ...subjects.map((subject) => `${trees.master ? `${subject[0].toUpperCase()}${subject.slice(1)} runs on ` : 'Dependencies: '}${dependencies(/** @type {string} */ (trees[subject]))}.`),
 ].join('\n');
 
