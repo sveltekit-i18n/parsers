@@ -4,9 +4,11 @@
 // the bundler comes from the install of the package it is run from, and the
 // parser from the tree it measures.
 //
-//   --project sizes|times   what to measure
-//   --tree <dir>            the package root measured: its `dist/` and `src/`
-//   --out <file>            where the rows go
+//   --project sizes|times|heap   what to measure; heap under `--expose-gc
+//                                --max-opt=0`, as run.mjs starts it
+//   --tree <dir>                 the package root measured: its `dist/` and
+//                                `src/`
+//   --out <file>                 where the rows go
 import { realpathSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve, sep } from 'node:path';
@@ -15,8 +17,8 @@ import { parseArgs } from 'node:util';
 import { gzipSync } from 'node:zlib';
 
 /**
- * @typedef {'size' | 'time'} Kind
- * @typedef {{ id: string; kind: Kind; unit: string; value: number }} Row
+ * @typedef {'size' | 'time' | 'heap'} Kind
+ * @typedef {{ id: string; kind: Kind; unit: string; value: number; most?: number }} Row
  *
  * A message kind, written in the parser's own format.
  * @typedef {object} Label
@@ -32,7 +34,7 @@ import { gzipSync } from 'node:zlib';
  * @property {Record<string, Label>} labels The message kinds, keyed by a label
  *   the rows name.
  * @property {number} [cached] How many compiled messages the parser keeps by
- *   default, if it keeps any.
+ *   default, if it keeps any; the heap project needs 1,000 or more.
  */
 
 const { values: args } = parseArgs({
@@ -43,7 +45,7 @@ const { values: args } = parseArgs({
   },
 });
 
-if (!args.tree || !args.out || !['sizes', 'times'].includes(args.project ?? '')) throw new Error('Usage: measure.mjs --project sizes|times --tree <dir> --out <file>');
+if (!args.tree || !args.out || !['sizes', 'times', 'heap'].includes(args.project ?? '')) throw new Error('Usage: measure.mjs --project sizes|times|heap --tree <dir> --out <file>');
 
 // The bundler reports the paths it reads with their links resolved.
 const tree = realpathSync.native(resolve(args.tree));
@@ -56,9 +58,14 @@ const subject = (await import(pathToFileURL(resolve('bench/subject.mjs')).href))
 /** @type {Row[]} */
 const rows = [];
 
-/** @type {(id: string, kind: Kind, unit: string, value: number) => void} */
-const record = (id, kind, unit, value) => {
-  rows.push({ id, kind, unit, value });
+// The bounds the rows went over, which fail the project once they are
+// written, so the report shows the value that failed.
+/** @type {string[]} */
+const failures = [];
+
+/** @type {(id: string, kind: Kind, unit: string, value: number, most?: number) => void} */
+const record = (id, kind, unit, value, most) => {
+  rows.push({ id, kind, unit, value, most });
 };
 
 /** @type {(value: number) => string} */
@@ -195,39 +202,142 @@ if (args.project === 'sizes') {
 
   check('reports of the checked parses', 0, reports);
 
-  const micro = (/** @type {(index: number) => void} */ fn, inner = 2_000) => 1_000 * time(fn, { inner });
+  if (args.project === 'heap') {
+    if (typeof globalThis.gc !== 'function') throw new Error('The heap project runs under --expose-gc: start it through run.mjs.');
 
-  record('parser(options)', 'time', 'µs', micro(() => build(), 200));
+    // What a parser holds is read as the difference between two points of one
+    // curve, so whatever is constant from the first point on cancels: the
+    // module, the instance, the first read, and code compiled for a path
+    // already run thousands of times, since `--max-opt=0` leaves every tier of
+    // V8's above its interpreter out: Sparkplug, Maglev and TurboFan. Nothing
+    // writes to a stream between two points: the first write to one allocates
+    // its state, so each is written to here.
+    process.stdout.write('');
+    process.stderr.write('');
 
-  // Each row runs in a function of its own, so nothing it built stays
-  // reachable into the next one.
-  const rowsOf = (/** @type {string} */ label, /** @type {Label} */ { message, params }) => {
-    const inner = 500;
-    const fresh = messages(18 * inner, message);
-    const same = message(0);
-    const parser = build();
-    const again = build();
+    const gc = /** @type {() => void} */ (globalThis.gc);
+    // Typed, so a read allocates no number of its own.
+    const heap = new Float64Array(4);
+    const read = (/** @type {number} */ point) => {
+      gc();
+      gc();
+      heap[point] = process.memoryUsage().heapUsed;
+    };
+    /** @type {(from: number, to: number, count: number) => number} */
+    const held = (from, to, count) => (heap[to] - heap[from]) / count;
+    // A pointer kept per message, per parse or per parser reads 8 B or more; a
+    // parser that keeps nothing more reads under 1 B.
+    /** @type {(id: string, unit: string, value: number, most: number) => void} */
+    const bounded = (id, unit, value, most) => {
+      record(id, 'heap', unit, value, most);
+      if (!(value < most)) failures.push(`${id}: ${value} ${unit}, where it must stay under ${most}.`);
+    };
 
-    // A parser that keeps compiled messages is filled first, so each message
-    // timed also evicts one, as in an app past its limit.
-    for (let i = 0; i < (subject.cached ?? 0); i++) parser.parse(message(-1 - i), params, LOCALE, KEY);
-    record(`parse, ${label}, a message parsed for the first time`, 'time', 'µs', micro((i) => parser.parse(fresh[i], params, LOCALE, KEY), inner));
-    record(`parse, ${label}, the same message again`, 'time', 'µs', micro(() => again.parse(same, params, LOCALE, KEY)));
-    record(`extractParams, ${label}`, 'time', 'µs', micro(() => extract(same)));
-  };
-
-  for (const [label, entry] of Object.entries(subject.labels)) rowsOf(label, entry);
-
-  const catalogueRow = () => {
     const labels = Object.values(subject.labels);
-    const catalogue = messages(10_000, (i) => labels[i % labels.length].message(i));
+    const limit = subject.cached ?? 10_000;
+    // The rows past the limit and of the messages parsed before divide by a
+    // count of messages or parses that grows with it: from 1,000 on, a one-off
+    // allocation of a few kilobytes stays under their bounds.
+    if (limit < 1_000) throw new Error(`The heap project measures a parser that keeps 1,000 messages or more; this one keeps ${n(limit)}.`);
+    // Every label in turn, each message as wide as the next: one that gained a
+    // digit would hold more than the one it evicts, a growth of no parser's.
+    const first = 10 ** String(6 * limit).length;
+    const labelAt = (/** @type {number} */ index) => labels[index % labels.length];
+    const messageAt = (/** @type {number} */ index) => labelAt(index).message(first + index);
+    /** @type {(parser: ReturnType<typeof build>, from: number, to: number) => void} */
+    const parseStream = (parser, from, to) => {
+      for (let start = from; start < to; start += 1_000) {
+        messages(Math.min(1_000, to - start), (i) => messageAt(start + i)).forEach((message, i) => parser.parse(message, labelAt(start + i).params, LOCALE, KEY));
+      }
+    };
 
-    record(`extractParams over a catalogue of ${n(catalogue.length)} messages`, 'time', 'ms', time(() => catalogue.forEach((message) => extract(message)), { samples: 5 }));
-  };
+    // The first read of the process allocates, so it counts for nothing.
+    read(0);
 
-  catalogueRow();
+    // A parser built, used and dropped leaves nothing behind.
+    const parsers = (/** @type {number} */ count) => {
+      for (let i = 0; i < count; i++) parseStream(build(), 0, 10);
+    };
 
-  check('reports while measuring', 0, reports);
+    parsers(200);
+    read(0);
+    parsers(400);
+    read(1);
+    bounded('JS heap held per parser built and dropped, from 200 to 600 parsers', 'B/parser', held(0, 1, 400), 4);
+
+    // One parser through distinct messages: under its limit, what it keeps of
+    // each; past it, nothing more, since each message it keeps evicts one.
+    // Each point ends a whole turn of the labels, so the messages kept at one
+    // are of the same labels as at the next, and at least one turn past the
+    // one before it.
+    const parser = build();
+    const turns = [limit / 4, limit / 2, 2 * limit, 6 * limit].reduce((all, point) => [...all, Math.max(Math.round(point / labels.length), (all.at(-1) ?? -1) + 1)], /** @type {number[]} */ ([]));
+    const points = turns.map((turn) => labels.length * turn);
+
+    points.forEach((point, i) => {
+      parseStream(parser, i ? points[i - 1] : 0, point);
+      read(i);
+    });
+    record(`JS heap held per message parsed, from ${n(points[0])} to ${n(points[1])} messages`, 'heap', 'B/message', held(0, 1, points[1] - points[0]));
+    bounded(`JS heap held per message parsed, from ${n(points[2])} to ${n(points[3])} messages`, 'B/message', held(2, 3, points[3] - points[2]), 4);
+
+    // The last messages parsed, parsed again: a parser that keeps any still
+    // keeps these.
+    const recent = points[3] - Math.round(limit / 2);
+    const hot = messages(points[3] - recent, (i) => messageAt(recent + i));
+    const again = (/** @type {number} */ count) => {
+      for (let i = 0; i < count; i++) parser.parse(hot[i % hot.length], labelAt(recent + (i % hot.length)).params, LOCALE, KEY);
+    };
+
+    again(limit);
+    read(0);
+    again(4 * limit);
+    read(1);
+    bounded(`JS heap held per parse of a message parsed before, over ${n(4 * limit)} parses`, 'B/parse', held(0, 1, 4 * limit), 1);
+
+    // The parser stays reachable through the last read, and still renders.
+    check('parse after measuring', labelAt(recent).output(first + recent), parser.parse(hot[0], labelAt(recent).params, LOCALE, KEY));
+    check('reports while measuring', 0, reports);
+  } else {
+    const micro = (/** @type {(index: number) => void} */ fn, inner = 2_000) => 1_000 * time(fn, { inner });
+
+    record('parser(options)', 'time', 'µs', micro(() => build(), 200));
+
+    // Each row runs in a function of its own, so nothing it built stays
+    // reachable into the next one.
+    const rowsOf = (/** @type {string} */ label, /** @type {Label} */ { message, params }) => {
+      const inner = 500;
+      const fresh = messages(18 * inner, message);
+      const same = message(0);
+      const parser = build();
+      const again = build();
+
+      // A parser that keeps compiled messages is filled first, so each message
+      // timed also evicts one, as in an app past its limit.
+      for (let i = 0; i < (subject.cached ?? 0); i++) parser.parse(message(-1 - i), params, LOCALE, KEY);
+      record(`parse, ${label}, a message parsed for the first time`, 'time', 'µs', micro((i) => parser.parse(fresh[i], params, LOCALE, KEY), inner));
+      record(`parse, ${label}, the same message again`, 'time', 'µs', micro(() => again.parse(same, params, LOCALE, KEY)));
+      record(`extractParams, ${label}`, 'time', 'µs', micro(() => extract(same)));
+    };
+
+    for (const [label, entry] of Object.entries(subject.labels)) rowsOf(label, entry);
+
+    const catalogueRow = () => {
+      const labels = Object.values(subject.labels);
+      const catalogue = messages(10_000, (i) => labels[i % labels.length].message(i));
+
+      record(`extractParams over a catalogue of ${n(catalogue.length)} messages`, 'time', 'ms', time(() => catalogue.forEach((message) => extract(message)), { samples: 5 }));
+    };
+
+    catalogueRow();
+
+    check('reports while measuring', 0, reports);
+  }
 }
 
 writeFileSync(args.out, JSON.stringify(rows));
+
+if (failures.length) {
+  console.error(failures.join('\n'));
+  process.exitCode = 1;
+}
