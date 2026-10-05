@@ -5,7 +5,7 @@
 // imports nothing but Node's own modules: the repository root has no install.
 //
 //   --compare <dir>   the package root to measure against, installed
-//   --samples <n>     processes per side for the time rows (default 5)
+//   --samples <n>     processes per side for time and heap rows (default 5)
 //   --report <file>   also writes the table, as Markdown, to <file>
 //   --write           writes BENCH.md from this tree's rows
 //
@@ -14,8 +14,8 @@
 //
 // It exits with 1 when a project of this tree failed, and with 2 when only the
 // comparison failed: a row of the base is missing from this tree, or a project
-// of the base failed. The `bench-accepted:<package>` label lets the second
-// pass in CI.
+// of the base failed short of its rows (a base over a heap bound is only
+// reported). The `bench-accepted:<package>` label lets the second pass in CI.
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { arch, constants, platform } from 'node:os';
@@ -24,20 +24,28 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 /**
- * @typedef {'size' | 'time'} Kind
- * @typedef {{ id: string; kind: Kind; unit: string; value: number }} Row
+ * @typedef {'size' | 'time' | 'heap'} Kind
+ * @typedef {{ id: string; kind: Kind; unit: string; value: number; most?: number }} Row
  * @typedef {'master' | 'head'} Subject
- * @typedef {'build' | 'sizes' | 'times'} Project
- * @typedef {{ kind: Kind; unit: string; values: number[] }} Measured
+ * @typedef {'build' | 'sizes' | 'times' | 'heap'} Project
+ * @typedef {{ kind: Kind; unit: string; values: number[]; most?: number }} Measured
  */
 
 const MEASURE = join(dirname(fileURLToPath(import.meta.url)), 'measure.mjs');
 /** @type {Kind[]} */
-const KINDS = ['size', 'time'];
+const KINDS = ['size', 'time', 'heap'];
 
 // A time counts as changed only beyond the spread of both sides and by more
 // than this share of master's median.
 const THRESHOLD = 0.05;
+// Heap counts as changed beyond the spread of both sides by this many bytes,
+// whatever the share: what a parser holds is the same on every run, to a
+// fraction of a byte.
+const HEAP_FLOOR = 2;
+// The heap project reads the heap after collecting it, and leaves every tier
+// of V8's above its interpreter out, which would compile code between two reads.
+/** @type {Record<Exclude<Project, 'build'>, string[]>} */
+const FLAGS = { sizes: [], times: [], heap: ['--expose-gc', '--max-opt=0'] };
 
 const { values: args } = parseArgs({
   options: {
@@ -118,7 +126,7 @@ const run = async (subject, project, sample) => {
   if (failed[subject].has('build')) return [];
 
   const out = join(OUT, `${subject}-${project}-${sample}.json`);
-  const { status } = spawnSync(process.execPath, [MEASURE, '--project', project, '--tree', /** @type {string} */ (trees[subject]), '--out', out], {
+  const { status } = spawnSync(process.execPath, [...FLAGS[project], MEASURE, '--project', project, '--tree', /** @type {string} */ (trees[subject]), '--out', out], {
     cwd: ROOT,
     stdio: ['ignore', 'inherit', 'inherit'],
     // Dates render alike on every machine, and a dependency runs as an app
@@ -126,7 +134,9 @@ const run = async (subject, project, sample) => {
     env: { ...process.env, NODE_ENV: 'production', TZ: 'UTC' },
   });
 
-  if (status !== 0) failed[subject].add(project);
+  // A project that wrote its rows and failed went over a bound, which the
+  // rows name: that fails this tree, and the base only reports it.
+  if (status !== 0 && (subject === 'head' || !existsSync(out))) failed[subject].add(project);
   await settle();
 
   return existsSync(out) ? JSON.parse(readFileSync(out, 'utf8')) : [];
@@ -136,8 +146,8 @@ const run = async (subject, project, sample) => {
 const measured = { master: new Map(), head: new Map() };
 
 /** @type {(subject: Subject, rows: Row[]) => void} */
-const add = (subject, rows) => rows.forEach(({ id, kind, unit, value }) => {
-  const entry = measured[subject].get(id) ?? { kind, unit, values: [] };
+const add = (subject, rows) => rows.forEach(({ id, kind, unit, value, most }) => {
+  const entry = measured[subject].get(id) ?? { kind, unit, values: [], most };
 
   entry.values.push(value);
   measured[subject].set(id, entry);
@@ -146,12 +156,14 @@ const add = (subject, rows) => rows.forEach(({ id, kind, unit, value }) => {
 // Sizes are the same on every run, so one run of each side does.
 for (const subject of subjects) add(subject, await run(subject, 'sizes', 0));
 
-// Times alternate between the sides, each sample in a fresh process, so a
-// drift of the machine lands on both.
+// Times and heap alternate between the sides, each sample in a fresh process,
+// so a drift of the machine lands on both.
 for (let sample = 0; sample < samples; sample++) {
   const order = sample % 2 ? [...subjects].reverse() : subjects;
 
-  for (const subject of order) add(subject, await run(subject, 'times', sample));
+  for (const project of /** @type {const} */ (['times', 'heap'])) {
+    for (const subject of order) add(subject, await run(subject, project, sample));
+  }
 }
 
 /** @type {(values: number[]) => number} */
@@ -166,11 +178,19 @@ const median = (values) => {
 const format = (value, unit) => {
   if (unit === 'ms' || unit === 'µs') return `${value.toLocaleString('en-US', { maximumSignificantDigits: 3 })} ${unit}`;
 
+  // A tenth of a byte, the noise of a heap row; a value that rounds to zero
+  // reads without a sign.
+  if (unit.startsWith('B/')) return `${value.toLocaleString('en-US', { maximumFractionDigits: 1, signDisplay: 'negative' })} ${unit}`;
+
   return `${Math.round(value).toLocaleString('en-US')} ${unit}`;
 };
 
 /** @type {(entry: Measured) => string} */
-const spread = ({ values, unit }) => (values.length > 1 ? `${format(Math.min(...values), unit)} to ${format(Math.max(...values), unit)}` : '');
+const spread = ({ values, unit }) => {
+  const [low, high] = [Math.min(...values), Math.max(...values)].map((bound) => format(bound, unit));
+
+  return values.length < 2 ? '' : low === high ? low : `${low} to ${high}`;
+};
 
 /** @typedef {{ id: string; kind: Kind; master?: Measured; head?: Measured; flag: string; delta: string }} Line */
 
@@ -186,13 +206,21 @@ const compare = (id) => {
 
   const [from, to] = [median(master.values), median(head.values)];
   const change = from === 0 ? (to === 0 ? 0 : Infinity) : (to - from) / Math.abs(from);
-  const delta = from === to ? '0' : `${to > from ? '+' : ''}${format(to - from, head.unit)}${Number.isFinite(change) ? ` (${to > from ? '+' : ''}${(100 * change).toFixed(1)}%)` : ''}`;
+  // A difference no figure shows, a heap row's tenths of a byte, is none.
+  const delta = format(to - from, head.unit) === format(0, head.unit) ? '0' : `${to > from ? '+' : ''}${format(to - from, head.unit)}${Number.isFinite(change) && format(from, head.unit) !== format(0, head.unit) ? ` (${to > from ? '+' : ''}${(100 * change).toFixed(1)}%)` : ''}`;
 
   if (kind === 'time') {
     const slower = Math.min(...head.values) > Math.max(...master.values) && change >= THRESHOLD;
     const faster = Math.max(...head.values) < Math.min(...master.values) && change <= -THRESHOLD;
 
     return { id, kind, master, head, delta, flag: slower ? 'slower, review' : faster ? 'faster' : '' };
+  }
+
+  if (kind === 'heap') {
+    const grew = Math.min(...head.values) - Math.max(...master.values) >= HEAP_FLOOR;
+    const shrank = Math.min(...master.values) - Math.max(...head.values) >= HEAP_FLOOR;
+
+    return { id, kind, master, head, delta, flag: grew ? 'grew, review' : shrank ? 'shrank' : '' };
   }
 
   if (to > from) return { id, kind, master, head, delta, flag: 'grew, review' };
@@ -204,6 +232,12 @@ const ids = [...new Set([...measured.head.keys(), ...measured.master.keys()])];
 const lines = KINDS.flatMap((kind) => ids.map(compare).filter((line) => line.kind === kind));
 
 const missing = lines.filter(({ flag }) => flag === 'missing');
+/** @type {(subject: Subject) => string[]} */
+const over = (subject) => lines.flatMap(({ id, [subject]: entry }) => {
+  if (entry?.most === undefined || entry.values.every((sample) => sample < /** @type {number} */ (entry.most))) return [];
+
+  return [`${id} reads ${format(Math.max(...entry.values), entry.unit)}, at or past its bound of ${format(entry.most, entry.unit)}`];
+});
 const review = lines.filter(({ flag }) => flag.endsWith('review'));
 
 /** @type {(text: string) => string} */
@@ -215,7 +249,7 @@ const table = trees.master
   ? [
     '| Row | Kind | Master | Head | Delta | Spread (master; head) | Flag |',
     '| --- | --- | ---: | ---: | ---: | --- | --- |',
-    ...lines.map((line) => `| ${cell(line.id)} | ${line.kind} | ${value(line.master)} | ${value(line.head)} | ${line.delta} | ${line.kind === 'time' ? [line.master, line.head].map((entry) => (entry ? spread(entry) : 'n/a')).join('; ') : ''} | ${line.flag} |`),
+    ...lines.map((line) => `| ${cell(line.id)} | ${line.kind} | ${value(line.master)} | ${value(line.head)} | ${line.delta} | ${line.kind === 'size' ? '' : [line.master, line.head].map((entry) => (entry ? spread(entry) : 'n/a')).join('; ')} | ${line.flag} |`),
   ]
   : [
     '| Row | Kind | Value | Spread |',
@@ -227,10 +261,12 @@ const compared = failed.master.size + missing.length;
 
 const verdict = [
   ...[...failed.head].map((project) => `- **Failed:** the ${project} project of this branch. The job fails.`),
+  ...over('head').map((line) => `- **Over its bound:** ${line}.`),
+  ...over('master').map((line) => `- **Over its bound on the base:** ${line}.`),
   ...[...failed.master].map((project) => `- **Failed on the base:** the ${project} project; a row it did not measure reads n/a.`),
   ...missing.map(({ id }) => `- **Missing on head:** ${id}.`),
   compared && !failed.head.size ? `- The job fails on the comparison unless the PR carries the \`${label}\` label.` : '',
-  review.length ? `- ${review.length} row${review.length === 1 ? '' : 's'} to review: a size that grew or a time beyond its spread by ${100 * THRESHOLD}% or more. Neither fails the job.` : '',
+  review.length ? `- ${review.length} row${review.length === 1 ? '' : 's'} to review: a size that grew, a time above the base's spread with its median up by ${100 * THRESHOLD}% or more, or heap held ${HEAP_FLOOR} B or more above the base's spread. None fails the job.` : '',
 ].filter(Boolean);
 
 /**
@@ -245,7 +281,7 @@ const dependencies = (dir) => Object.keys(manifest(dir).dependencies ?? {}).map(
 }).join(', ') || 'none';
 
 const environment = [
-  `Node ${process.version}, ${platform()} ${arch()}; times are medians of ${samples} process${samples === 1 ? '' : 'es'}${trees.master ? ' per side' : ''}, each the median of its rounds. Sizes include the parser's dependencies.`,
+  `Node ${process.version}, ${platform()} ${arch()}; times are medians of ${samples} process${samples === 1 ? '' : 'es'}${trees.master ? ' per side' : ''}, each the median of its rounds, and heap held is the median of as many processes again, each giving one reading per row. Sizes include the parser's dependencies. Heap held is the JavaScript heap: what ICU allocates for an \`Intl\` object is outside it.`,
   ...subjects.map((subject) => `${trees.master ? `${subject[0].toUpperCase()}${subject.slice(1)} runs on ` : 'Dependencies: '}${dependencies(/** @type {string} */ (trees[subject]))}.`),
 ].join('\n');
 
@@ -256,7 +292,7 @@ const report = [
   trees.master ? 'This branch against its base.' : args.compare ? 'This branch; the base has no such package.' : 'This tree.',
   environment,
   '',
-  ...(verdict.length ? [...verdict, ''] : trees.master ? [`No size grew and no time slowed beyond its spread by ${100 * THRESHOLD}% or more.`, ''] : []),
+  ...(verdict.length ? [...verdict, ''] : trees.master ? [`No size grew, no time rose above the base's spread with its median up by ${100 * THRESHOLD}% or more, and no heap held rose ${HEAP_FLOOR} B or more above the base's spread.`, ''] : []),
   ...table,
   '',
 ].join('\n');
@@ -275,8 +311,8 @@ if (args.write) {
       '',
       blurb,
       '',
-      ...(kind === 'time' ? ['| Row | Median | Spread |', '| --- | ---: | --- |'] : ['| Row | Value |', '| --- | ---: |']),
-      ...rows.map((line) => `| ${cell(line.id)} | ${value(line.head)} |${kind === 'time' ? ` ${spread(/** @type {Measured} */ (line.head))} |` : ''}`),
+      ...(kind === 'size' ? ['| Row | Value |', '| --- | ---: |'] : ['| Row | Median | Spread |', '| --- | ---: | --- |']),
+      ...rows.map((line) => `| ${cell(line.id)} | ${value(line.head)} |${kind === 'size' ? '' : ` ${spread(/** @type {Measured} */ (line.head))} |`}`),
       '',
     ];
   };
@@ -290,6 +326,7 @@ if (args.write) {
     '',
     ...section('size', 'Sizes', 'Bytes of a browser bundle, the dependencies included: the same on every machine.'),
     ...section('time', 'Times', 'Microseconds and milliseconds, of one machine at one time: compare them only with figures measured beside them.'),
+    ...section('heap', 'Heap', 'Bytes of the JavaScript heap a parser holds, the same on every run of one Node version, to a fraction of a byte.'),
   ].join('\n'));
 }
 

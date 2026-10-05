@@ -67,11 +67,24 @@ Official message parsers for the
   shared `bench/`, through the reusable `bench.yml`, and posts the table
   as a comment per package. A project of the branch that fails fails the
   job; so does the comparison — a row gone missing, a project of the base
-  that failed — unless the pull request carries that package's
+  that failed, though a base over a heap bound is only reported — unless the pull request carries that package's
   `bench-accepted:<package>` label (`bench-label.yml` re-runs the job when
-  the label changes). A size that grew and a time beyond its spread are
-  flagged for review. `publish.yml` writes the package's `BENCH.md` into the
-  release commit.
+  the label changes). The heap project runs beside the times, under
+  `--expose-gc --max-opt=0`, and reads the JavaScript heap a parser holds as
+  the difference between two points of one curve, so what is constant cancels:
+  per parser built and dropped, per distinct message under and past the
+  parser's cache limit (the subject's `cached`, else 10,000, and 1,000 at
+  least, from which a one-off allocation stays under the bounds), and per parse of
+  a message parsed before. Its messages take every label in turn, flat as a
+  catalogue delivers them and of one width, since a message that gains a digit
+  holds more than the one it evicts, and each point ends a whole turn of the
+  labels, so a parser keeps the same labels at each; what ICU allocates for an
+  `Intl` object is outside the heap. A row with a bound — every one but the message under the
+  limit — fails the project once it reaches it, after the rows are written: a
+  pointer kept per message, per parse or per parser reads 8 B or more. A size
+  that grew, a time above the base's spread with its median up by 5% or more
+  and heap held 2 B or more above the base's spread are flagged for review. `publish.yml` writes the
+  package's `BENCH.md` into the release commit.
 
 ## Current state: v3 released from `master`
 
