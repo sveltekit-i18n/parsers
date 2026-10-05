@@ -555,7 +555,7 @@ All three select by the locale's plural categories. ICU's `other` and MessageFor
 - 📚 [messageformat](https://github.com/messageformat/messageformat) – The reference implementation
 - 🌐 [sveltekit-i18n.github.io](https://sveltekit-i18n.github.io) – The documentation site, with a live playground
 - 🎨 [All Parsers](https://github.com/sveltekit-i18n/parsers) – Parser overview
-- 💡 [Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples) – Working examples
+- 💡 [Playground](https://sveltekit-i18n.github.io/playground) – Runs this parser, beside the other ones
 - 📋 [Changelog](https://github.com/sveltekit-i18n/parsers/blob/master/parser-mf2/CHANGELOG.md) – Version history
 
 ## Issues

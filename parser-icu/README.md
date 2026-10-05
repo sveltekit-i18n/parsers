@@ -514,7 +514,7 @@ Both select by the locale's plural categories. ICU's `other` catches every categ
 - 📚 [FormatJS Documentation](https://formatjs.io/docs/intl-messageformat/) – intl-messageformat docs
 - 🌐 [sveltekit-i18n.github.io](https://sveltekit-i18n.github.io) – The documentation site, with a live playground
 - 🎨 [All Parsers](https://github.com/sveltekit-i18n/parsers) – Parser overview
-- 💡 [Examples](https://github.com/sveltekit-i18n/lib/tree/master/examples) – Working examples
+- 💡 [Playground](https://sveltekit-i18n.github.io/playground) – Runs this parser, beside the other ones
 - 📋 [Changelog](https://github.com/sveltekit-i18n/parsers/blob/master/parser-icu/CHANGELOG.md) – Version history
 
 ## Issues
