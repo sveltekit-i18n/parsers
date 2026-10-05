@@ -83,8 +83,11 @@ Official message parsers for the
   limit — fails the project once it reaches it, after the rows are written: a
   pointer kept per message, per parse or per parser reads 8 B or more. A size
   that grew, a time above the base's spread with its median up by 5% or more
-  and heap held 2 B or more above the base's spread are flagged for review. `publish.yml` writes the
-  package's `BENCH.md` into the release commit.
+  and heap held 2 B or more above the base's spread are flagged for review;
+  a spread leaves out the lowest and the highest quarter of a row's samples,
+  rounded down, so a process that shared the machine with a busy neighbour
+  neither hides a change nor flags one. `publish.yml` writes the package's
+  `BENCH.md` into the release commit.
 
 ## Current state: v3 released from `master`
 
