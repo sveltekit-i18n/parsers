@@ -1,3 +1,10 @@
+# 3.0.4
+The built-in formats keep their `Intl` formatters.
+* **`number`, `currency`, `datetime`, `relativetime` and `list` are registered again over formatters kept per parser instance**, per locale and the options the `Intl` constructor reads: up to 1,000 `DateTimeFormat`s and 10,000 of each other kind, the oldest making room, about 150 MB per parser with every kind at its limit on Node 22. Before, each formatted placeholder built a new formatter on every render, since i18next's own cache of them is keyed by the whole payload and stays off; a `number` placeholder now formats some five times as fast, a `datetime` one some twelve times. They build with the locale and options i18next's own use, so a message renders as it did.
+* A call with an option whose value is not a string, boolean, finite number or `null`, with an option inherited from a prototype, or with a locale that is not a string builds a formatter of its own, which is not kept. A custom format, one named like a built-in included, is called as it is.
+* A kept formatter goes on showing what the host's `Intl` had when it was built: on a host whose default zone changes while it runs (Node, Bun or Deno with `process.env.TZ` set at runtime), a date that names no `timeZone` keeps the zone it was first formatted in. A value that comes from the visitor - a `timeZone`, `currency` or `lng` read from a cookie or a header - can fill a kind alone; the README says to check such a value against a known set.
+* The package is tested against `@sveltekit-i18n/base` 3.2.0; the peer range is unchanged.
+
 # 3.0.3
 Documentation only. The typegen section is linked by its stable heading. The README's links into the package now name the release's tag, so the npm page of this version keeps showing this version's files. The package is tested against `@sveltekit-i18n/base` 3.1.2; the peer range is unchanged. The package itself is unchanged.
 
