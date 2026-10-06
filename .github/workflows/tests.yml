@@ -34,6 +34,28 @@ jobs:
       - name: Test
         run: npm run test
 
+  Lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.package }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Without `--fix`, which `npm run lint` passes: a finding fails the job.
+      - name: Lint
+        run: npx eslint .
+
   # The parsers declare no runtime API of their own, so these legs exist to keep
   # that true. Dependencies still install through npm: the alternative runtimes
   # run the suite, they do not manage the tree.
