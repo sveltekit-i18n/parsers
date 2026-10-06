@@ -95,7 +95,11 @@ Official message parsers for the
   adapter over `@curly-message/parser` (the Curly Message Format's reference
   implementation; the format lives in https://curlymessage.dev)
   and runs the format's conformance set in its tests; `parser-icu` wraps
-  `intl-messageformat`; `parser-mf2` wraps `messageformat` (the Unicode
+  `intl-messageformat`, and extracts through it too
+  (`IntlMessageFormat.__parse`, the parser its constructor compiles with),
+  never through a message parser of its own, so extraction reads the AST the
+  runtime compiles however many copies of the parser an install holds;
+  `parser-mf2` wraps `messageformat` (the Unicode
   MessageFormat 2 reference implementation); `parser-i18next` wraps
   `i18next`. All build with tsup and test with vitest, and all run that suite
   on Node, Bun and Deno — no package reaches for a runtime API, and the extra

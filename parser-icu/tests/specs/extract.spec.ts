@@ -1,3 +1,4 @@
+import { IntlMessageFormat } from 'intl-messageformat';
 import { describe, expect, it } from 'vitest';
 import parser, { extractParamsFactory } from '../../src';
 import { TRANSLATIONS } from '../data';
@@ -82,5 +83,21 @@ describe('extractParamsFactory', () => {
     const missing = message(initLocale, 'common.missing');
 
     expect(extractParams(missing, { key: 'common.missing', locale: initLocale })).toEqual(extractParams(missing));
+  });
+
+  it('reads a message with the parser intl-messageformat compiles it with', () => {
+    // An install can hold another copy of the message parser beside the one
+    // `intl-messageformat` compiles with; extraction must read the AST the
+    // runtime compiles, so a parser put in its place reaches both.
+    const compiles = IntlMessageFormat.__parse!;
+
+    IntlMessageFormat.__parse = (text, options) => compiles(text.replace('{name}', '{renamed}'), options);
+
+    try {
+      expect(extractParams('Hi {name}')).toEqual([{ name: 'renamed', kind: 'unknown', optional: false }]);
+      expect(parser({ onReport: null }).parse('Hi {name}', [{ renamed: 'there' }], initLocale, 'k')).toBe('Hi there');
+    } finally {
+      IntlMessageFormat.__parse = compiles;
+    }
   });
 });

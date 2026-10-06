@@ -1,7 +1,24 @@
-import { parse, TYPE } from '@formatjs/icu-messageformat-parser';
-import type { MessageFormatElement } from '@formatjs/icu-messageformat-parser';
+import { IntlMessageFormat } from 'intl-messageformat';
 import type { Parser as BaseParser } from '@sveltekit-i18n/base';
 import type { Parser } from './types';
+
+type MessageFormatElement = ReturnType<IntlMessageFormat['getAst']>[number];
+type ElementType = MessageFormatElement['type'];
+
+// `intl-messageformat` does not export the enum its AST's types belong to, so
+// each is named by its value: one the AST no longer holds fails to compile.
+// A cast rather than a call, which a flattened bundle could not drop.
+type Member<N extends ElementType> = Extract<ElementType, N>;
+
+const TYPE = {
+  argument: 1 as Member<1>,
+  number: 2 as Member<2>,
+  date: 3 as Member<3>,
+  time: 4 as Member<4>,
+  select: 5 as Member<5>,
+  plural: 6 as Member<6>,
+  tag: 8 as Member<8>,
+};
 
 // The branch an option key names is a value of the parameter only for `select`
 // and for a plural's exact matches. A plural's `one`/`few`/`other` are
@@ -76,6 +93,13 @@ export const extractParamsFactory: Parser.ExtractParamsFactory = (options) => (m
   // A catalogue leaf is arbitrary data; only text can name parameters. The
   // ICU parser throws on anything else, and on text it cannot parse.
   if (typeof message !== 'string') return [];
+
+  // The parser `intl-messageformat` compiles with, however many copies an
+  // install holds. `getAst()` reads the same AST at the cost of an instance,
+  // and the locale it resolves, per message.
+  const parse = IntlMessageFormat.__parse;
+
+  if (parse === undefined) return [];
 
   let elements: MessageFormatElement[];
 
