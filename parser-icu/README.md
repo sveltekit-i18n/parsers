@@ -25,7 +25,7 @@ npm install @sveltekit-i18n/parser-icu
 
 **Note:** This parser has an external dependency, `intl-messageformat`, which is installed automatically.
 
-**Requirements:** Node.js 22, Bun 1.2 or Deno 2, or newer. Version 3 is ESM-only, expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, and builds on `intl-messageformat` v11. The examples use base 3.1: its loader spelling - `namespace`, and one descriptor listing several locales - and its `@sveltekit-i18n/base/kit` subpath. On base 3.0 write `key` and one descriptor per locale, whose loader names its own file, since 3.0 passes it no `namespace`: `{ locale: 'en', key: 'common', loader: async () => (await import('./en/common.json')).default }`.
+**Requirements:** Node.js 22, Bun 1.2 or Deno 2, or newer. Version 3 is ESM-only, expects [`@sveltekit-i18n/base`](https://github.com/sveltekit-i18n/base) v3 as a peer dependency, and builds on `intl-messageformat` v12. The examples use base 3.1: its loader spelling - `namespace`, and one descriptor listing several locales - and its `@sveltekit-i18n/base/kit` subpath. On base 3.0 write `key` and one descriptor per locale, whose loader names its own file, since 3.0 passes it no `namespace`: `{ locale: 'en', key: 'common', loader: async () => (await import('./en/common.json')).default }`.
 
 ## Usage
 

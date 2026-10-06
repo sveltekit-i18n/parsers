@@ -69,6 +69,6 @@
     "esbuild": "^0.28.1"
   },
   "dependencies": {
-    "intl-messageformat": "^11.2.15"
+    "intl-messageformat": "^12.1.3"
   }
 }
