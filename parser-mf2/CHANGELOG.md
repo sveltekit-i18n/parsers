@@ -1,3 +1,9 @@
+# 3.1.0
+The `cacheLimit` option.
+* **`cacheLimit` sets how many compiled messages a parser keeps**, one count across every locale, the least recently used making room: 10,000 by default, as before; `0` compiles on every call, `Infinity` never evicts, and a value that is no count keeps the default. `extractParamsFactory` does not take it, since extraction caches nothing. The README states what an entry takes and when to raise the limit: a server shares one parser across every request, so 20 locales of 1,000 keys each are 20,000 entries.
+* The message cache is kept per locale, then per message, so a hit no longer builds a string as long as the message - a cached message of text or with one placeholder is read in about half the time - and a locale and a message holding a NUL character no longer collide: such a call could get the message another call had compiled.
+* The README links the site's playground, which runs this parser, instead of the examples. The package is tested against `@sveltekit-i18n/base` 3.2.0; the peer range is unchanged.
+
 # 3.0.4
 Documentation only. The comparison with `parser-curly` writes its plural with the format's `plural` selection, which it has had since `@curly-message/parser` 3.1, and the typegen section is linked by its stable heading. The README's links into the package now name the release's tag, so the npm page of this version keeps showing this version's files. The package is tested against `@sveltekit-i18n/base` 3.1.2; the peer range is unchanged. The package itself is unchanged.
 
