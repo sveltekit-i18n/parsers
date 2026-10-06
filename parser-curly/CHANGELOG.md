@@ -1,7 +1,7 @@
 # 3.2.1
 Resolution through `@curly-message/parser` 3.1.1, which keeps the `Intl` objects the formatting modifiers build and the `Intl.PluralRules` a plural selection builds, looks a modifier up by name and builds its whitespace set once: a `number` placeholder resolves some three to four times as fast, a `date` one some seven to eleven times and a plural selection some two to two and a half times, with the same output. The dependency floor moves to 3.1.1, so an install takes it, and a browser bundle of `parser()` grows by some 470 B gzipped.
 * A kept `Intl` object shows what the host showed when it was built. Wherever no layer — `modifierDefaults`, the call's props, a wrapper's props — names a `timeZone`, a host that changes its zone while running (`process.env.TZ` set at runtime) goes on showing a kept request's dates in the old zone; naming a `timeZone` in any layer avoids that. The README says so, links the reference implementation's README for which requests are kept and for how long, and its link into the reference implementation's plural section names the 3.1.1 tag.
-* The package is tested against `@sveltekit-i18n/base` 3.2.0; the peer range is unchanged.
+* The package is tested against `@sveltekit-i18n/base` 3.3.0; the peer range is unchanged.
 
 # 3.2.0
 Plural selection, through `@curly-message/parser` 3.1.
