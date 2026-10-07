@@ -1,3 +1,6 @@
+# 3.0.5
+Documentation only. The README said that `interpolation: { escapeValue: true }` restores escaping for output rendered as markup; it says now that this is for `{@html}`, and never for [`@sveltekit-i18n/extension-html`](https://github.com/sveltekit-i18n/extensions/tree/master/extension-html), whose `<T>` escapes the payload itself, so a value escaped again renders its entities as text. The package is tested against `@sveltekit-i18n/base` 3.3.1; the peer range is unchanged. The package itself is unchanged.
+
 # 3.0.4
 The built-in formats keep their `Intl` formatters.
 * **`number`, `currency`, `datetime`, `relativetime` and `list` are registered again over formatters kept per parser instance**, per locale and the options the `Intl` constructor reads: up to 1,000 `DateTimeFormat`s and 10,000 of each other kind, the oldest making room, about 150 MB per parser with every kind at its limit on Node 22. Before, each formatted placeholder built a new formatter on every render, since i18next's own cache of them is keyed by the whole payload and stays off; a `number` placeholder now formats some five times as fast, a `datetime` one some twelve times. They build with the locale and options i18next's own use, so a message renders as it did.
