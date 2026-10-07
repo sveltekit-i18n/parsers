@@ -330,7 +330,7 @@ const config: Config = {
 };
 ```
 
-Translation keys and their payloads are typed by [`config.schema`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#schema): each key mapped to the payload its message expects. [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen), a Vite plugin, fills it from the app's own catalogue, reading every message through the parser's `extractParamsFactory` — each parser's README says which package and options to name.
+Translation keys and their payloads are typed by [`config.schema`](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#schema): each key mapped to the payload its message expects. [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen), a Vite plugin, fills it from the app's own catalogue, reading every message through the parser's `extractParamsFactory` — each parser's README says which package and options to name. [`@sveltekit-i18n/extension-typed-access`](https://github.com/sveltekit-i18n/extensions/tree/master/extension-typed-access) types its member form, `t.cart.summary.itemCount({ count: 3 })`, from the same schema, payloads included.
 
 ## Contributing
 
