@@ -186,6 +186,17 @@ export const i18n = new I18n(config);
 
 In a SvelteKit app, hand the config to `defineI18n(config, { preferredLocale })` from `@sveltekit-i18n/base/kit` (base 3.1 and newer) instead: it returns `handle`, `load`, `use` and `get`, and the server builds an instance per request. See the core's [SvelteKit guide](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#sveltekit); `sveltekit-i18n` users import the same from `sveltekit-i18n/kit`.
 
+### Rendering Markup
+
+[`@sveltekit-i18n/extension-html`](https://github.com/sveltekit-i18n/extensions/tree/master/extension-html) renders the HTML tags a message carries as elements, through its `<T>` component, and escapes the payload itself. The parser runs first and has to pass the tags through:
+
+| Parser | With `extension-html` |
+| --- | --- |
+| `parser-curly` | Passes markup through. Inside an option value, write an entity's `;` as `\;` ([Escaping](./parser-curly/README.md#escaping)). |
+| `parser-icu` | Needs `ignoreTag: true`, or a tag is ICU's own syntax and the message fails ([Parser Options](./parser-icu/README.md#parser-options)). |
+| `parser-mf2` | Passes HTML tags written as text through; MF2's own markup (`{#b}`, `{/b}`) renders no element. Its isolation marks reach an attribute value: `<T>` of extension-html 3.0.2 or newer removes them, while an attribute filled with `t()` needs `bidiIsolation: 'none'` ([Markup](./parser-mf2/README.md#markup)). |
+| `parser-i18next` | Passes markup through. Keep the default `escapeValue: false` ([Usage](./parser-i18next/README.md#usage)). |
+
 ## Creating Custom Parsers
 
 You can create your own parser to support any message syntax you need.
