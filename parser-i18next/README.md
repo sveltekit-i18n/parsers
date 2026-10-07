@@ -41,7 +41,7 @@ export const i18n = new I18n(config);
 
 `i18n.t(key, payload?, options?)` takes the values the placeholders name and the per-call formatting options; the examples below use it.
 
-Values are not HTML-escaped. Svelte escapes text itself when it renders `{i18n.t(...)}`, and i18next's escaping on top of that would double it, so `<b>` would reach the page as `&lt;b&gt;`. That is the one default this parser sets differently from i18next; `interpolation: { escapeValue: true }` restores it for output that is rendered as markup.
+Values are not HTML-escaped. Svelte escapes text itself when it renders `{i18n.t(...)}`, and i18next's escaping on top of that would double it, so `<b>` would reach the page as `&lt;b&gt;`. That is the one default this parser sets differently from i18next; `interpolation: { escapeValue: true }` restores it for output rendered with `{@html}`. Never set it for [`@sveltekit-i18n/extension-html`](https://github.com/sveltekit-i18n/extensions/tree/master/extension-html#parsers): its `<T>` escapes the payload before this parser sees it, so a value escaped again renders its entities as text (`<i>` as `&#60;i&#62;`). The unescape marker (`{{- name}}`) creates no markup in `<T>` either.
 
 In a SvelteKit app, hand the config to `defineI18n(config, { preferredLocale })` from `@sveltekit-i18n/base/kit`, new in base 3.1, rather than building an instance of your own: it returns `handle` for `hooks.server.js`, one `load` for both root layout files, `use()` for the root layout and `get()` for every component below it, and the server builds an instance per request, so no visitor sees another visitor's locale. The core's [SvelteKit guide](https://github.com/sveltekit-i18n/base/blob/master/docs/README.md#sveltekit) walks through the setup.
 
