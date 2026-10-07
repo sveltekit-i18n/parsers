@@ -1,3 +1,6 @@
+# 3.1.1
+Documentation only. The README says how markup reaches [`@sveltekit-i18n/extension-html`](https://github.com/sveltekit-i18n/extensions/tree/master/extension-html): as HTML tags written as text, while the format's own markup renders no element, and that a placeholder inside an attribute value carries its bidi isolation marks into the value, which `<T>` of extension-html 3.0.2 or newer removes from every attribute but `title`, and which `bidiIsolation: 'none'` leaves out of what `t()` returns. The package is tested against `@sveltekit-i18n/base` 3.3.1; the peer range is unchanged. The package itself is unchanged.
+
 # 3.1.0
 The `cacheLimit` option.
 * **`cacheLimit` sets how many compiled messages a parser keeps**, one count across every locale, the least recently used making room: 10,000 by default, as before; `0` compiles on every call, `Infinity` never evicts, and a value that is no count keeps the default. `extractParamsFactory` does not take it, since extraction caches nothing. The README states what an entry takes and when to raise the limit: a server shares one parser across every request, so 20 locales of 1,000 keys each are 20,000 entries.

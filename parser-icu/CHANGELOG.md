@@ -1,3 +1,6 @@
+# 3.1.1
+Documentation only. The README says that [`@sveltekit-i18n/extension-html`](https://github.com/sveltekit-i18n/extensions/tree/master/extension-html) needs `ignoreTag: true`: without it a tag is this parser's own rich-text syntax, and a message is reported as `failed-message` and returned raw whenever its payload carries no callback for a tag or a tag carries an attribute. The package is tested against `@sveltekit-i18n/base` 3.3.1; the peer range is unchanged. The package itself is unchanged.
+
 # 3.1.0
 The `cacheLimit` option, caches that serve more of the calls an app makes, extraction with the parser the runtime compiles with, and `intl-messageformat` 12.
 * **`cacheLimit` sets how many compiled messages a parser keeps**, one count across every locale, the least recently used making room: 10,000 by default, as before; `0` compiles on every call, `Infinity` never evicts, and a value that is no count keeps the default. `extractParamsFactory` does not take it, since extraction caches nothing. The README states what an entry takes and when to raise the limit: a server shares one parser across every request, so 20 locales of 1,000 keys each are 20,000 entries.
