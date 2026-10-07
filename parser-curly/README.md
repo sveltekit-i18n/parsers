@@ -256,6 +256,8 @@ A backslash cancels the structural meaning of the character after it: `:`, `;`, 
 
 Escape sequences are removed from the message and from nothing else: a payload value is data, so its backslashes and its braces reach the output as they stand and a value holding `\d+` renders `\d+`. A placeholder is written on one line — `{{` and `}}` with a line terminator between them are text — and `{{}}` is a placeholder naming no key, which resolves to the fallback.
 
+Markup is text to the format: `Read <a href="/docs">the docs</a>` reaches the output as written, which is what [`@sveltekit-i18n/extension-html`](https://github.com/sveltekit-i18n/extensions/tree/master/extension-html#parsers) renders as elements. Inside an option value a `;` still ends the option, an entity's included: write `&amp\;` there (`"&amp\\;"` in JSON).
+
 ## Payload
 
 A payload entry may be a wrapper instead of the value: a plain object owning at least one of `value`, `default` and `props` and nothing else. Its `default` is tried before the payload's, and its `props` are the topmost formatting layer.
