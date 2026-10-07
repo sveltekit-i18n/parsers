@@ -453,7 +453,7 @@ export const { handle, load, use, get } = defineI18n(config);
 
 `hooks.server.ts`, both root layout files and the root `+layout.svelte` are wired as in [Wire SvelteKit](#wire-sveltekit).
 
-```json
+```jsonc
 // src/lib/translations/en/common.json
 {
   "app.name": "My App",
