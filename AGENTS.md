@@ -121,7 +121,8 @@ Official message parsers for the
 - **A `parser-curly` release means a `sveltekit-i18n` release**, which pins
   it exactly: plan them as one release (base's §4, *Releases*), this package
   first. Each package's `README.md` is its npm page, so it describes the
-  version being published, and each of its links resolves.
+  version being published, leaves out nothing it or the family brings, and
+  each of its links resolves.
 - Issues for this repo live in the `lib` tracker.
 
 ## Comments
