@@ -1,6 +1,6 @@
 # Benchmark
 
-What `npm run bench` measured on `@sveltekit-i18n/parser-mf2` 3.1.0, written by the release that published it. A pull request compares its branch with its base in a comment; this file keeps the figures of each release beside its code.
+What `npm run bench` measured on `@sveltekit-i18n/parser-mf2` 3.1.1, written by the release that published it. A pull request compares its branch with its base in a comment; this file keeps the figures of each release beside its code.
 
 Node v24.21.0, linux x64; times are medians of 11 processes, each the median of its rounds, and heap held is the median of as many processes again, each giving one reading per row. A spread leaves out a quarter of a row's samples, rounded down, at each end. Sizes include the parser's dependencies. Heap held is the JavaScript heap: what ICU allocates for an `Intl` object is outside it.
 Dependencies: messageformat 4.0.0.
@@ -22,26 +22,26 @@ Microseconds and milliseconds, of one machine at one time: compare them only wit
 
 | Row | Median | Spread |
 | --- | ---: | --- |
-| parser(options) | 1.11 µs | 1.1 µs to 1.12 µs |
-| parse, plain text, a message parsed for the first time | 5.19 µs | 5.15 µs to 5.28 µs |
-| parse, plain text, the same message again | 0.0831 µs | 0.0819 µs to 0.0859 µs |
-| extractParams, plain text | 0.349 µs | 0.322 µs to 0.501 µs |
-| parse, one placeholder, a message parsed for the first time | 4.26 µs | 4.25 µs to 4.29 µs |
-| parse, one placeholder, the same message again | 0.533 µs | 0.523 µs to 0.548 µs |
-| extractParams, one placeholder | 0.827 µs | 0.808 µs to 0.833 µs |
-| parse, plural, a message parsed for the first time | 28.6 µs | 28.2 µs to 29.1 µs |
-| parse, plural, the same message again | 21.4 µs | 21.3 µs to 21.5 µs |
-| extractParams, plural | 5.38 µs | 5.17 µs to 5.5 µs |
-| parse, select, a message parsed for the first time | 6.85 µs | 6.72 µs to 6.95 µs |
-| parse, select, the same message again | 0.692 µs | 0.689 µs to 0.699 µs |
-| extractParams, select | 3.46 µs | 3.39 µs to 3.53 µs |
-| parse, number, a message parsed for the first time | 18 µs | 17.9 µs to 18.1 µs |
-| parse, number, the same message again | 13.7 µs | 13.7 µs to 13.8 µs |
-| extractParams, number | 1.06 µs | 1.04 µs to 1.07 µs |
-| parse, date, a message parsed for the first time | 38.8 µs | 38.5 µs to 39.5 µs |
-| parse, date, the same message again | 33.4 µs | 33.2 µs to 33.6 µs |
-| extractParams, date | 1.17 µs | 1.14 µs to 1.19 µs |
-| extractParams over a catalogue of 10,000 messages | 15.9 ms | 15.6 ms to 16.1 ms |
+| parser(options) | 1.95 µs | 1.83 µs to 2.04 µs |
+| parse, plain text, a message parsed for the first time | 9.55 µs | 9.33 µs to 9.92 µs |
+| parse, plain text, the same message again | 0.183 µs | 0.181 µs to 0.187 µs |
+| extractParams, plain text | 0.562 µs | 0.531 µs to 0.627 µs |
+| parse, one placeholder, a message parsed for the first time | 8.83 µs | 8.72 µs to 8.98 µs |
+| parse, one placeholder, the same message again | 0.866 µs | 0.852 µs to 0.872 µs |
+| extractParams, one placeholder | 1.57 µs | 1.38 µs to 1.6 µs |
+| parse, plural, a message parsed for the first time | 92.8 µs | 92.1 µs to 93.8 µs |
+| parse, plural, the same message again | 63.8 µs | 63.2 µs to 64.1 µs |
+| extractParams, plural | 8.51 µs | 8.37 µs to 8.72 µs |
+| parse, select, a message parsed for the first time | 16 µs | 15 µs to 16.8 µs |
+| parse, select, the same message again | 1.18 µs | 1.17 µs to 1.19 µs |
+| extractParams, select | 6.26 µs | 6.06 µs to 6.56 µs |
+| parse, number, a message parsed for the first time | 58.4 µs | 58.2 µs to 58.6 µs |
+| parse, number, the same message again | 39.7 µs | 39.5 µs to 39.9 µs |
+| extractParams, number | 1.7 µs | 1.66 µs to 1.71 µs |
+| parse, date, a message parsed for the first time | 117 µs | 116 µs to 118 µs |
+| parse, date, the same message again | 92.8 µs | 91.8 µs to 94 µs |
+| extractParams, date | 1.68 µs | 1.64 µs to 2.06 µs |
+| extractParams over a catalogue of 10,000 messages | 32.9 ms | 29.4 ms to 33.6 ms |
 
 ## Heap
 
