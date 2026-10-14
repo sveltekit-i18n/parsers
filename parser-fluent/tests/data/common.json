@@ -1,0 +1,17 @@
+{
+  "greeting": "Hi { $name }!",
+  "number": "{ NUMBER($value) }",
+  "fraction": "{ NUMBER($value, minimumFractionDigits: 2) }",
+  "plural": "{ $count ->\n    [0] No photos.\n    [one] One photo.\n   *[other] { $count } photos.\n}",
+  "select": "{ $gender ->\n    [male] He will respond shortly.\n    [female] She will respond shortly.\n   *[other] They will respond shortly.\n}",
+  "date": "Today is { DATETIME($value, dateStyle: \"long\") }",
+  "multiline": "Line one\nLine two",
+  "brand": "Welcome to { -brand }!",
+  "inflected": "About { -brand(case: \"locative\") }",
+  "gendered": "{ -brand.gender ->\n    [feminine] { -brand } is here.\n   *[other] { -brand } is here, too.\n}",
+  "malformed": "Hi { $name",
+  "attribute": "Hello\n.title = Title",
+  "unknown_function": "{ FOO($value) }",
+  "reference": "See { other }",
+  "inherited": "{ $constructor } { $toString }"
+}
