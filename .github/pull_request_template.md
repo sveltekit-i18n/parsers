@@ -25,6 +25,7 @@ Relates to #
 - [ ] parser-icu
 - [ ] parser-mf2
 - [ ] parser-i18next
+- [ ] parser-fluent
 - [ ] Several parsers
 - [ ] General/infrastructure
 

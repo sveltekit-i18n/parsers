@@ -101,9 +101,13 @@ Official message parsers for the
   runtime compiles however many copies of the parser an install holds;
   `parser-mf2` wraps `messageformat` (the Unicode
   MessageFormat 2 reference implementation); `parser-i18next` wraps
-  `i18next`. All build with tsup and test with vitest, and all run that suite
-  on Node, Bun and Deno — no package reaches for a runtime API, and the extra
-  legs exist to keep that true.
+  `i18next`; `parser-fluent` wraps `@fluent/bundle` (Fluent's JavaScript
+  runtime), formatting each message as a pattern of its own, and extracts
+  through the syntax tree that runtime compiles, never through
+  `@fluent/syntax`, so extraction reads what the runtime formats. All build
+  with tsup and test with vitest, and all run that suite on Node, Bun and
+  Deno — no package reaches for a runtime API, and the extra legs exist to
+  keep that true.
 - **`1.x` is a frozen snapshot** of the published v1 line. It receives nothing
   unless a critical v1 fix is explicitly requested. `parser-curly` carries none
   of that history: it starts at 3.0.0, and `@sveltekit-i18n/parser-default` on
@@ -123,6 +127,11 @@ Official message parsers for the
   first. Each package's `README.md` is its npm page, so it describes the
   version being published, leaves out nothing it or the family brings, and
   each of its links resolves.
+- **`publish.yml` releases one package per run**, by trusted publishing,
+  which npm configures only for a package that exists: a new package's first
+  version is published by hand (`npm publish --tag next` from its directory),
+  its trusted publisher is then set to `publish.yml`, and every later release
+  runs the workflow.
 - Issues for this repo live in the `lib` tracker.
 
 ## Comments
