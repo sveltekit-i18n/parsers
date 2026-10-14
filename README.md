@@ -117,6 +117,33 @@ npm install @sveltekit-i18n/parser-i18next
 
 [📖 Full documentation](./parser-i18next/README.md)
 
+### [@sveltekit-i18n/parser-fluent](./parser-fluent)
+
+[Fluent](https://projectfluent.org), Mozilla's localization system, formatted by [`@fluent/bundle`](https://github.com/projectfluent/fluent.js/tree/main/fluent-bundle), its JavaScript runtime.
+
+```bash
+npm install @sveltekit-i18n/parser-fluent
+```
+
+**Features:**
+- Variables and placeables: `{ $name }`
+- Selection on plural categories, exact numbers and strings: `{ $count ->` / `[one] One item` / `*[other] { $count } items` / `}`
+- `NUMBER()` and `DATETIME()`, and every `Intl` option through `FluentNumber` and `FluentDateTime` values in the payload
+- Terms, per locale: shared fragments such as a brand name, with grammatical forms of their own
+- Custom functions, and Fluent's `useIsolating` and `transform`
+- Build-time parameter extraction: `extractParamsFactory`, which [`@sveltekit-i18n/typegen`](https://github.com/sveltekit-i18n/typegen) reads to fill `config.schema`
+
+**Example:**
+```json
+{
+  "greeting": "Hello, { $name }!",
+  "items": "{ $count ->\n    [0] You have no items.\n    [one] You have one item.\n   *[other] You have { $count } items.\n}",
+  "welcome": "Welcome to { -brand }!"
+}
+```
+
+[📖 Full documentation](./parser-fluent/README.md)
+
 ## Choosing a Parser
 
 ### Use `parser-curly` if:
@@ -143,6 +170,11 @@ npm install @sveltekit-i18n/parser-i18next
 - You want i18next's own engine rendering them, so nothing changes on the way
 - You need its built-in `number`, `currency`, `datetime`, `relativetime` and `list` formats
 - A dependency of about 44 kB is a fair price for not rewriting a catalogue
+
+### Use `parser-fluent` if:
+- Your translations are already written in Fluent, or you want Mozilla's localization system
+- You want terms: a product name and its grammatical forms kept in one place per locale
+- You want selection on plural categories, exact numbers and strings, with a default variant
 
 ## Using Parsers
 
@@ -171,6 +203,7 @@ import parser from '@sveltekit-i18n/parser-curly';
 // or: import parser from '@sveltekit-i18n/parser-icu';
 // or: import parser from '@sveltekit-i18n/parser-mf2';
 // or: import parser from '@sveltekit-i18n/parser-i18next';
+// or: import parser from '@sveltekit-i18n/parser-fluent';
 
 const config = {
   parser: parser({
@@ -196,6 +229,7 @@ In a SvelteKit app, hand the config to `defineI18n(config, { preferredLocale })`
 | `parser-icu` | Needs `ignoreTag: true`, or a tag is ICU's own syntax and the message fails ([Parser Options](./parser-icu/README.md#parser-options)). | Needs `ignoreTag: true` for an autolink (`<https://example.com>`), or it is ICU's own syntax and the message fails ([Parser Options](./parser-icu/README.md#parser-options)). |
 | `parser-mf2` | Passes HTML tags written as text through; MF2's own markup (`{#b}`, `{/b}`) renders no element. Its isolation marks reach an attribute value: `<T>` of extension-html 3.0.2 or newer removes them, while an attribute filled with `t()` needs `bidiIsolation: 'none'` ([Markup](./parser-mf2/README.md#markup)). | Passes Markdown written as text through. Its text takes a backslash only before `\`, `{`, `}` and `\|`: write a Markdown escape or a backslash break as `\\`, or the message fails ([Markup](./parser-mf2/README.md#markup)). |
 | `parser-i18next` | Passes markup through. Keep the default `escapeValue: false` ([Usage](./parser-i18next/README.md#usage)). | Passes Markdown through. Keep the default `escapeValue: false` ([Usage](./parser-i18next/README.md#usage)). |
+| `parser-fluent` | Passes HTML tags written as text through. Its isolation marks reach an attribute value: `<T>` of extension-html 3.0.2 or newer removes them, while an attribute filled with `t()` needs `useIsolating: false` ([Whitespace and Line Starts](./parser-fluent/README.md#whitespace-and-line-starts)). | Passes Markdown written as text through. A line after the first must not start with `[`, `*`, `.` or `}`, nor hold a blank other than a space among the blanks it starts with, and a value holds no lone carriage return: write such a character as a string literal, `{ "*" }`, and a carriage return as an escape, `{ "\u000D" }` ([Whitespace and Line Starts](./parser-fluent/README.md#whitespace-and-line-starts)). |
 
 ## Creating Custom Parsers
 
@@ -305,6 +339,7 @@ Each parser accepts its own configuration options. Check the specific parser doc
 - [parser-icu options](./parser-icu/README.md#parser-options)
 - [parser-mf2 options](./parser-mf2/README.md#parser-options)
 - [parser-i18next options](./parser-i18next/README.md#options)
+- [parser-fluent options](./parser-fluent/README.md#parser-options)
 
 ## Documentation
 
