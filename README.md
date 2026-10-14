@@ -188,14 +188,14 @@ In a SvelteKit app, hand the config to `defineI18n(config, { preferredLocale })`
 
 ### Rendering Markup
 
-[`@sveltekit-i18n/extension-html`](https://github.com/sveltekit-i18n/extensions/tree/master/extension-html) renders the HTML tags a message carries as elements, through its `<T>` component, and escapes the payload itself. The parser runs first and has to pass the tags through:
+[`@sveltekit-i18n/extension-html`](https://github.com/sveltekit-i18n/extensions/tree/master/extension-html) renders the HTML tags a message carries as elements, and [`@sveltekit-i18n/extension-markdown`](https://github.com/sveltekit-i18n/extensions/tree/master/extension-markdown) the Markdown, CommonMark's inline syntax; each through its `<T>` component, and each makes the payload inert itself. The parser runs first and has to pass the tags or the Markdown through:
 
-| Parser | With `extension-html` |
-| --- | --- |
-| `parser-curly` | Passes markup through. Inside an option value, write an entity's `;` as `\;` ([Escaping](./parser-curly/README.md#escaping)). |
-| `parser-icu` | Needs `ignoreTag: true`, or a tag is ICU's own syntax and the message fails ([Parser Options](./parser-icu/README.md#parser-options)). |
-| `parser-mf2` | Passes HTML tags written as text through; MF2's own markup (`{#b}`, `{/b}`) renders no element. Its isolation marks reach an attribute value: `<T>` of extension-html 3.0.2 or newer removes them, while an attribute filled with `t()` needs `bidiIsolation: 'none'` ([Markup](./parser-mf2/README.md#markup)). |
-| `parser-i18next` | Passes markup through. Keep the default `escapeValue: false` ([Usage](./parser-i18next/README.md#usage)). |
+| Parser | With `extension-html` | With `extension-markdown` |
+| --- | --- | --- |
+| `parser-curly` | Passes markup through. Inside an option value, write an entity's `;` as `\;` ([Escaping](./parser-curly/README.md#escaping)). | Passes Markdown through. A backslash before whitespace or `\` is curly's own escape: write a backslash break as `\\` ([Escaping](./parser-curly/README.md#escaping)). |
+| `parser-icu` | Needs `ignoreTag: true`, or a tag is ICU's own syntax and the message fails ([Parser Options](./parser-icu/README.md#parser-options)). | Needs `ignoreTag: true` for an autolink (`<https://example.com>`), or it is ICU's own syntax and the message fails ([Parser Options](./parser-icu/README.md#parser-options)). |
+| `parser-mf2` | Passes HTML tags written as text through; MF2's own markup (`{#b}`, `{/b}`) renders no element. Its isolation marks reach an attribute value: `<T>` of extension-html 3.0.2 or newer removes them, while an attribute filled with `t()` needs `bidiIsolation: 'none'` ([Markup](./parser-mf2/README.md#markup)). | Passes Markdown written as text through. Its text takes a backslash only before `\`, `{`, `}` and `\|`: write a Markdown escape or a backslash break as `\\`, or the message fails ([Markup](./parser-mf2/README.md#markup)). |
+| `parser-i18next` | Passes markup through. Keep the default `escapeValue: false` ([Usage](./parser-i18next/README.md#usage)). | Passes Markdown through. Keep the default `escapeValue: false` ([Usage](./parser-i18next/README.md#usage)). |
 
 ## Creating Custom Parsers
 

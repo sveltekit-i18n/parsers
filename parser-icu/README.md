@@ -289,7 +289,7 @@ const config = {
 
 `cacheLimit` is how many compiled messages the parser keeps - see [Caching and Error Handling](#caching-and-error-handling) for when to raise it.
 
-`ignoreTag: true` reads every tag as text. [`@sveltekit-i18n/extension-html`](https://github.com/sveltekit-i18n/extensions/tree/master/extension-html#parsers), which renders the markup a message carries as elements, needs it: without it `<b>` is this parser's own rich-text syntax, and a message is reported as `failed-message` and returned raw whenever its payload carries no callback for a tag or a tag carries an attribute, as `<a href="/docs">` does. Build the [extractor](#extracting-parameters) with it too.
+`ignoreTag: true` reads every tag as text. [`@sveltekit-i18n/extension-html`](https://github.com/sveltekit-i18n/extensions/tree/master/extension-html#parsers), which renders the markup a message carries as elements, needs it: without it `<b>` is this parser's own rich-text syntax, and a message is reported as `failed-message` and returned raw whenever its payload carries no callback for a tag or a tag carries an attribute, as `<a href="/docs">` does. [`@sveltekit-i18n/extension-markdown`](https://github.com/sveltekit-i18n/extensions/tree/master/extension-markdown#parsers) needs it for an autolink (`<https://example.com>`), which this parser otherwise reads as a tag and fails. Build the [extractor](#extracting-parameters) with it too.
 
 A report carries `code`, the `key` and `locale` the call was made for, a one-sentence `message`, and the `error` the formatter threw where there was one:
 
