@@ -173,7 +173,7 @@ import parser from '@sveltekit-i18n/parser-i18next';
 
 const config = {
   parser: parser({
-    onReport: null,
+    onReport: console.warn,
     formats: {
       upper: (value) => String(value).toUpperCase(),
     },
@@ -199,7 +199,7 @@ A format is a function of the value, the locale of the call and the merged optio
 ```javascript
 const config = {
   parser: parser({
-    onReport: null,
+    onReport: console.warn,
     missingInterpolationHandler: (text, match) => `[${match[1]}?]`,
   }),
 };
