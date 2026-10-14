@@ -174,8 +174,8 @@ import parser from '@sveltekit-i18n/parser-curly';
 
 const config = {
   parser: parser({
-    // Where diagnostics go; every official parser requires it, `null` included
-    onReport: null,
+    // Where diagnostics go; every official parser requires it, and `null` discards them
+    onReport: console.warn,
     // parser-specific options
   }),
   loaders: [/* ... */],
@@ -323,7 +323,7 @@ import type { Config } from '@sveltekit-i18n/parser-curly';
 
 const config: Config = {
   parser: parser({
-    onReport: null,
+    onReport: console.warn,
     // typed options
   }),
   loaders: [/* ... */],

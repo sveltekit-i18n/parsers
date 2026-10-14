@@ -366,7 +366,7 @@ import parser from '@sveltekit-i18n/parser-icu';
 import type { Config } from '@sveltekit-i18n/parser-icu';
 
 const config: Config = {
-  parser: parser({ onReport: null }),
+  parser: parser({ onReport: console.warn }),
   loaders: [/* ... */],
 };
 
@@ -432,7 +432,7 @@ import parser from '@sveltekit-i18n/parser-icu';
 import type { Config } from '@sveltekit-i18n/parser-icu';
 
 export const config: Config = {
-  parser: parser({ onReport: null }),
+  parser: parser({ onReport: console.warn }),
   loaders: [
     {
       locale: ['en', 'cs'],

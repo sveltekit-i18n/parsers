@@ -26,8 +26,8 @@ import parser from '@sveltekit-i18n/parser-curly';
 
 export const config = {
   parser: parser({
-    // Where diagnostics go; `null` states that they go nowhere.
-    onReport: null,
+    // Where diagnostics go; `null` discards them.
+    onReport: console.warn,
   }),
   loaders: [
     {

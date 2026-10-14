@@ -355,7 +355,7 @@ const upper: MessageFunction<string> = (context, options, input) => ({
 });
 
 const config = {
-  parser: parser({ onReport: null, functions: { upper } }),
+  parser: parser({ onReport: console.warn, functions: { upper } }),
 };
 ```
 
@@ -482,7 +482,7 @@ import parser from '@sveltekit-i18n/parser-mf2';
 import type { Config } from '@sveltekit-i18n/parser-mf2';
 
 export const config: Config = {
-  parser: parser({ onReport: null }),
+  parser: parser({ onReport: console.warn }),
   loaders: [
     {
       locale: ['en', 'cs'],
