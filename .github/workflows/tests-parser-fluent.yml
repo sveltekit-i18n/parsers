@@ -1,0 +1,23 @@
+name: Fluent parser tests
+
+on:
+  push:
+    paths:
+      - parser-fluent/**
+      - contract/**
+      - .github/workflows/tests-parser-fluent.yml
+      - .github/workflows/tests.yml
+  pull_request:
+    types: [opened,reopened,synchronize]
+    paths:
+      - parser-fluent/**
+      - contract/**
+      - .github/workflows/tests-parser-fluent.yml
+      - .github/workflows/tests.yml
+  workflow_dispatch:
+
+jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+    with:
+      package: parser-fluent
